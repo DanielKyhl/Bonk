@@ -10,6 +10,7 @@ extends MapDef
 func _init() -> void:
 	id = "frostfang_peaks"
 	title = "Frostfang Peaks"
+	music = "frost"
 	layout_seed = 2213
 	half_size = 320.0
 	rim_band = 50.0

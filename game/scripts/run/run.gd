@@ -24,6 +24,8 @@ var view: PixelView
 var world: Node3D
 var _autopilot := false
 var _blink := 0.0
+var _gem_streak := 0
+var _gem_t := -1.0
 
 
 func _ready() -> void:
@@ -66,6 +68,7 @@ func _ready() -> void:
 	player.pads = props.pad_positions
 	world.add_child(player)
 	player.place(map.spawn)
+	Sound.listener = player
 
 	fx = Fx.new()
 	world.add_child(fx)
@@ -125,6 +128,7 @@ func _ready() -> void:
 
 	_connect_signals()
 	_apply_stats()
+	Sound.music(map.music)
 	hud.banner(map.title, "Survive until the dead stop rising.")
 
 	var cap := DebugCapture.new()
@@ -246,13 +250,27 @@ func _connect_signals() -> void:
 	enemies.player_hit.connect(_on_player_hit)
 	run.stats_changed.connect(_apply_stats)
 	run.died.connect(_on_death)
+	run.revived.connect(func(): Sound.play("revive"))
 	run.revived.connect(func(): fx.ring(player.position, 6.0, Color(1.0, 0.55, 0.2), 0.6, 0.2); fx.sparks(player.position + Vector3(0, 1, 0), Color(1.0, 0.6, 0.25), 30); fx.text(player.position, "RISEN", Color(1.0, 0.6, 0.25), 20); enemies.push_away(player.position, 9.0, 30.0))
+	run.blocked.connect(func(): Sound.play("block"))
 	run.blocked.connect(func(): fx.ring(player.position, 2.2, Color(1.0, 0.85, 0.45), 0.35, 0.12); fx.text(player.position, "BLOCKED", UIStyle.GOLD, 20))
 	director.banner.connect(hud.banner)
+	director.banner.connect(func(_t, _s): Sound.play("toll"))
+	director.final_swarm_started.connect(func(): Sound.music("boss"))
+	pickups.collected.connect(_on_collect)
+	chests.opened.connect(func(item: String, _p: Vector3):
+		Sound.play("chest")
+		var fanfare := "legendary" if Defs.ITEMS[item].rarity >= 3 else "item"
+		get_tree().create_timer(0.45).timeout.connect(func(): Sound.play(fanfare)))
+	player.air_jumped.connect(func(_p): Sound.play("jump", null, 1.25))
+	player.slide_started.connect(func(_p): Sound.play("slide"))
 	shrines.prayed.connect(_on_prayed)
 	boss.summoned.connect(func(): hud.banner(map.boss.name, map.boss.rises))
+	boss.summoned.connect(func(): Sound.play("boss_roar"); Sound.music("boss"))
 	boss.portal_entered.connect(_on_victory)
+	shrines.cursed.connect(func(): Sound.play("curse"))
 	shrines.cursed.connect(func(): director.summon_elites(3); hud.banner("The altar wakes", "Slay its champions for golden chests"); camera.add_shake(5.0))
+	shrines.greed_taken.connect(func(): Sound.play("coin", null, 0.7, 4.0))
 	shrines.greed_taken.connect(func(): director.greed += 1; hud.banner("Greed", "+25% gold, but the dead come faster"))
 	menus.picked.connect(_on_pick)
 	menus.resume_requested.connect(func(): get_tree().paused = false)
@@ -267,6 +285,7 @@ func _process(delta: float) -> void:
 		get_tree().paused = true
 		hud.clear_banner()
 		menus.show_levelup(run.roll_choices())
+		Sound.play("levelup")
 		if _autopilot and not "--no-autopick" in OS.get_cmdline_user_args():
 			_autopick.call_deferred()
 	if Input.is_action_just_pressed("pause") and not menus.is_open() and not run.dead:
@@ -295,27 +314,45 @@ func _on_slam(pos: Vector3, power: float) -> void:
 	fx.ring(pos, 2.5 + power, Color(0.85, 0.8, 0.7), 0.3, 0.08)
 	fx.dust(pos, 10)
 	camera.add_shake(2.5 * power)
+	Sound.play("land", null, 0.75, 5.0)
 
 
 func _on_stomp(_i: int, pos: Vector3, _slam: bool) -> void:
 	fx.dust(pos, 6)
 	camera.add_shake(1.0)
+	Sound.play("stomp")
 
 
 func _on_land(air_time: float, impact: float) -> void:
 	if air_time < 0.1:
 		return
 	fx.dust(player.position, 3 + int(minf(8.0, impact / 6.0)))
+	Sound.play("land", null, 1.0, clampf(impact / 4.0 - 6.0, -8.0, 2.0))
 
 
 func _on_launch(pos: Vector3) -> void:
 	fx.ring(pos, 3.0, Color(1.0, 0.9, 0.55), 0.4)
 	fx.sparks(pos + Vector3(0, 0.6, 0), Color(1.0, 0.9, 0.55), 14)
 	camera.add_shake(2.0)
+	Sound.play("launch")
 
 
-func _on_hop(_chain: int) -> void:
-	pass
+func _on_hop(chain: int) -> void:
+	# Perfect hops climb in pitch as the chain grows.
+	Sound.play("jump", null, 1.0 + 0.03 * clampi(chain, 0, 12))
+
+
+func _on_collect(kind: int, _value: float, _pos: Vector3) -> void:
+	match kind:
+		Pickups.XP, Pickups.XP_BIG:
+			# Gems chime a little higher while you sweep up a stream of them.
+			_gem_streak = _gem_streak + 1 if run.time - _gem_t < 0.4 else 0
+			_gem_t = run.time
+			Sound.play("gem", null, 1.0 + 0.02 * mini(_gem_streak, 24))
+		Pickups.GOLD:
+			Sound.play("coin")
+		Pickups.HEAL:
+			Sound.play("heart")
 
 
 func _on_kill(type: int, pos: Vector3, xp: int, is_elite: bool) -> void:
@@ -325,6 +362,7 @@ func _on_kill(type: int, pos: Vector3, xp: int, is_elite: bool) -> void:
 		_on_boss_down(pos)
 		return
 	fx.bone_burst(pos, type == 2 or is_elite)
+	Sound.play("bone", pos, 0.8 if is_elite else 1.0, 4.0 if is_elite else 0.0)
 	if is_elite:
 		run.elites += 1
 		pickups.drop(Pickups.XP_BIG, pos, xp)
@@ -346,6 +384,8 @@ func _on_boss_down(pos: Vector3) -> void:
 	run.boss_killed = true
 	run.boss_time = run.time
 	boss.on_defeated(pos)
+	Sound.play("boss_die")
+	Sound.music(map.music)
 	fx.bone_burst(pos, true)
 	fx.ring(pos, 16.0, Color(0.6, 0.9, 1.0), 0.9, 0.2)
 	camera.add_shake(10.0)
@@ -359,6 +399,7 @@ func _on_boss_down(pos: Vector3) -> void:
 
 
 func _on_victory() -> void:
+	Sound.play("portal")
 	player.input_locked = true
 	director.paused = true
 	var next_name := Game.unlock_next_map(map.id)
@@ -400,18 +441,21 @@ func _on_player_hit(dmg: float, _from: Vector3, enemy: int) -> void:
 	if run.stats.thorns > 0.0 and enemy >= 0 and enemies.is_alive(enemy):
 		enemies.damage(enemy, run.stats.thorns * run.stats.damage)
 	if run.take_damage(dmg):
+		Sound.play("hurt")
 		hud.hurt()
 		camera.add_shake(4.0)
 		_blink = 0.0
 
 
 func _on_prayed(choices: Array[Dictionary]) -> void:
+	Sound.play("prayer")
 	get_tree().paused = true
 	hud.clear_banner()
 	menus.show_levelup(choices, "Blessing")
 
 
 func _on_pick(c: Dictionary) -> void:
+	Sound.play("click")
 	if c.kind == "blessing":
 		run.add_blessing(c)
 	else:
@@ -421,6 +465,8 @@ func _on_pick(c: Dictionary) -> void:
 
 
 func _on_death() -> void:
+	Sound.music("")
+	Sound.play("death")
 	player.input_locked = true
 	director.paused = true
 	await get_tree().create_timer(0.8).timeout

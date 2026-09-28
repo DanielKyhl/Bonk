@@ -23,6 +23,8 @@ func _ready() -> void:
 		return
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	Sound.listener = null
+	Sound.music("menu")
 	for k in 70:
 		_embers.append({"p": Vector2(randf() * 1600.0, randf() * 900.0), "v": randf_range(12.0, 40.0), "s": randi_range(1, 3) * 2.0})
 	_prebuild(Game.map_id)
@@ -310,7 +312,8 @@ func _settings() -> void:
 	_slider(v, "Effects", 0.0, 1.0, Game.sfx_volume, func(x: float):
 		Game.sfx_volume = x
 		Game.set_saved("settings", "sfx_volume", x)
-		Game.apply_volumes())
+		Game.apply_volumes()
+		Sound.play("gem"))
 	var fs := CheckButton.new()
 	fs.text = "Fullscreen (F11)"
 	fs.add_theme_font_override("font", UIStyle.ui_font("Bold"))

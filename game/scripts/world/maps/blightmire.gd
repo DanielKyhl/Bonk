@@ -10,6 +10,7 @@ extends MapDef
 func _init() -> void:
 	id = "blightmire"
 	title = "Blightmire"
+	music = "bog"
 	layout_seed = 3319
 	half_size = 320.0
 	rim_band = 44.0

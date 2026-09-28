@@ -116,6 +116,7 @@ func hit(i: int, base: float, push: Vector2, slow_secs := 0.0) -> bool:
 	elif run.stats.chill > 0.0 and randf() < run.stats.chill:
 		enemies.slow(i, 2.0)
 	var pos := enemies.position_of(i)
+	Sound.play("crit" if crit else "hit", pos)
 	# At most one number per enemy every quarter second (crits always show).
 	if crit or _num_at.get(i, -1.0) < _t - 0.25:
 		_num_at[i] = _t
@@ -292,6 +293,7 @@ func _sweep(id: String) -> void:
 	_flail_t = 0.0
 	_flail_r = r
 	player.model.swing()
+	Sound.play("swing")
 	var knock := wstat(id, "knock")
 	var dmg := wstat(id, "damage")
 	for i in enemies.query(p.x, p.z, r):
@@ -308,6 +310,7 @@ func _fire_javelins(id: String) -> void:
 	if target >= 0:
 		dir = Vector2(enemies.px[target] - p.x, enemies.pz[target] - p.z).normalized()
 	var n := count(id)
+	Sound.play("throw")
 	for k in n:
 		var a := (k - (n - 1) * 0.5) * 0.14
 		var d := dir.rotated(a)
@@ -319,6 +322,7 @@ func _fire_javelins(id: String) -> void:
 # --- Axes -----------------------------------------------------------------------------
 func _throw_axes(id: String) -> void:
 	var p := player.position
+	Sound.play("throw", null, 0.75)
 	for k in count(id):
 		var a := randf() * TAU
 		var hv := Vector2(cos(a), sin(a)) * randf_range(5.0, 9.0) + Vector2(player.vel.x, player.vel.z) * 0.6
@@ -442,6 +446,7 @@ func _run_smites() -> void:
 		var r := area(s.id)
 		fx.pillar(pos)
 		fx.ring(pos, r * 1.4, Color(1.0, 0.92, 0.65), 0.35)
+		Sound.play("smite", pos)
 		_bursts.append({"pos": pos + Vector3(0, 1.0, 0), "t": 0.0})
 		fx.sparks(pos + Vector3(0, 0.5, 0), Color(1.0, 0.95, 0.75), 10)
 		for e in enemies.query(pos.x, pos.z, r):
@@ -514,6 +519,7 @@ func _breathe(id: String) -> void:
 	var half := deg_to_rad(wstat(id, "angle")) * 0.5
 	_hit_arc(id, dir, r, half)
 	player.model.swing()
+	Sound.play("fire")
 	var o := p + Vector3(dir.x * 0.6, 1.5, dir.y * 0.6)
 	for k in 9:
 		var v: Vector2 = dir.rotated(randf_range(-half, half) * 0.8) * r / 0.42 * randf_range(0.75, 1.0)
@@ -560,6 +566,7 @@ func _chain(id: String, k: int) -> void:
 		cur = best
 	fx.lightning(pts, color)
 	player.model.swing()
+	Sound.play("zap", pts[1])
 
 
 # --- Rending Claws ---------------------------------------------------------------------
@@ -569,6 +576,7 @@ func _claw(id: String, k: int) -> void:
 	_hit_arc(id, dir, r, deg_to_rad(wstat(id, "angle")) * 0.5)
 	_slashes.append({"dir": dir, "side": 1.0 if k % 2 == 0 else -1.0, "t": 0.0, "r": r})
 	player.model.swing()
+	Sound.play("claw")
 
 
 # --- Warden's Chains -------------------------------------------------------------------
@@ -590,6 +598,7 @@ func _lash(id: String, k: int) -> void:
 		hit(e, dmg, d.normalized() * knock)
 	_lashes.append({"dir": dir, "len": length, "t": 0.0})
 	player.model.swing()
+	Sound.play("chain")
 
 
 # --- Frost Shards ------------------------------------------------------------------------
@@ -604,6 +613,7 @@ func _fire_shards(id: String) -> void:
 			"life": 0.9, "pierce": int(wstat(id, "pierce")), "hits": [], "dmg": wstat(id, "damage"),
 			"knock": wstat(id, "knock"), "slow": wstat(id, "slow")})
 	player.model.swing()
+	Sound.play("ice")
 
 
 # --- Rune Slam ---------------------------------------------------------------------------
@@ -617,6 +627,7 @@ func _slam(id: String, k: int) -> void:
 	fx.chips(at + Vector3(0, 0.3, 0), Color(0.46, 0.41, 0.37), 16, 9.0, 0.22, 0.8)
 	fx.sparks(at + Vector3(0, 0.5, 0), color, 10)
 	camera.add_shake(2.0)
+	Sound.play("slam", null, 1.0 if k == 0 else 1.15, 0.0 if k == 0 else -4.0)
 	var dmg := wstat(id, "damage") * (0.6 if k > 0 else 1.0)
 	var knock := wstat(id, "knock")
 	for e in enemies.query(p.x, p.z, r):
@@ -638,6 +649,7 @@ func _throw_blades(id: String) -> void:
 			"life": 5.0, "pierce": 1000, "hits": [], "dmg": wstat(id, "damage"), "knock": wstat(id, "knock"),
 			"out": true, "dist": 0.0, "range": r * sqrt(run.stats.area), "speed": sp})
 	player.model.swing()
+	Sound.play("soul")
 
 
 func _steer_blade(pr: Dictionary, delta: float) -> void:
@@ -668,6 +680,7 @@ func _loose_skulls(id: String) -> void:
 			"life": 3.0, "pierce": 0, "hits": [], "dmg": wstat(id, "damage"), "knock": wstat(id, "knock"),
 			"target": -1, "retarget": 0.0, "speed": sp})
 	player.model.swing()
+	Sound.play("skull")
 
 
 func _steer_skull(pr: Dictionary, delta: float) -> void:
@@ -718,6 +731,7 @@ func _open_rift(id: String, k: int) -> void:
 	_rifts.append({"pos": at, "r": r, "t": 0.0, "life": wstat(id, "duration"), "next": 0.1 + k * 0.05, "id": id})
 	fx.ring(at, r * 1.2, Defs.WEAPONS[id].color, 0.4, 0.18)
 	player.model.swing()
+	Sound.play("rift", at)
 
 
 func _run_rifts(delta: float) -> void:

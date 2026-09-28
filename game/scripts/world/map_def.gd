@@ -8,6 +8,8 @@ extends RefCounted
 
 var id := ""
 var title := ""
+## Music loop (res://assets/audio/music/<music>.ogg).
+var music := "vale"
 var half_size := 160.0
 ## The edges curve up into a quarter-pipe this wide and high, then sheer cliffs.
 var rim_band := 30.0

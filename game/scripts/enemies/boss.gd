@@ -176,6 +176,7 @@ func _fight(_delta: float) -> void:
 		var back := Vector2(-player.facing.x, -player.facing.y) * 12.0
 		var q := terrain.clamp_to_map(Vector2(pp.x, pp.z) + back, 6.0)
 		fx.ring(b, 4.0, Color(0.6, 0.2, 0.9), 0.4, 0.15)
+		Sound.play("blink")
 		enemies.px[i] = q.x
 		enemies.pz[i] = q.y
 		fx.ring(Vector3(q.x, terrain.grid_height(q.x, q.y), q.y), 4.0, Color(0.6, 0.2, 0.9), 0.4, 0.15)
@@ -183,6 +184,7 @@ func _fight(_delta: float) -> void:
 	if _t >= _next_nova:
 		_next_nova = _t + NOVA_EVERY * pace
 		var n := NOVA_COUNT + (8 if enraged else 0)
+		Sound.play("nova", b)
 		var off := randf() * TAU
 		for k in n:
 			var a := off + TAU * k / n
@@ -190,6 +192,7 @@ func _fight(_delta: float) -> void:
 	if _t >= _next_bolts:
 		_next_bolts = _t + BOLTS_EVERY * pace
 		var aim := (pp + Vector3(0, 1.0, 0) - head).normalized()
+		Sound.play("bolt", head)
 		for k in (5 if enraged else 3):
 			var spread := (k - (2 if enraged else 1)) * 0.16
 			_shoot(head, aim.rotated(Vector3.UP, spread) * BOLT_SPEED, BOLT_DAMAGE, map.boss.bolt_row, 4.0)
