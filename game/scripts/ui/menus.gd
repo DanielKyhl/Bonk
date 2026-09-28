@@ -64,10 +64,10 @@ func show_levelup(choices: Array[Dictionary]) -> void:
 	_open_at = Time.get_ticks_msec() / 1000.0
 	_backdrop(0.55)
 	var v := _center_box(1100)
-	var title := UIStyle.label("LEVEL %d" % run.level, UIStyle.title_font(), 54, UIStyle.GOLD, 10)
+	var title := UIStyle.label("Level %d" % run.level, UIStyle.title_font(), 72, UIStyle.GOLD, 10)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(title)
-	var hint := UIStyle.label("Choose one  ·  1, 2, 3 or click", UIStyle.ui_font("SemiBold"), 20, UIStyle.MUTED)
+	var hint := UIStyle.label("Choose one:  1, 2, 3 or click", UIStyle.ui_font("SemiBold"), 20, UIStyle.MUTED)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(hint)
 	var row := HBoxContainer.new()
@@ -80,10 +80,10 @@ func show_levelup(choices: Array[Dictionary]) -> void:
 
 func _card(i: int, c: Dictionary) -> Control:
 	var b := Button.new()
-	b.custom_minimum_size = Vector2(330, 360)
+	b.custom_minimum_size = Vector2(330, 400)
 	b.focus_mode = Control.FOCUS_ALL
-	var normal := UIStyle.panel_style(UIStyle.PANEL_LIGHT, 10, Color(UIStyle.GOLD, 0.35))
-	var hover := UIStyle.panel_style(Color(0.18, 0.2, 0.2, 0.96), 10, UIStyle.GOLD)
+	var normal := UIStyle.frame("card")
+	var hover := UIStyle.frame("card_hot")
 	b.add_theme_stylebox_override("normal", normal)
 	b.add_theme_stylebox_override("hover", hover)
 	b.add_theme_stylebox_override("focus", hover)
@@ -129,16 +129,26 @@ func _card(i: int, c: Dictionary) -> Control:
 			name = "Second Wind"
 			desc = "Heal 40% of your health."
 			tag = "BLESSING"
-	v.add_child(UIStyle.label("%d" % (i + 1), UIStyle.ui_font("ExtraBold"), 22, UIStyle.MUTED, 0))
-	v.add_child(UIStyle.label(tag, UIStyle.ui_font("Bold"), 18, color, 0))
-	var n := UIStyle.label(name, UIStyle.title_font(), 28, UIStyle.PARCH, 0)
+	var top := HBoxContainer.new()
+	top.add_theme_constant_override("separation", 14)
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.add_child(top)
+	var ic := UIStyle.icon_rect(c.id if c.kind != "heal" else "vitality", 3)
+	top.add_child(ic)
+	var tv := VBoxContainer.new()
+	tv.add_theme_constant_override("separation", 0)
+	tv.alignment = BoxContainer.ALIGNMENT_CENTER
+	top.add_child(tv)
+	tv.add_child(UIStyle.label("%d" % (i + 1), UIStyle.ui_font("ExtraBold"), 20, UIStyle.MUTED, 0))
+	tv.add_child(UIStyle.label(tag, UIStyle.ui_font("Bold"), 20, color, 0))
+	var n := UIStyle.label(name, UIStyle.title_font(), 48, UIStyle.PARCH, 8)
 	n.autowrap_mode = TextServer.AUTOWRAP_WORD
 	v.add_child(n)
-	var d := UIStyle.label(desc, UIStyle.ui_font("Regular"), 21, Color(0.82, 0.84, 0.8), 0)
+	var d := UIStyle.label(desc, UIStyle.ui_font("Regular"), 16, Color(0.8, 0.77, 0.72), 0)
 	d.autowrap_mode = TextServer.AUTOWRAP_WORD
 	v.add_child(d)
 	if detail != "":
-		var dl := UIStyle.label(detail, UIStyle.ui_font("SemiBold"), 19, UIStyle.GOLD, 0)
+		var dl := UIStyle.label(detail, UIStyle.ui_font("SemiBold"), 20, UIStyle.GOLD, 0)
 		dl.autowrap_mode = TextServer.AUTOWRAP_WORD
 		v.add_child(dl)
 	var spacer := Control.new()
@@ -149,7 +159,7 @@ func _card(i: int, c: Dictionary) -> Control:
 	v.add_child(pips)
 	for k in max_lvl:
 		var pip := ColorRect.new()
-		pip.custom_minimum_size = Vector2(22, 7)
+		pip.custom_minimum_size = Vector2(20, 6)
 		pip.color = color if k < lvl else (Color(color, 0.55) if k == lvl else Color(1, 1, 1, 0.14))
 		pips.add_child(pip)
 	return b
@@ -222,7 +232,7 @@ func show_pause() -> void:
 	_root.visible = true
 	_backdrop(0.6)
 	var v := _center_box(420)
-	var t := UIStyle.label("PAUSED", UIStyle.title_font(), 56, UIStyle.GOLD, 10)
+	var t := UIStyle.label("Paused", UIStyle.title_font(), 72, UIStyle.GOLD, 10)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(t)
 	v.add_child(_button("Resume", func(): _close(); resume_requested.emit()))
@@ -236,7 +246,7 @@ func show_death(title: String, rows: Array) -> void:
 	_root.visible = true
 	_backdrop(0.7)
 	var v := _center_box(760)
-	var t := UIStyle.label(title.to_upper(), UIStyle.title_font(), 60, UIStyle.HP, 10)
+	var t := UIStyle.label(title, UIStyle.title_font(), 72, UIStyle.HP, 10)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(t)
 	var grid := GridContainer.new()
@@ -248,8 +258,8 @@ func show_death(title: String, rows: Array) -> void:
 	v.add_child(gc)
 	for r in rows:
 		var cell := VBoxContainer.new()
-		cell.add_child(UIStyle.label(str(r[0]).to_upper(), UIStyle.ui_font("SemiBold"), 16, UIStyle.MUTED, 0))
-		cell.add_child(UIStyle.label(str(r[1]), UIStyle.ui_font("ExtraBold"), 38, UIStyle.PARCH, 0))
+		cell.add_child(UIStyle.label(str(r[0]).to_upper(), UIStyle.ui_font("SemiBold"), 20, UIStyle.MUTED, 0))
+		cell.add_child(UIStyle.label(str(r[1]), UIStyle.ui_font("ExtraBold"), 40, UIStyle.PARCH, 0))
 		grid.add_child(cell)
 	var bc := CenterContainer.new()
 	v.add_child(bc)
@@ -263,12 +273,13 @@ func _button(text: String, cb: Callable) -> Button:
 	b.text = text
 	b.custom_minimum_size = Vector2(300, 58)
 	b.add_theme_font_override("font", UIStyle.ui_font("Bold"))
-	b.add_theme_font_size_override("font_size", 26)
+	b.add_theme_font_size_override("font_size", 30)
 	b.add_theme_color_override("font_color", UIStyle.PARCH)
 	b.add_theme_color_override("font_focus_color", UIStyle.INK)
 	b.add_theme_color_override("font_hover_color", UIStyle.INK)
-	b.add_theme_stylebox_override("normal", UIStyle.panel_style(UIStyle.PANEL_LIGHT, 8, Color(UIStyle.GOLD, 0.4)))
-	var hi := UIStyle.panel_style(UIStyle.GOLD, 8)
+	b.add_theme_color_override("font_pressed_color", UIStyle.INK)
+	b.add_theme_stylebox_override("normal", UIStyle.frame("button"))
+	var hi := UIStyle.frame("button_hot")
 	b.add_theme_stylebox_override("hover", hi)
 	b.add_theme_stylebox_override("focus", hi)
 	b.add_theme_stylebox_override("pressed", hi)

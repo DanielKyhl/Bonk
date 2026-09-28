@@ -6,7 +6,8 @@ extends Camera3D
 ## smooth. `yaw` turns the view around the player (0 looks toward -Z).
 
 @export var pitch_deg := 50.0
-@export var follow_speed := 7.0
+## How quickly the view catches up with the player (higher = tighter).
+@export var follow_speed := 6.0
 @export var distance := 80.0    ## Only keeps the terrain in front of the near plane.
 
 var target: Player

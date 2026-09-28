@@ -8,7 +8,7 @@ var map: MapDef
 var terrain: Terrain
 var props: Props
 var player: Player
-var camera: FollowCamera
+var camera: MouseLookCamera
 var enemies: EnemyManager
 var run: RunState
 var fx: Fx
@@ -65,7 +65,7 @@ func _ready() -> void:
 	player.stomp_probe = enemies.stomp_probe
 	player.stomp_top = enemies.stomp_top
 
-	camera = FollowCamera.new()
+	camera = load("res://scenes/actors/camera.tscn").instantiate()
 	camera.target = player
 	camera.view = view
 	world.add_child(camera)
@@ -118,6 +118,9 @@ func _ready() -> void:
 			var r := randf_range(6.0, 40.0)
 			enemies.spawn(k % 4 if k % 11 != 0 else 2, map.spawn.x + cos(a) * r, map.spawn.y + sin(a) * r, 1000.0, false)
 	for a in args:
+		if a.begins_with("--yaw="):
+			camera.yaw = deg_to_rad(float(a.get_slice("=", 1)))
+			camera._target_yaw = camera.yaw
 		if a.begins_with("--place="):
 			var xz := a.get_slice("=", 1).split(",")
 			player.place(Vector2(float(xz[0]), float(xz[1])))
@@ -165,7 +168,7 @@ func _connect_signals() -> void:
 	enemies.player_hit.connect(_on_player_hit)
 	run.stats_changed.connect(_apply_stats)
 	run.died.connect(_on_death)
-	run.blocked.connect(func(): fx.ring(player.position, 2.2, Color(1.0, 0.85, 0.45), 0.35, 0.12); fx.text(player.position, "BLOCKED", UIStyle.GOLD, 60))
+	run.blocked.connect(func(): fx.ring(player.position, 2.2, Color(1.0, 0.85, 0.45), 0.35, 0.12); fx.text(player.position, "BLOCKED", UIStyle.GOLD, 20))
 	director.banner.connect(hud.banner)
 	menus.picked.connect(_on_pick)
 	menus.resume_requested.connect(func(): get_tree().paused = false)

@@ -16,6 +16,8 @@ const DEATH_FPS := 12.0
 const FADE_TIME := 0.45           ## Dithered fade after the death frames.
 const WALK_FPS := 10.0            ## Walk frames per second at the type's anim_speed.
 const ATTACK_FPS := 12.0
+const CLIMB_SLOPE := 1.2          ## Steeper than this is a cliff...
+const CLIMB_SLOW := 0.3           ## ...which slows them to this fraction.
 
 enum { RISING, ALIVE, DYING }
 enum Anim { RUN, ATTACK, SPAWN, DEATH }
@@ -245,8 +247,15 @@ func _process(delta: float) -> void:
 					anim_t[i] = 0.0
 			elif anim[i] == Anim.ATTACK and d > reach + 0.8:
 				anim[i] = Anim.RUN
-			px[i] += (dx / d * sp + kx[i]) * delta
-			pz[i] += (dz / d * sp + kz[i]) * delta
+			var mx := (dx / d * sp + kx[i]) * delta
+			var mz := (dz / d * sp + kz[i]) * delta
+			# Cliffs: the dead claw their way up, slowly.
+			var step := sqrt(mx * mx + mz * mz)
+			if step > 0.0001 and terrain.grid_height(px[i] + mx, pz[i] + mz) - py[i] > step * CLIMB_SLOPE:
+				mx *= CLIMB_SLOW
+				mz *= CLIMB_SLOW
+			px[i] += mx
+			pz[i] += mz
 			# The player's body blocks: nobody stands inside the hero.
 			var body := radius[i] + Player.RADIUS + 0.3
 			if d < body and player.height_above_ground() < top[i]:

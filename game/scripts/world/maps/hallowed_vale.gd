@@ -31,19 +31,34 @@ func _init() -> void:
 	prop_grade = Color(1.0, 0.92, 0.88)
 
 	# --- Landforms -----------------------------------------------------------
-	hill(0, -86, 13.0, 26, 22)            # Cathedral Hill
+	# Cathedral Crag: two cliff tiers, climbed by natural slopes on the south.
+	hill(0, -86, 4.0, 26, 22)
+	plateau(0, -86, 4.0, 30, 26, 10, 1.5, 0.15, 90, 20)
+	plateau(0, -88, 4.0, 15, 13, 0, 1.2, 0.1, 90, 12)
 	hill(-96, -8, 9.0, 46, 12, deg_to_rad(20))   # Windmill Ridge
-	hill(96, 4, -7.0, 21)                 # Graveyard Bowl
+	# Graveyard Pit: sunk between cliffs, the west side slopes down to the gate.
+	plateau(96, 4, -6.0, 22, 22, 0, 1.6, 0.12, 180, 16)
 	hill(-102, -96, 8.0, 14)              # Hermit hills
 	hill(-72, -112, 7.0, 12)
 	hill(-86, -104, -3.0, 8)              # little halfpipe between them
 	hill(62, -70, 5.0, 16, 11, deg_to_rad(-30))
 	hill(-60, 60, 5.5, 15)
 	hill(40, 40, 3.0, 10)
-	hill(-110, 70, 6.0, 18, 12, deg_to_rad(50))
 	hill(120, -60, 7.0, 16)
 	hill(-30, -40, 4.0, 12)
-	mesa(-10, 96, 3.4, 24, 27)            # The Keep plateau
+	# The Keep: a sheer plateau; a long slope climbs its north side.
+	plateau(-10, 96, 6.5, 26, 24, 0, 1.6, 0.05, -90, 22, 40)
+	# Watch Hill: two jumpable terraces in the southwest.
+	plateau(-108, 72, 3.0, 22, 17, 50, 1.2, 0.18, 0, 14)
+	plateau(-112, 74, 3.0, 11, 9, 20, 1.0, 0.2)
+	# The Scar: a ravine across the west, shallow at both ends.
+	ravine([Vector2(-138, -52), Vector2(-104, -42), Vector2(-74, -54), Vector2(-48, -40), Vector2(-34, -18)], 9.0, 7.0, 1.6, 18.0)
+	# Bone Ridges: thin rock spines in the northeast badlands.
+	plateau(112, -84, 5.5, 26, 3.5, 35, 2.4, 0.22)
+	plateau(84, -112, 4.5, 18, 3.0, -20, 2.2, 0.25)
+	for sp in [Vector3(58, -58, 9.0), Vector3(71, -47, 7.0), Vector3(46, -80, 10.0), Vector3(132, -104, 8.0),
+			Vector3(104, 112, 8.0), Vector3(-128, -128, 9.0), Vector3(-46, 42, 6.0), Vector3(130, 60, 7.5)]:
+		spire(sp.x, sp.y, sp.z, 2.6)
 
 	# Kickers: small sharp bumps that launch you when you're fast.
 	var rng := RandomNumberGenerator.new()
@@ -51,7 +66,9 @@ func _init() -> void:
 	var placed := 0
 	while placed < 80:
 		var p := Vector2(rng.randf_range(-130, 130), rng.randf_range(-130, 130))
-		if p.distance_to(spawn) < 14 or p.distance_to(Vector2(-10, 96)) < 32 or p.distance_to(Vector2(96, 4)) < 24:
+		if p.distance_to(spawn) < 14 or p.distance_to(Vector2(-10, 96)) < 34 or p.distance_to(Vector2(96, 4)) < 28:
+			continue
+		if p.distance_to(Vector2(-108, 72)) < 26 or (p.x < -30 and p.y > -62 and p.y < -12 and p.x > -140):
 			continue
 		if p.distance_to(Vector2(0, -86)) < 16:
 			continue
@@ -63,10 +80,9 @@ func _init() -> void:
 		placed += 1
 
 	# --- Ramps ---------------------------------------------------------------
-	# Up onto the keep plateau (north, east, west sides).
-	ramp(-10, 63, 90, 9.0, 5.0, 3.4)
-	ramp(22.9, 98, 180, 9.0, 5.0, 3.4)
-	ramp(-42.7, 100, 0, 9.0, 5.0, 3.4)
+	# Up onto the keep's east and west cliffs (the north side is a slope).
+	ramp(33, 98, 180, 16.0, 5.0, 6.6)
+	ramp(-53, 100, 0, 16.0, 5.0, 6.6)
 	# Kickers around the map.
 	ramp(14, 22, 0)
 	ramp(-24, 34, 120)
@@ -106,7 +122,7 @@ func _init() -> void:
 	# Graveyard bowl: crypt on the east rim, arch gate on the west.
 	landmark(HAL + "crypt.gltf", 124, 4, -90, 1.2, {"kind": "box", "size": Vector2(9.6, 7.2), "height": 9.0})
 	landmark(HAL + "arch.gltf", 72, 4, 90, 1.3)
-	for p in [Vector2(84, -16), Vector2(108, 24)]:
+	for p in [Vector2(80, -18), Vector2(112, 26)]:
 		landmark(HAL + "pillar.gltf", p.x, p.y, 0, 1.2, {"kind": "cyl", "radius": 0.7, "height": 5.3})
 		pillar_spots.append(p)
 
@@ -159,7 +175,7 @@ func _init() -> void:
 	scatter.append({"scenes": pines, "center": Vector2(-130, -40), "radius": 20, "count": 22, "scale": Vector2(0.9, 1.3), "spacing": 6.0})
 	scatter.append({"scenes": pines, "center": Vector2(0, 0), "radius": 125, "count": 60, "scale": Vector2(0.7, 1.2), "spacing": 10.0})
 	scatter.append({"scenes": dead, "center": Vector2(0, 0), "radius": 125, "count": 25, "scale": Vector2(0.9, 1.3), "spacing": 10.0})
-	scatter.append({"scenes": graves, "rows": {"center": Vector2(96, 4), "radius": 25, "step": Vector2(5.0, 4.0), "yaw": -90.0}, "scale": Vector2(1.0, 1.15), "chance": 0.7})
+	scatter.append({"scenes": graves, "rows": {"center": Vector2(96, 4), "radius": 20, "step": Vector2(5.0, 4.0), "yaw": -90.0}, "scale": Vector2(1.0, 1.15), "chance": 0.7})
 	scatter.append({"scenes": dead, "center": Vector2(96, 4), "radius": 30, "count": 14, "scale": Vector2(1.0, 1.4), "spacing": 6.0})
 	scatter.append({"scenes": dead, "center": Vector2(-10, 96), "radius": 34, "count": 8, "scale": Vector2(1.0, 1.3), "spacing": 8.0})
 	scatter.append({"scenes": rocks, "center": Vector2(85, 90), "radius": 38, "count": 36, "scale": Vector2(7.0, 13.0), "spacing": 5.0})

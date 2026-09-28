@@ -304,6 +304,9 @@ func _free(p: Vector2, margin: float, avoid_paths: bool) -> bool:
 		return false
 	if terrain.in_solid(p.x, p.y, margin):
 		return false
+	# Nothing grows out of cliff faces.
+	if terrain.grid_normal_y(p.x, p.y) < 0.72:
+		return false
 	if avoid_paths and terrain.path_mask(p.x, p.y) > 0.25:
 		return false
 	for q in pad_positions:

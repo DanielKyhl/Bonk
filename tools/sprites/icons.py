@@ -1,0 +1,124 @@
+"""Builds the pixel icons for weapons, tomes and items from game-icons.net SVGs.
+
+    python3 tools/sprites/icons.py /path/to/game-icons/icons
+
+Each silhouette is rasterized large (via Godot's SVG loader), shrunk to a
+24px mask by coverage, then shaded like hand-made pixel art: a base color,
+a lit top-left edge, a shaded bottom-right edge and a 1px dark outline.
+Writes game/assets/icons/<id>.png and game/assets/icons/CREDITS.txt.
+"""
+import os
+import subprocess
+import sys
+import tempfile
+
+from PIL import Image
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+OUT = os.path.join(ROOT, "game", "assets", "icons")
+GODOT = os.environ.get("GODOT", "/home/user/tools/godot")
+SIZE = 24
+SS = 8  # supersampling per pixel
+
+## id -> (svg, base color)
+ICONS = {
+    # Weapons
+    "radiant_flail": ("delapouite/flail.svg", (236, 196, 96)),
+    "holy_javelin": ("delapouite/sun-spear.svg", (240, 226, 170)),
+    "sacred_orbs": ("lorc/orbital.svg", (150, 206, 240)),
+    "smite": ("lorc/sunbeams.svg", (250, 232, 170)),
+    "consecration": ("lorc/beams-aura.svg", (240, 190, 90)),
+    "throwing_axes": ("lorc/battered-axe.svg", (200, 204, 214)),
+    # Tomes
+    "might": ("lorc/mailed-fist.svg", (222, 92, 72)),
+    "haste": ("lorc/hourglass.svg", (236, 196, 96)),
+    "reach": ("delapouite/expand.svg", (186, 140, 230)),
+    "swiftness": ("lorc/winged-leg.svg", (150, 206, 240)),
+    "leaping": ("delapouite/jump-across.svg", (140, 214, 150)),
+    "iron": ("delapouite/templar-shield.svg", (190, 196, 210)),
+    "vitality": ("lorc/glass-heart.svg", (226, 72, 84)),
+    "renewal": ("sbed/regeneration.svg", (120, 214, 130)),
+    "attraction": ("lorc/magnet.svg", (220, 90, 80)),
+    "wisdom": ("lorc/book-aura.svg", (110, 190, 236)),
+    "precision": ("delapouite/crosshair.svg", (240, 150, 70)),
+    "multitude": ("lorc/thrown-daggers.svg", (200, 204, 214)),
+    "bhop": ("lorc/sprint.svg", (150, 206, 240)),
+}
+
+OUTLINE = (14, 10, 16, 255)
+
+
+def shade(c, k):
+    return tuple(max(0, min(255, int(v * k))) for v in c)
+
+
+def pixelate(big):
+    """Coverage-based downsample of the white icon to a SIZE x SIZE mask."""
+    px = big.convert("L").load()
+    mask = [[False] * SIZE for _ in range(SIZE)]
+    for y in range(SIZE):
+        for x in range(SIZE):
+            s = 0
+            for yy in range(SS):
+                for xx in range(SS):
+                    s += px[x * SS + xx, y * SS + yy]
+            mask[y][x] = s / (SS * SS * 255.0) > 0.42
+    return mask
+
+
+def paint(mask, color):
+    """Base fill with lit/shaded edges and a dark outline, 1px padding."""
+    n = SIZE + 2
+    img = Image.new("RGBA", (n, n))
+    px = img.load()
+
+    def on(x, y):
+        return 0 <= x < SIZE and 0 <= y < SIZE and mask[y][x]
+
+    hi = shade(color, 1.25)
+    lo = shade(color, 0.62)
+    for y in range(SIZE):
+        for x in range(SIZE):
+            if not on(x, y):
+                continue
+            c = color
+            if not on(x - 1, y) or not on(x, y - 1):
+                c = hi
+            elif not on(x + 1, y) or not on(x, y + 1):
+                c = lo
+            px[x + 1, y + 1] = c + (255,)
+    for y in range(n):
+        for x in range(n):
+            if px[x, y][3]:
+                continue
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                if on(x - 1 + dx, y - 1 + dy):
+                    px[x, y] = OUTLINE
+                    break
+    return img
+
+
+def main():
+    src = sys.argv[1] if len(sys.argv) > 1 else "/home/user/pixel/icons"
+    os.makedirs(OUT, exist_ok=True)
+    tmp = tempfile.mkdtemp()
+    args = [GODOT, "--headless", "--script", os.path.join(os.path.dirname(__file__), "raster_svg.gd"), "--", str(SIZE * SS)]
+    for iid, (svg, _) in ICONS.items():
+        args += [os.path.join(src, svg), os.path.join(tmp, iid + ".png")]
+    subprocess.run(args, check=True, capture_output=True)
+    authors = {}
+    for iid, (svg, color) in ICONS.items():
+        big = Image.open(os.path.join(tmp, iid + ".png"))
+        # game-icons draw a white glyph on a black square.
+        paint(pixelate(big), color).save(os.path.join(OUT, iid + ".png"))
+        authors.setdefault(svg.split("/")[0], []).append(svg)
+    lines = ["Icons are based on game-icons.net (https://game-icons.net), licensed CC BY 3.0,", "redrawn as pixel icons. Authors and source icons:", ""]
+    for a, files in sorted(authors.items()):
+        lines.append("%s: %s" % (a, ", ".join(sorted(f.split("/")[1] for f in files))))
+    with open(os.path.join(OUT, "CREDITS.txt"), "w") as f:
+        f.write("\n".join(lines) + "\n")
+    print("icons:", len(ICONS))
+
+
+if __name__ == "__main__":
+    main()

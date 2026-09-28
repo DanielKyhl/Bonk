@@ -77,24 +77,24 @@ func _build() -> void:
 	var name_row := HBoxContainer.new()
 	name_row.add_theme_constant_override("separation", 10)
 	tl.add_child(name_row)
-	_lvl = UIStyle.label("LV 1", UIStyle.ui_font("ExtraBold"), 26, UIStyle.XP)
+	_lvl = UIStyle.label("LV 1", UIStyle.ui_font("ExtraBold"), 30, UIStyle.XP)
 	name_row.add_child(_lvl)
-	name_row.add_child(UIStyle.label(run.hero.title.to_upper(), UIStyle.title_font(), 22, UIStyle.GOLD))
-	var hb := UIStyle.bar(330, 22, UIStyle.HP)
+	name_row.add_child(UIStyle.label(run.hero.title.to_upper(), UIStyle.ui_font("Bold"), 30, UIStyle.GOLD))
+	var hb := UIStyle.bar(330, 26, UIStyle.HP)
 	_hp_root = hb[0]
 	_hp_fill = hb[1]
 	tl.add_child(_hp_root)
-	_hp_text = UIStyle.label("", UIStyle.ui_font("Bold"), 18)
-	_hp_text.position = Vector2(8, -2)
+	_hp_text = UIStyle.label("", UIStyle.ui_font("Bold"), 20)
+	_hp_text.position = Vector2(8, 1)
 	_hp_root.add_child(_hp_text)
 	var stats_row := HBoxContainer.new()
 	stats_row.add_theme_constant_override("separation", 18)
 	tl.add_child(stats_row)
-	_gold = UIStyle.label("GOLD  0", UIStyle.ui_font("Bold"), 22, UIStyle.GOLD)
+	_gold = UIStyle.label("GOLD  0", UIStyle.ui_font("Bold"), 30, UIStyle.GOLD)
 	stats_row.add_child(_gold)
-	_kills = UIStyle.label("KILLS  0", UIStyle.ui_font("Bold"), 22, UIStyle.PARCH)
+	_kills = UIStyle.label("KILLS  0", UIStyle.ui_font("Bold"), 30, UIStyle.PARCH)
 	stats_row.add_child(_kills)
-	_aegis = UIStyle.label("", UIStyle.ui_font("Bold"), 20, UIStyle.GOLD)
+	_aegis = UIStyle.label("", UIStyle.ui_font("Bold"), 30, UIStyle.GOLD)
 	_aegis.visible = run.hero_id == "crusader"
 	tl.add_child(_aegis)
 
@@ -105,23 +105,23 @@ func _build() -> void:
 	tc.custom_minimum_size = Vector2(240, 0)
 	tc.alignment = BoxContainer.ALIGNMENT_BEGIN
 	root.add_child(tc)
-	_timer = UIStyle.label("10:00", UIStyle.title_font(), 46, UIStyle.PARCH, 8)
+	_timer = UIStyle.label("10:00", UIStyle.ui_font("Bold"), 60, UIStyle.PARCH, 8)
 	_timer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tc.add_child(_timer)
-	_stage = UIStyle.label(stage_name.to_upper(), UIStyle.ui_font("SemiBold"), 18, UIStyle.MUTED)
+	_stage = UIStyle.label(stage_name.to_upper(), UIStyle.ui_font("Bold"), 30, UIStyle.MUTED)
 	_stage.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tc.add_child(_stage)
 
 	# Banner.
-	_banner = UIStyle.label("", UIStyle.title_font(), 40, UIStyle.GOLD, 10)
+	_banner = UIStyle.label("", UIStyle.title_font(), 72, UIStyle.GOLD, 10)
 	_banner.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_banner.position = Vector2(-500, 150)
 	_banner.custom_minimum_size = Vector2(1000, 0)
 	_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(_banner)
-	_banner_sub = UIStyle.label("", UIStyle.ui_font("SemiBold"), 22, UIStyle.PARCH)
+	_banner_sub = UIStyle.label("", UIStyle.ui_font("SemiBold"), 30, UIStyle.PARCH)
 	_banner_sub.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_banner_sub.position = Vector2(-500, 204)
+	_banner_sub.position = Vector2(-500, 236)
 	_banner_sub.custom_minimum_size = Vector2(1000, 0)
 	_banner_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(_banner_sub)
@@ -139,14 +139,16 @@ func _build() -> void:
 	_tome_slots.add_theme_constant_override("separation", 8)
 	bl.add_child(_tome_slots)
 
-	_fps = UIStyle.label("", UIStyle.ui_font("SemiBold"), 16, UIStyle.MUTED, 4)
+	_fps = UIStyle.label("", UIStyle.ui_font("SemiBold"), 20, UIStyle.MUTED, 4)
+	_fps.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_fps.custom_minimum_size = Vector2(440, 0)
 	_fps.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	_fps.position = Vector2(-300, -34)
+	_fps.position = Vector2(-460, -34)
 	root.add_child(_fps)
 
 
 func banner(text: String, sub := "") -> void:
-	_banner.text = text.to_upper()
+	_banner.text = text
 	_banner_sub.text = sub
 	_banner_t = 3.0
 
@@ -186,16 +188,16 @@ func _process(delta: float) -> void:
 	_hurt_t = maxf(0.0, _hurt_t - delta)
 	var low := 0.18 + 0.08 * sin(run.time * 6.0) if run.hp < run.max_hp * 0.3 else 0.0
 	_hurt.color.a = maxf(_hurt_t * 1.1, low * 0.6)
-	_fps.text = ("%d FPS  ·  %d enemies  ·  %d km/h  ·  render %d%%" % [Engine.get_frames_per_second(), enemies.count, int(round(player.speed() * Player.KMH)), int(Game.render_scale * 100)]) if _show_fps else ""
+	_fps.text = ("%d FPS  ·  %d enemies  ·  %d km/h" % [Engine.get_frames_per_second(), enemies.count, int(round(player.speed() * Player.KMH))]) if _show_fps else ""
 
 
 func _refresh_hp() -> void:
-	_hp_fill.size.x = 330.0 * clampf(run.hp / run.max_hp, 0.0, 1.0)
+	_hp_fill.size.x = 326.0 * clampf(run.hp / run.max_hp, 0.0, 1.0)
 	_hp_text.text = "%d / %d" % [ceili(run.hp), int(run.max_hp)]
 
 
 func _refresh_xp() -> void:
-	_xp_fill.size.x = _xp_root.size.x * clampf(run.xp / run.xp_next, 0.0, 1.0)
+	_xp_fill.size.x = maxf(0.0, _xp_root.size.x - 4.0) * clampf(run.xp / run.xp_next, 0.0, 1.0)
 	_lvl.text = "LV %d" % run.level
 
 
@@ -210,29 +212,27 @@ func _refresh_slots() -> void:
 		c.queue_free()
 	for id: String in run.weapons:
 		var w: Dictionary = Defs.WEAPONS[id]
-		_slots.add_child(_slot_box(w.name, run.weapons[id], w.max, w.color, 92))
+		_slots.add_child(_slot_box(id, run.weapons[id], w.max, w.color))
 	for id: String in run.tomes:
 		var t: Dictionary = Defs.TOMES[id]
-		_tome_slots.add_child(_slot_box(t.name.replace("Tome of ", ""), run.tomes[id], t.max, UIStyle.XP, 92))
+		_tome_slots.add_child(_slot_box(id, run.tomes[id], t.max, UIStyle.XP))
 
 
-func _slot_box(title: String, lvl: int, max_lvl: int, color: Color, w: float) -> Control:
+## An icon in a pixel frame with level pips under it.
+func _slot_box(id: String, lvl: int, max_lvl: int, color: Color) -> Control:
 	var p := PanelContainer.new()
-	p.custom_minimum_size = Vector2(w, 0)
-	p.add_theme_stylebox_override("panel", UIStyle.panel_style(UIStyle.PANEL, 5, Color(color, 0.7)))
+	p.add_theme_stylebox_override("panel", UIStyle.frame("slot", Vector4(6, 6, 6, 6)))
 	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 2)
+	v.add_theme_constant_override("separation", 4)
 	p.add_child(v)
-	var n := UIStyle.label(title, UIStyle.ui_font("Bold"), 15, UIStyle.PARCH, 0)
-	n.autowrap_mode = TextServer.AUTOWRAP_WORD
-	n.custom_minimum_size = Vector2(w - 20, 0)
-	v.add_child(n)
+	v.add_child(UIStyle.icon_rect(id, 2))
 	var pips := HBoxContainer.new()
-	pips.add_theme_constant_override("separation", 3)
+	pips.add_theme_constant_override("separation", 2)
+	pips.alignment = BoxContainer.ALIGNMENT_CENTER
 	v.add_child(pips)
 	for k in max_lvl:
 		var pip := ColorRect.new()
-		pip.custom_minimum_size = Vector2(8, 5)
+		pip.custom_minimum_size = Vector2(4, 4)
 		pip.color = color if k < lvl else Color(1, 1, 1, 0.15)
 		pips.add_child(pip)
 	return p

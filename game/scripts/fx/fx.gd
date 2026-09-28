@@ -99,14 +99,18 @@ func setup(t: Terrain) -> void:
 		_beams.append(mi)
 	_beam_life.resize(MAX_BEAMS)
 
-	var font: FontFile = load("res://assets/fonts/BarlowCondensed-ExtraBold.ttf")
+	# Pixel font at one font pixel per low-res pixel, so numbers are as crisp
+	# as the sprites.
+	var font := UIStyle.ui_font("Bold")
 	for i in MAX_NUMBERS:
 		var l := Label3D.new()
 		l.font = font
-		l.font_size = 72
-		l.outline_size = 16
-		l.outline_modulate = Color(0.08, 0.05, 0.03, 0.9)
-		l.pixel_size = 0.011
+		l.font_size = 10
+		l.outline_size = 3
+		l.outline_modulate = Color(0.05, 0.03, 0.05, 1.0)
+		l.pixel_size = 1.0 / PixelView.PPM
+		l.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		l.alpha_cut = Label3D.ALPHA_CUT_DISCARD
 		l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		l.no_depth_test = true
 		l.fixed_size = false
@@ -181,20 +185,20 @@ func number(pos: Vector3, value: float, crit := false, color := Color(1, 1, 1)) 
 	l.visible = true
 	l.text = str(int(round(value)))
 	l.modulate = Color(1.0, 0.82, 0.3) if crit else color
-	l.font_size = 84 if crit else 54
+	l.font_size = 20 if crit else 10
 	l.global_position = pos + Vector3(randf_range(-0.4, 0.4), 2.2, randf_range(-0.2, 0.2))
 	_num_life[i] = 0.6
 	_num_vel[i] = Vector3(randf_range(-1, 1), 5.5, 0)
 
 
-func text(pos: Vector3, s: String, color: Color, size := 80) -> void:
+func text(pos: Vector3, s: String, color: Color, size := 20) -> void:
 	var i := _num_next
 	_num_next = (_num_next + 1) % MAX_NUMBERS
 	var l := _nums[i]
 	l.visible = true
 	l.text = s
 	l.modulate = color
-	l.font_size = size
+	l.font_size = UIStyle.snap_size(UIStyle.ui_font("Bold"), size) if size >= 10 else 10
 	l.global_position = pos + Vector3(0, 3.0, 0)
 	_num_life[i] = 1.0
 	_num_vel[i] = Vector3(0, 3.5, 0)

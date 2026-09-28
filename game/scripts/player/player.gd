@@ -77,6 +77,11 @@ var facing := Vector2(0, 1)
 var wish := Vector2.ZERO
 var input_locked := false
 var sprite_id := "crusader"
+## Camera heading (radians, 0 = looking toward -Z), set by the camera. WASD is
+## turned by it so W always runs up the screen.
+var view_yaw := 0.0
+## When true the hero faces where the camera looks instead of where she runs.
+var face_camera := false
 
 var _t := 0.0
 var _jump_buf := -1.0
@@ -143,7 +148,7 @@ func _process(delta: float) -> void:
 		if wish.length() < 0.25:
 			wish = Vector2.ZERO
 		else:
-			wish = wish.normalized()
+			wish = wish.normalized().rotated(-view_yaw)
 	else:
 		wish = Vector2.ZERO
 		_jump_held = false
@@ -202,7 +207,9 @@ func _step(dt: float) -> void:
 		hv *= MAX_SPEED / sp2
 		vel.x = hv.x
 		vel.z = hv.y
-	if sp2 > 0.8:
+	if face_camera:
+		facing = Vector2(-sin(view_yaw), -cos(view_yaw))
+	elif sp2 > 0.8:
 		facing = hv / sp2
 	elif has_wish:
 		facing = wish

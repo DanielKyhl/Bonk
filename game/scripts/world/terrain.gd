@@ -14,6 +14,8 @@ const GS := 8              ## Floats per hill: x z h ax az cos sin cut2
 const MS := 5              ## Floats per mesa: x z h r0 r1
 const RS := 13             ## Floats per ramp: x z dx dz len hw slope h0 minx maxx minz maxz H
 const SS := 12             ## Floats per solid: kind x z a b cos sin top minx maxx minz maxz
+const CS := 20             ## Floats per cliff: x z h rx rz cos sin edge rough ph1 ph2 ph3 sdx sdz slen scos minx maxx minz maxz
+const RV := 10             ## Ravine header: npts hw depth edge total taper minx maxx minz maxz (then x z cum per point)
 const RIM_BAND := 30.0     ## Width of the quarter-pipe band inside the cliffs.
 const RIM_H := 10.0
 const CLIFF_W := 6.0
@@ -29,6 +31,8 @@ var _hills := PackedFloat32Array()
 var _hill_bins: Array[PackedInt32Array] = []
 var _hbn := 0
 var _mesas := PackedFloat32Array()
+var _cliffs := PackedFloat32Array()
+var _ravines := PackedFloat32Array()
 var _ramps := PackedFloat32Array()
 var _solids := PackedFloat32Array()
 var _solid_bins: Array[PackedInt32Array] = []
@@ -104,6 +108,13 @@ func base_height(x: float, z: float) -> float:
 			var k := _mesas[o + 2] * 6.0 * t * (1.0 - t) * (-1.0 / (r1 - r0)) / d
 			dx += k * ox
 			dz += k * oz
+
+	# Plateaus, pits and ravines: sharp features, so a numeric gradient.
+	if _carve_active(x, z):
+		var e := 0.05
+		h += _carve(x, z)
+		dx += (_carve(x + e, z) - _carve(x - e, z)) / (2.0 * e)
+		dz += (_carve(x, z + e) - _carve(x, z - e)) / (2.0 * e)
 
 	# Quarter-pipe band, then cliffs, along every edge.
 	var edge := half - CLIFF_W
@@ -286,6 +297,36 @@ func _build_features() -> void:
 				_hill_bins[bz * _hbn + bx].append(i)
 	for m in map.mesas:
 		_mesas.append_array([m.pos.x, m.pos.y, m.h, m.r0, m.r1])
+	var rng := RandomNumberGenerator.new()
+	rng.seed = map.layout_seed * 31 + 5
+	for c in map.cliffs:
+		var p: Vector2 = c.pos
+		var sdir := Vector2.ZERO
+		var slen := 0.0
+		var scos := 1.0
+		if c.slope != INF:
+			sdir = Vector2(cos(deg_to_rad(c.slope)), sin(deg_to_rad(c.slope)))
+			slen = c.slope_len
+			scos = cos(deg_to_rad(c.slope_width * 0.5))
+		var ext: float = maxf(c.rx, c.rz) * (1.0 + c.rough) + c.edge + slen
+		_cliffs.append_array([p.x, p.y, c.h, c.rx, c.rz, cos(c.rot), sin(c.rot), c.edge, c.rough,
+				rng.randf() * TAU, rng.randf() * TAU, rng.randf() * TAU, sdir.x, sdir.y, slen, scos,
+				p.x - ext, p.x + ext, p.y - ext, p.y + ext])
+	for rv in map.ravines:
+		var pts: PackedVector2Array = rv.points
+		var total := 0.0
+		var body := PackedFloat32Array()
+		var lo := Vector2(INF, INF)
+		var hi := Vector2(-INF, -INF)
+		for k in pts.size():
+			if k > 0:
+				total += pts[k].distance_to(pts[k - 1])
+			body.append_array([pts[k].x, pts[k].y, total])
+			lo = lo.min(pts[k])
+			hi = hi.max(pts[k])
+		var m: float = rv.width * 0.5 + rv.edge
+		_ravines.append_array([pts.size(), rv.width * 0.5, rv.depth, rv.edge, total, rv.taper, lo.x - m, hi.x + m, lo.y - m, hi.y + m])
+		_ravines.append_array(body)
 
 	for rp in map.ramps:
 		var d := Vector2(cos(rp.yaw), sin(rp.yaw))
@@ -328,6 +369,78 @@ func _build_features() -> void:
 		for bz in range(b0z, b1z + 1):
 			for bx in range(b0x, b1x + 1):
 				_solid_bins[bz * _sbn + bx].append(i)
+
+
+## True if (x, z) is inside the bounds of any plateau, pit or ravine.
+func _carve_active(x: float, z: float) -> bool:
+	for o in range(0, _cliffs.size(), CS):
+		if x >= _cliffs[o + 16] and x <= _cliffs[o + 17] and z >= _cliffs[o + 18] and z <= _cliffs[o + 19]:
+			return true
+	var o := 0
+	while o < _ravines.size():
+		if x >= _ravines[o + 6] and x <= _ravines[o + 7] and z >= _ravines[o + 8] and z <= _ravines[o + 9]:
+			return true
+		o += RV + int(_ravines[o]) * 3
+	return false
+
+
+## Height added by plateaus and pits, minus ravines.
+func _carve(x: float, z: float) -> float:
+	var h := 0.0
+	for o in range(0, _cliffs.size(), CS):
+		if x < _cliffs[o + 16] or x > _cliffs[o + 17] or z < _cliffs[o + 18] or z > _cliffs[o + 19]:
+			continue
+		var ox := x - _cliffs[o]
+		var oz := z - _cliffs[o + 1]
+		var c := _cliffs[o + 5]
+		var s := _cliffs[o + 6]
+		var u := (c * ox + s * oz) / _cliffs[o + 3]
+		var v := (-s * ox + c * oz) / _cliffs[o + 4]
+		var e := sqrt(u * u + v * v)
+		var th := atan2(v, u)
+		var wob := 1.0 + _cliffs[o + 8] * (0.5 * sin(3.0 * th + _cliffs[o + 9]) + 0.3 * sin(5.0 * th + _cliffs[o + 10]) + 0.2 * sin(11.0 * th + _cliffs[o + 11]))
+		# Roughly how many meters inside the rim this point is.
+		var inside := (1.0 - e / wob) * minf(_cliffs[o + 3], _cliffs[o + 4])
+		var half_edge := _cliffs[o + 7] * 0.5
+		var out := half_edge
+		var slen := _cliffs[o + 14]
+		if slen > 0.0:
+			var dl := maxf(sqrt(ox * ox + oz * oz), 0.0001)
+			var k := (ox * _cliffs[o + 12] + oz * _cliffs[o + 13]) / dl
+			var w := clampf((k - _cliffs[o + 15]) / maxf(1.0 - _cliffs[o + 15], 0.001), 0.0, 1.0)
+			out = lerpf(half_edge, slen, w * w * (3.0 - 2.0 * w))
+		var t := clampf((inside + out) / (half_edge + out), 0.0, 1.0)
+		h += _cliffs[o + 2] * t * t * (3.0 - 2.0 * t)
+	var o := 0
+	while o < _ravines.size():
+		var n := int(_ravines[o])
+		if x >= _ravines[o + 6] and x <= _ravines[o + 7] and z >= _ravines[o + 8] and z <= _ravines[o + 9]:
+			var best := INF
+			var along := 0.0
+			for k in n - 1:
+				var a := o + RV + k * 3
+				var ax := _ravines[a]
+				var az := _ravines[a + 1]
+				var bx := _ravines[a + 3]
+				var bz := _ravines[a + 4]
+				var sx := bx - ax
+				var sz := bz - az
+				var l2 := sx * sx + sz * sz
+				var t := clampf(((x - ax) * sx + (z - az) * sz) / maxf(l2, 0.0001), 0.0, 1.0)
+				var qx := ax + sx * t - x
+				var qz := az + sz * t - z
+				var d := qx * qx + qz * qz
+				if d < best:
+					best = d
+					along = _ravines[a + 2] + (_ravines[a + 5] - _ravines[a + 2]) * t
+			var half_edge := _ravines[o + 3] * 0.5
+			var t2 := clampf((_ravines[o + 1] - sqrt(best) + half_edge) / (2.0 * half_edge), 0.0, 1.0)
+			var taper := _ravines[o + 5]
+			var total := _ravines[o + 4]
+			var fade := clampf(along / taper, 0.0, 1.0) * clampf((total - along) / taper, 0.0, 1.0)
+			h -= _ravines[o + 2] * t2 * t2 * (3.0 - 2.0 * t2) * fade * fade * (3.0 - 2.0 * fade)
+		o += RV + n * 3
+	return h
 
 
 func _solid_bin(x: float, z: float) -> int:
