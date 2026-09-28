@@ -31,6 +31,8 @@ var _gem_t := -1.0
 func _ready() -> void:
 	var args := OS.get_cmdline_user_args()
 	_autopilot = "--autopilot" in args
+	if "--continue-test" in args and Game.has_saved_run():
+		Game.continue_run()
 	var t0 := Time.get_ticks_msec()
 	for a in args:
 		if a.begins_with("--map=") and Game.stage == 1:
@@ -61,6 +63,9 @@ func _ready() -> void:
 	if not Game.carry.is_empty():
 		run.restore(Game.carry)
 		Game.carry = {}
+	var resume := Game.resume
+	if not resume.is_empty():
+		run.load_state(resume.run)
 
 	player = load("res://scenes/actors/player.tscn").instantiate()
 	player.sprite_id = Game.hero_id
@@ -129,6 +134,8 @@ func _ready() -> void:
 	_connect_signals()
 	_apply_stats()
 	Sound.music(map.music)
+	if not resume.is_empty():
+		_resume(resume)
 	hud.banner(map.title, "Survive until the dead stop rising.")
 
 	var cap := DebugCapture.new()
@@ -232,6 +239,33 @@ func _ready() -> void:
 				Input.parse_input_event(ev)
 			get_tree().create_timer(0.3).timeout.connect(func():
 				print("MOUSE TEST mode=%d turned=%.1f deg" % [Input.mouse_mode, rad_to_deg(before - camera._target_yaw)])))
+	for a in args:
+		if a.begins_with("--pause"):
+			# Screenshot setup: --pause opens the pause menu, --pause=settings its settings.
+			get_tree().create_timer(0.5).timeout.connect(func():
+				get_tree().paused = true
+				hud.clear_banner()
+				menus.show_settings() if a == "--pause=settings" else menus.show_pause())
+	if "--save-test" in args:
+		# Step 1 of the save test: change some state, then Save & quit.
+		get_tree().create_timer(1.0).timeout.connect(func():
+			run.add_gold(500)
+			chests._open(3)
+			shrines._spend(2)
+			run.kills = 45
+			run.time = 200.0
+			player.place(Vector2(map.spawn.x + 20.0, map.spawn.y - 10.0))
+			print("SAVE TEST saving gold=%d kills=%d chest3=%s shrine2=%s items=%d pos=%s" % [run.gold, run.kills,
+				chests.is_open[3], shrines.used[2], run.items.size(), player.position.round()])
+			# Quit rather than go to the menu: with test flags it would start a new run.
+			_save_run()
+			get_tree().quit())
+	if "--continue-test" in args:
+		# Step 2: print what came back (run after --save-test).
+		get_tree().create_timer(0.5).timeout.connect(func():
+			print("CONTINUE TEST gold=%d kills=%d time=%d chest3=%s shrine2=%s items=%d pos=%s save_left=%s" % [run.gold,
+				run.kills, int(run.time), chests.is_open[3], shrines.used[2], run.items.size(), player.position.round(),
+				Game.has_saved_run()]))
 	if "--hurt-test" in args:
 		# Check that enemies hurt: three skeletons walk up to an idle hero with
 		# no weapons; print her health after a few seconds.
@@ -300,7 +334,8 @@ func _connect_signals() -> void:
 	menus.restart_requested.connect(_restart)
 	menus.quit_requested.connect(func(): get_tree().quit())
 	menus.onward_requested.connect(_onward)
-	menus.menu_requested.connect(func(): get_tree().paused = false; Input.mouse_mode = Input.MOUSE_MODE_VISIBLE; get_tree().change_scene_to_file(MENU_SCENE))
+	menus.menu_requested.connect(_to_menu)
+	menus.save_requested.connect(_save_and_quit)
 
 
 func _process(delta: float) -> void:
@@ -442,6 +477,45 @@ func _on_victory() -> void:
 	if built:
 		sub += "\nYour build goes with you; the dead there are stronger."
 	menus.show_death("Victory", rows, sub, next.name if built else "")
+
+
+## Continues a run saved with "Save & quit" (systems are already set up).
+## The save is used up: it can't be loaded twice.
+func _resume(s: Dictionary) -> void:
+	Game.resume = {}
+	Game.clear_saved_run()
+	chests.load_state(s.chests)
+	shrines.load_state(s.shrines)
+	boss.load_state(s.boss)
+	director.load_state(s.director)
+	var p: Vector3 = s.pos
+	player.place(Vector2(p.x, p.z))
+	camera.yaw = s.yaw
+	camera._target_yaw = s.yaw
+	camera.snap()
+	if director.final_swarm and not run.boss_killed:
+		Sound.music("boss")
+
+
+## Saves the run and goes back to the main menu.
+func _save_and_quit() -> void:
+	_save_run()
+	_to_menu()
+
+
+func _save_run() -> void:
+	Game.save_run({
+		"hero": Game.hero_id, "map": Game.map_id, "stage": Game.stage, "seed": Game.run_seed,
+		"run": run.save_state(), "pos": player.position, "yaw": camera._target_yaw,
+		"chests": chests.save_state(), "shrines": shrines.save_state(), "boss": boss.save_state(),
+		"director": director.save_state(),
+	})
+
+
+func _to_menu() -> void:
+	get_tree().paused = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	get_tree().change_scene_to_file(MENU_SCENE)
 
 
 ## Takes the run (build, level, gold, score) on to the next map.

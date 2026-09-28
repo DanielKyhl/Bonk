@@ -32,6 +32,7 @@ func _ready() -> void:
 	# The camera lives inside the pixel view's SubViewport, which gets no
 	# input of its own, so listen to the game window directly.
 	get_tree().root.window_input.connect(_on_window_input)
+	Game.settings_changed.connect(func(): mouse_sensitivity = Game.mouse_sensitivity)
 
 
 func _on_window_input(event: InputEvent) -> void:

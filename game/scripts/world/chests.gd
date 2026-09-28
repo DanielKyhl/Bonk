@@ -21,6 +21,7 @@ var run: RunState
 var player: Player
 var fx: Fx
 var bought := 0
+var _base := 0   ## Chests placed at setup; the rest are golden drops.
 var opened_count := 0
 
 ## Per chest: position, golden?, minimum rarity, opened?, visual.
@@ -71,6 +72,31 @@ func setup(m: MapDef, t: Terrain, props: Props, r: RunState, p: Player, f: Fx) -
 			continue
 		_add(Vector3(q.x, terrain.grid_height(q.x, q.y), q.y), false, 0)
 		placed += 1
+	_base = pos.size()
+
+
+## Opened chests and unopened golden drops, for "Save & quit".
+func save_state() -> Dictionary:
+	var opened := []
+	for i in _base:
+		if is_open[i]:
+			opened.append(i)
+	var drops := []
+	for i in range(_base, pos.size()):
+		if not is_open[i]:
+			drops.append([pos[i], min_rarity[i]])
+	return {"bought": bought, "opened_count": opened_count, "open": opened, "golden": drops}
+
+
+func load_state(d: Dictionary) -> void:
+	bought = d.bought
+	opened_count = d.opened_count
+	for i: int in d.open:
+		if i < _base:
+			is_open[i] = true
+			_nodes[i].visible = false
+	for g: Array in d.golden:
+		_add(g[0], true, g[1])
 
 
 func cost() -> int:

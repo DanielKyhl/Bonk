@@ -97,6 +97,24 @@ func setup(m: MapDef, t: Terrain, props: Props, r: RunState, p: Player, f: Fx, a
 			placed += 1
 
 
+## Used shrines, for "Save & quit".
+func save_state() -> Dictionary:
+	var u := []
+	for i in used.size():
+		if used[i]:
+			u.append(i)
+	return {"used": u, "prayers": prayers}
+
+
+func load_state(d: Dictionary) -> void:
+	prayers = d.prayers
+	for i: int in d.used:
+		if i < used.size():
+			used[i] = true
+			_discs[i].set_shader_parameter("dim", 0.25)
+			_discs[i].set_shader_parameter("progress", 0.0)
+
+
 ## The altar or greed shrine in reach (for the HUD prompt), or -1.
 func nearest() -> int:
 	return _near

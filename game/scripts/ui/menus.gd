@@ -1,6 +1,7 @@
 class_name RunMenus
 extends CanvasLayer
-## Overlays that pause the run: level-up cards, pause menu and the death screen.
+## Overlays that pause the run: level-up cards, the pause menu (with settings)
+## and the death screen.
 ## Keys 1-3 pick a card; mouse and gamepad work through normal button focus.
 
 signal picked(choice: Dictionary)
@@ -9,6 +10,7 @@ signal restart_requested
 signal quit_requested
 signal menu_requested
 signal onward_requested
+signal save_requested
 
 var run: RunState
 var _root: Control
@@ -227,6 +229,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		_close()
 		resume_requested.emit()
 		get_viewport().set_input_as_handled()
+	elif _mode == "settings" and event.is_action_pressed("pause"):
+		show_pause()
+		get_viewport().set_input_as_handled()
 
 
 func _process(_delta: float) -> void:
@@ -256,10 +261,31 @@ func show_pause() -> void:
 	var t := UIStyle.label("Paused", UIStyle.title_font(), 72, UIStyle.GOLD, 10)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(t)
-	v.add_child(_button("Resume", func(): _close(); resume_requested.emit()))
+	var resume := _button("Resume", func(): _close(); resume_requested.emit())
+	v.add_child(resume)
+	v.add_child(_button("Settings", show_settings))
+	v.add_child(_button("Save & quit", func(): save_requested.emit()))
 	v.add_child(_button("Restart run", func(): _close(); restart_requested.emit()))
 	v.add_child(_button("Main menu", func(): menu_requested.emit()))
 	v.add_child(_button("Quit game", func(): quit_requested.emit()))
+	resume.call_deferred("grab_focus")
+
+
+func show_settings() -> void:
+	_clear()
+	_mode = "settings"
+	_root.visible = true
+	_backdrop(0.6)
+	var v := _center_box(640)
+	var t := UIStyle.label("Settings", UIStyle.title_font(), 72, UIStyle.GOLD, 10)
+	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(t)
+	SettingsPanel.build(v)
+	var c := CenterContainer.new()
+	var back := _button("Back", show_pause)
+	c.add_child(back)
+	v.add_child(c)
+	back.call_deferred("grab_focus")
 
 
 func show_death(title: String, rows: Array, sub := "", onward := "") -> void:

@@ -3,6 +3,9 @@ extends Node
 
 const SAVE_PATH := "user://save.cfg"
 
+## Emitted when a setting that live objects read changes (mouse sensitivity).
+signal settings_changed
+
 ## Selected hero and map for the next run.
 var hero_id := "crusader"
 ## Debug (--unlock-all): every hero counts as unlocked.
@@ -13,6 +16,8 @@ var map_id := "hallowed_vale"
 var stage := 1
 ## A build carried through a boss portal (RunState.snapshot()), or empty.
 var carry := {}
+## A run saved with "Save & quit", being continued (run.gd applies it), or {}.
+var resume := {}
 ## Settings (saved).
 var mouse_sensitivity := 0.25
 var master_volume := 0.8
@@ -196,6 +201,36 @@ func unlock_next_map(id: String) -> String:
 			set_saved("unlocks", MAPS[k + 1].id, true)
 			return MAPS[k + 1].name
 	return ""
+
+
+## A run saved with "Save & quit" waits in the save file until continued.
+func has_saved_run() -> bool:
+	return _save.has_section_key("run", "state")
+
+
+func saved_run() -> Dictionary:
+	return get_saved("run", "state", {})
+
+
+func save_run(state: Dictionary) -> void:
+	set_saved("run", "state", state)
+
+
+func clear_saved_run() -> void:
+	if _save.has_section("run"):
+		_save.erase_section("run")
+		_save.save(SAVE_PATH)
+
+
+## Sets up the next scene load to continue the saved run.
+func continue_run() -> void:
+	var s := saved_run()
+	hero_id = s.hero
+	map_id = s.map
+	stage = s.stage
+	run_seed = s.seed
+	carry = {}
+	resume = s
 
 
 func get_saved(section: String, key: String, default: Variant = null) -> Variant:

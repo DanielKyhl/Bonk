@@ -23,7 +23,7 @@ A dark-fantasy pixel-art survivor game with Megabonk-style movement, built in Go
 | Shift / C | B / RB / RT | Slide; in the air it's a slam |
 | E | X | Open a chest (or use a shrine) |
 | 1, 2, 3 | D-pad + A | Pick a level-up card |
-| Esc | Start | Pause (frees the mouse; click the game to capture it again) |
+| Esc | Start | Pause: resume, settings, save & quit (frees the mouse; click the game to capture it again) |
 | F |  | Toggle the debug line (FPS, enemies, speed) |
 | F11 |  | Fullscreen |
 
@@ -31,6 +31,7 @@ A dark-fantasy pixel-art survivor game with Megabonk-style movement, built in Go
 
 Pick a hero and a map in the main menu (heroes unlock by reaching goals shown on their locked cards; maps unlock by beating the previous map's boss).
 
+- **Save & quit** from the pause menu keeps the run; **Continue** on the title screen picks it up (once). Unlocks and best scores save on their own.
 - A stage lasts 10 minutes; the horde grows and toughens, elites come every minute, and at 10:00 the endless final swarm begins.
 - Explore for **chests** (gold, pricier each time; elites drop free golden ones) and **shrines**: stand in a prayer circle for a blessing, wake a cursed altar for elites and golden chests, or make an offering to greed.
 - Somewhere a tall beam marks **the boss altar**. You can summon the boss any time, but it takes a strong build to beat. Slay it and the altar becomes a portal: step through to carry your whole build on to the next map (a tougher stage) and unlock that map in the menu, or stay and fight on (kills score double).

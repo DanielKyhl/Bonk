@@ -115,10 +115,22 @@ func _title() -> void:
 	gap.custom_minimum_size = Vector2(0, 30)
 	v.add_child(gap)
 	var play := UIStyle.button("Play", _heroes, 320)
-	for b in [play, UIStyle.button("Settings", _settings, 320), UIStyle.button("Quit", func(): get_tree().quit(), 320)]:
+	var buttons := [play, UIStyle.button("Settings", _settings, 320), UIStyle.button("Quit", func(): get_tree().quit(), 320)]
+	if Game.has_saved_run():
+		play = UIStyle.button("Continue", _start.bind(true), 320)
+		buttons.push_front(play)
+	for b in buttons:
 		var c := CenterContainer.new()
 		c.add_child(b)
 		v.add_child(c)
+	if Game.has_saved_run():
+		var s := Game.saved_run()
+		var t := int(s.run.time)
+		var hero: String = Defs.HEROES[s.hero].title if Defs.HEROES.has(s.hero) else s.hero
+		var info := UIStyle.label("Saved run: %s, %s, %d:%02d" % [hero, Game.map_info(s.map).name, t / 60, t % 60],
+				UIStyle.ui_font("Bold"), 20, UIStyle.MUTED, 4)
+		info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		v.add_child(info)
 	var best: float = Game.progress("best_score")
 	if best > 0.0:
 		var bl := UIStyle.label("Best score  %d" % int(best), UIStyle.ui_font("Bold"), 20, UIStyle.MUTED, 4)
@@ -298,54 +310,12 @@ func _maps() -> void:
 func _settings() -> void:
 	var v := _column(640)
 	_heading(v, "Settings")
-	_slider(v, "Mouse sensitivity", 0.05, 1.0, Game.mouse_sensitivity, func(x: float):
-		Game.mouse_sensitivity = x
-		Game.set_saved("settings", "mouse_sensitivity", x))
-	_slider(v, "Master volume", 0.0, 1.0, Game.master_volume, func(x: float):
-		Game.master_volume = x
-		Game.set_saved("settings", "master_volume", x)
-		Game.apply_volumes())
-	_slider(v, "Music", 0.0, 1.0, Game.music_volume, func(x: float):
-		Game.music_volume = x
-		Game.set_saved("settings", "music_volume", x)
-		Game.apply_volumes())
-	_slider(v, "Effects", 0.0, 1.0, Game.sfx_volume, func(x: float):
-		Game.sfx_volume = x
-		Game.set_saved("settings", "sfx_volume", x)
-		Game.apply_volumes()
-		Sound.play("gem"))
-	var fs := CheckButton.new()
-	fs.text = "Fullscreen (F11)"
-	fs.add_theme_font_override("font", UIStyle.ui_font("Bold"))
-	fs.add_theme_font_size_override("font_size", 30)
-	fs.button_pressed = get_window().mode == Window.MODE_FULLSCREEN
-	fs.toggled.connect(func(on: bool):
-		get_window().mode = Window.MODE_FULLSCREEN if on else Window.MODE_WINDOWED
-		Game.set_saved("settings", "fullscreen", on))
-	v.add_child(fs)
+	SettingsPanel.build(v)
 	var c := CenterContainer.new()
 	var back := UIStyle.button("Back", _title, 240)
 	c.add_child(back)
 	v.add_child(c)
 	back.call_deferred("grab_focus")
-
-
-func _slider(v: Container, text: String, lo: float, hi: float, value: float, cb: Callable) -> void:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 16)
-	var l := UIStyle.label(text, UIStyle.ui_font("Bold"), 30, UIStyle.PARCH, 0)
-	l.custom_minimum_size = Vector2(280, 0)
-	row.add_child(l)
-	var s := HSlider.new()
-	s.min_value = lo
-	s.max_value = hi
-	s.step = 0.01
-	s.value = value
-	s.custom_minimum_size = Vector2(320, 30)
-	s.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	s.value_changed.connect(cb)
-	row.add_child(s)
-	v.add_child(row)
 
 
 # -----------------------------------------------------------------------------
@@ -363,7 +333,10 @@ func _prebuild(map_id: String) -> void:
 	_thread.start(Terrain.prebuild.bind(map))
 
 
-func _start() -> void:
+## Starts a new run, or continues the saved one.
+func _start(resume := false) -> void:
+	if resume:
+		Game.continue_run()
 	var v := _column()
 	_heading(v, "Descending into", 48)
 	_heading(v, Game.map_info(Game.map_id).name, 96)
@@ -373,7 +346,9 @@ func _start() -> void:
 	await get_tree().process_frame
 	if _thread and _thread.is_started():
 		_thread.wait_to_finish()
-	Game.run_seed = randi()
-	Game.stage = 1
-	Game.carry = {}
+	if not resume:
+		Game.run_seed = randi()
+		Game.stage = 1
+		Game.carry = {}
+		Game.resume = {}
 	get_tree().change_scene_to_file(RUN_SCENE)

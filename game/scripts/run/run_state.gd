@@ -168,6 +168,40 @@ func restore(c: Dictionary) -> void:
 	gold_changed.emit(gold)
 
 
+## Everything "Save & quit" keeps about the run itself.
+func save_state() -> Dictionary:
+	return {"weapons": weapons.duplicate(), "tomes": tomes.duplicate(), "items": items.duplicate(),
+			"blessings": blessings.duplicate(), "level": level, "xp": xp, "xp_next": xp_next, "gold": gold,
+			"kills": kills, "elites": elites, "score": score, "revives_used": revives_used, "time": time,
+			"hp": hp, "aegis_cd": aegis_cd, "boss_killed": boss_killed, "boss_time": boss_time,
+			"pending_levels": pending_levels}
+
+
+func load_state(d: Dictionary) -> void:
+	weapons = d.weapons
+	tomes = d.tomes
+	items = d.items
+	blessings = d.blessings
+	level = d.level
+	xp = d.xp
+	xp_next = d.xp_next
+	gold = d.gold
+	kills = d.kills
+	elites = d.elites
+	score = d.score
+	revives_used = d.revives_used
+	time = d.time
+	aegis_cd = d.aegis_cd
+	boss_killed = d.boss_killed
+	boss_time = d.boss_time
+	pending_levels = d.pending_levels
+	recompute()
+	hp = clampf(d.hp, 1.0, max_hp)
+	hp_changed.emit(hp, max_hp)
+	xp_changed.emit(xp, xp_next, level)
+	gold_changed.emit(gold)
+
+
 func final_score() -> int:
 	return score + int(time) * 2 + level * 20 + (5000 if boss_killed else 0)
 

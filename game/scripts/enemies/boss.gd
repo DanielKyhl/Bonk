@@ -156,10 +156,26 @@ func on_defeated(pos: Vector3) -> void:
 	_sl.clear()
 	_sd.clear()
 	_sr.clear()
+	_show_portal()
+	defeated.emit(pos)
+
+
+func _show_portal() -> void:
 	_disc.set_shader_parameter("color", Color(0.6, 0.9, 1.0))
 	_disc.set_shader_parameter("dim", 1.0)
 	_beam.set_shader_parameter("color", Color(0.6, 0.9, 1.0))
-	defeated.emit(pos)
+
+
+## For "Save & quit". A fight in progress is not kept: the boss waits again.
+func save_state() -> Dictionary:
+	return {"defeated": state == DEFEATED, "discovered": discovered}
+
+
+func load_state(d: Dictionary) -> void:
+	discovered = d.discovered
+	if d.defeated:
+		state = DEFEATED
+		_show_portal()
 
 
 func _fight(_delta: float) -> void:
