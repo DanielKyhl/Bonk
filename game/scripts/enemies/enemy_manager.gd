@@ -16,6 +16,8 @@ const DEATH_FPS := 12.0
 const FADE_TIME := 0.45           ## Dithered fade after the death frames.
 const WALK_FPS := 10.0            ## Walk frames per second at the type's anim_speed.
 const ATTACK_FPS := 12.0
+const STRIKE_TIME := 3.5 / ATTACK_FPS   ## Wind-up: the blow lands mid-swing.
+const STRIKE_SLACK := 0.5         ## Meters past reach a blow still connects (step back to dodge).
 const CLIMB_SLOPE := 1.2          ## Steeper than this is a cliff...
 const CLIMB_SLOW := 0.3           ## ...which slows them to this fraction.
 const CHILL_SLOW := 0.45          ## Speed while chilled (bosses: CHILL_SLOW_BOSS).
@@ -42,7 +44,7 @@ var max_hp := PackedFloat32Array()
 var yaw := PackedFloat32Array()
 var anim_t := PackedFloat32Array()
 var flash := PackedFloat32Array()
-var hit_cd := PackedFloat32Array()
+var hit_cd := PackedFloat32Array()     ## Seconds until the next blow lands.
 var slow_t := PackedFloat32Array()   ## Seconds of chill left.
 var speed := PackedFloat32Array()
 var radius := PackedFloat32Array()
@@ -61,6 +63,7 @@ var _solid_cell := PackedByteArray() ## 1 where a hash cell touches a building.
 var _frame := 0
 var _mm: Array[MultiMesh] = []
 var _atlas: Array[SpriteAtlas] = []
+var _swing: PackedFloat32Array = []   ## Seconds per attack animation loop, per type.
 var _query := PackedInt32Array()
 
 
@@ -87,6 +90,7 @@ func setup(t: Terrain, p: Player) -> void:
 	for td in types:
 		var atlas := SpriteAtlas.get_atlas(td.sprite)
 		_atlas.append(atlas)
+		_swing.append(atlas.frames(td.attack) / ATTACK_FPS)
 		var mm := atlas.multimesh(MAX)
 		var mmi := MultiMeshInstance3D.new()
 		mmi.multimesh = mm
@@ -270,6 +274,7 @@ func _process(delta: float) -> void:
 				if anim[i] != Anim.ATTACK:
 					anim[i] = Anim.ATTACK
 					anim_t[i] = 0.0
+					hit_cd[i] = STRIKE_TIME
 			elif anim[i] == Anim.ATTACK and d > reach + 0.8:
 				anim[i] = Anim.RUN
 			var mx := (dx / d * sp + kx[i]) * delta
@@ -288,6 +293,12 @@ func _process(delta: float) -> void:
 				pz[i] = ppos.z - dz / d * body
 			yaw[i] = lerp_angle(yaw[i], atan2(dx, dz), 1.0 - exp(-8.0 * delta))
 			anim_t[i] += delta * (1.0 if anim[i] == Anim.ATTACK else sp / td.anim_speed)
+			# One blow per swing of the attack animation, if the hero is still
+			# in reach and not above its head.
+			if anim[i] == Anim.ATTACK and hit_cd[i] <= 0.0:
+				hit_cd[i] += _swing[t]
+				if d < reach + STRIKE_SLACK and player.height_above_ground() < top[i] * 0.85:
+					player_hit.emit(dmg[i], Vector3(px[i], py[i], pz[i]), i)
 		kx[i] *= decay
 		kz[i] *= decay
 		i += 1
@@ -296,7 +307,6 @@ func _process(delta: float) -> void:
 	_rebuild_hash()
 	_separate()
 	_collide_world()
-	_contact_player()
 	_draw()
 	Prof.add("enemies", Time.get_ticks_usec() - __t)
 
@@ -374,15 +384,6 @@ func _collide_world() -> void:
 		px[i] = x
 		pz[i] = z
 		py[i] = terrain.grid_height(x, z)
-
-
-func _contact_player() -> void:
-	var p := player
-	var ha := p.height_above_ground()
-	for i in query(p.position.x, p.position.z, Player.RADIUS):
-		if state[i] != ALIVE or ha > top[i] * 0.85:
-			continue
-		player_hit.emit(dmg[i], Vector3(px[i], py[i], pz[i]), i)
 
 
 func _draw() -> void:

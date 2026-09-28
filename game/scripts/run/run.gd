@@ -232,6 +232,16 @@ func _ready() -> void:
 				Input.parse_input_event(ev)
 			get_tree().create_timer(0.3).timeout.connect(func():
 				print("MOUSE TEST mode=%d turned=%.1f deg" % [Input.mouse_mode, rad_to_deg(before - camera._target_yaw)])))
+	if "--hurt-test" in args:
+		# Check that enemies hurt: three skeletons walk up to an idle hero with
+		# no weapons; print her health after a few seconds.
+		director.paused = true
+		run.weapons.clear()
+		for k in 3:
+			var a := TAU * k / 3.0
+			enemies.spawn(0, player.position.x + cos(a) * 4.0, player.position.z + sin(a) * 4.0, 1.0, false)
+		get_tree().create_timer(4.0).timeout.connect(func():
+			print("HURT TEST hp=%.0f/%.0f" % [run.hp, run.max_hp]))
 	if "--weapon-test" in args:
 		# Screenshot setup: a sturdy ring of foes and slow motion, so weapon
 		# effects stay on screen for several frames.
