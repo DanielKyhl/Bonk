@@ -2,7 +2,8 @@ class_name Defs
 extends RefCounted
 ## Game data: heroes, weapons and tomes. Balance numbers live here.
 
-## Heroes. Only the Crusader is unlocked at the start.
+## Heroes. Only the Crusader is unlocked at the start; see ROSTER for the
+## rest. `stats` adds to the base stats for the whole run (the passive).
 const HEROES := {
 	"crusader": {
 		"name": "Aurelia, the Crusader",
@@ -12,16 +13,106 @@ const HEROES := {
 		"hp": 120.0,
 		"run_speed": 9.5,
 		"passive": "Holy Aegis: a holy shield blocks one hit, then recharges for 12 seconds.",
-		"unlock": "",
+		"stats": {},
+	},
+	"dragonborn": {
+		"name": "Kaerr, the Dragonborn",
+		"title": "Dragonborn",
+		"blurb": "Last of a line of dragon-blooded kings. Scaled, horned and full of fire.",
+		"weapon": "dragon_breath",
+		"hp": 150.0,
+		"run_speed": 9.2,
+		"passive": "Dragon Scales: take 15% less damage.",
+		"stats": {"armor": 0.15},
+	},
+	"stormcaller": {
+		"name": "Ysolde, the Stormcaller",
+		"title": "Stormcaller",
+		"blurb": "A sky-witch of the northern cliffs who speaks to the thunder.",
+		"weapon": "chain_lightning",
+		"hp": 95.0,
+		"run_speed": 9.8,
+		"passive": "Tempest: +15% attack speed.",
+		"stats": {"attack_speed": 0.15},
+	},
+	"werewolf": {
+		"name": "Vargr, the Werewolf",
+		"title": "Werewolf",
+		"blurb": "Cursed under a red moon. What is left of the man only wants to hunt.",
+		"weapon": "rending_claws",
+		"hp": 130.0,
+		"run_speed": 10.2,
+		"passive": "Bloodlust: heal 3% of the damage you deal.",
+		"stats": {"lifesteal": 0.03},
+	},
+	"chainwarden": {
+		"name": "Harrow, the Chainwarden",
+		"title": "Chainwarden",
+		"blurb": "Jailer of the deep oubliettes, still wearing the chains of the damned.",
+		"weapon": "warden_chains",
+		"hp": 160.0,
+		"run_speed": 9.0,
+		"passive": "Iron Hide: enemies that hit you take 25 damage.",
+		"stats": {"thorns": 25.0},
+	},
+	"frost_witch": {
+		"name": "Elsin, the Frost Witch",
+		"title": "Frost Witch",
+		"blurb": "She froze her own heart to outlive the plague. It worked.",
+		"weapon": "frost_shards",
+		"hp": 90.0,
+		"run_speed": 9.6,
+		"passive": "Rime: every hit has a 30% chance to chill, slowing the foe for 2 seconds.",
+		"stats": {"chill": 0.3},
+	},
+	"rune_golem": {
+		"name": "Oszric, the Rune Golem",
+		"title": "Rune Golem",
+		"blurb": "A war-engine of carved stone, woken by runes older than the church.",
+		"weapon": "rune_slam",
+		"hp": 200.0,
+		"run_speed": 8.4,
+		"passive": "Stoneborn: take 10% less damage and +20% area.",
+		"stats": {"armor": 0.1, "area": 0.2},
+	},
+	"wraith_knight": {
+		"name": "Morvane, the Wraith Knight",
+		"title": "Wraith Knight",
+		"blurb": "A fallen paladin who refused to stay dead. His blade is his soul.",
+		"weapon": "soul_blade",
+		"hp": 120.0,
+		"run_speed": 9.6,
+		"passive": "Undying: rise once from death with half your health.",
+		"stats": {"revive": 1.0},
+	},
+	"necromancer": {
+		"name": "Othric, the Necromancer",
+		"title": "Necromancer",
+		"blurb": "He robs the graves the others guard, and the dead obey him.",
+		"weapon": "soul_skulls",
+		"hp": 100.0,
+		"run_speed": 9.4,
+		"passive": "Grave Harvest: +15% XP and +20% pickup range.",
+		"stats": {"xp": 0.15, "pickup": 0.2},
+	},
+	"chronomancer": {
+		"name": "Tessaly, the Chronomancer",
+		"title": "Chronomancer",
+		"blurb": "A heretic scholar who stole a minute from God and keeps spending it.",
+		"weapon": "time_rift",
+		"hp": 100.0,
+		"run_speed": 9.6,
+		"passive": "Borrowed Time: +10% attack speed; hits have a 15% chance to slow.",
+		"stats": {"attack_speed": 0.1, "chill": 0.15},
 	},
 }
 
 ## Every hero in menu order, with what unlocks them. `stat` is a saved
-## progress value (see Game.record_run) that must reach `need`. Heroes not in
-## HEROES yet are shown as coming soon.
+## progress value (see Game.record_run) that must reach `need`. A hero's signature
+## weapon joins everyone's level-up pool once that hero is unlocked.
 const ROSTER := [
 	{"id": "crusader", "name": "Crusader", "unlock": ""},
-	{"id": "dragonborn", "name": "Dragonborn", "unlock": "Slay the Lich King", "stat": "boss_kills", "need": 1},
+	{"id": "dragonborn", "name": "Dragonborn", "unlock": "Slay a map's boss", "stat": "boss_kills", "need": 1},
 	{"id": "stormcaller", "name": "Stormcaller", "unlock": "Reach level 30 in one run", "stat": "best_level", "need": 30},
 	{"id": "werewolf", "name": "Werewolf", "unlock": "Slay 1,500 foes in one run", "stat": "best_kills", "need": 1500},
 	{"id": "chainwarden", "name": "Chainwarden", "unlock": "Open 12 chests in one run", "stat": "best_chests", "need": 12},
@@ -29,11 +120,12 @@ const ROSTER := [
 	{"id": "rune_golem", "name": "Rune Golem", "unlock": "Pray at 6 shrines in one run", "stat": "best_prayers", "need": 6},
 	{"id": "wraith_knight", "name": "Wraith Knight", "unlock": "Slay 100 elites in all", "stat": "total_elites", "need": 100},
 	{"id": "necromancer", "name": "Necromancer", "unlock": "Slay 25,000 foes in all", "stat": "total_kills", "need": 25000},
-	{"id": "chronomancer", "name": "Chronomancer", "unlock": "Slay the Lich King before 8:00", "stat": "fast_boss", "need": 1},
+	{"id": "chronomancer", "name": "Chronomancer", "unlock": "Slay a boss before 8:00", "stat": "fast_boss", "need": 1},
 ]
 
 ## Weapons. Values are for level 1; `per_level` adds per level after 1.
-## kind picks the behavior in WeaponSystem.
+## kind picks the behavior in WeaponSystem. `hero` marks a signature weapon:
+## it is only offered once that hero is unlocked.
 const WEAPONS := {
 	"radiant_flail": {
 		"name": "Radiant Flail", "kind": "sweep", "max": 7,
@@ -82,6 +174,79 @@ const WEAPONS := {
 		"per_level": {"damage": 6.0, "cooldown": -0.07},
 		"milestones": {3: {"count": 1}, 6: {"count": 1}},
 		"color": Color(0.85, 0.85, 0.9),
+	},
+	# Hero signature weapons.
+	"dragon_breath": {
+		"name": "Dragon Breath", "kind": "cone", "max": 7, "hero": "dragonborn",
+		"desc": "Breathes a cone of fire at the nearest foe.",
+		"damage": 15.0, "cooldown": 1.3, "range": 7.0, "angle": 70.0, "count": 1, "knock": 7.0,
+		"per_level": {"damage": 5.0, "range": 0.4, "cooldown": -0.05},
+		"milestones": {4: {"count": 1}, 7: {"angle": 40.0}},
+		"color": Color(1.0, 0.55, 0.2),
+	},
+	"chain_lightning": {
+		"name": "Chain Lightning", "kind": "chain", "max": 7, "hero": "stormcaller",
+		"desc": "Lightning strikes a foe and leaps to the ones near it.",
+		"damage": 20.0, "cooldown": 1.2, "range": 16.0, "jumps": 4, "jump_range": 7.0, "count": 1, "knock": 3.0,
+		"per_level": {"damage": 5.0, "cooldown": -0.05},
+		"milestones": {3: {"jumps": 2}, 5: {"count": 1}, 7: {"jumps": 3}},
+		"color": Color(0.42, 0.62, 1.0),
+	},
+	"rending_claws": {
+		"name": "Rending Claws", "kind": "claw", "max": 7, "hero": "werewolf",
+		"desc": "Rakes everything in front of you, left and right.",
+		"damage": 12.0, "cooldown": 0.5, "area": 3.2, "angle": 130.0, "count": 1, "knock": 5.0,
+		"per_level": {"damage": 3.5, "area": 0.15, "cooldown": -0.02},
+		"milestones": {3: {"count": 1}, 6: {"count": 1}},
+		"color": Color(0.9, 0.3, 0.3),
+	},
+	"warden_chains": {
+		"name": "Warden's Chains", "kind": "whip", "max": 7, "hero": "chainwarden",
+		"desc": "Lashes a long chain through the crowd, one side then the other.",
+		"damage": 18.0, "cooldown": 1.0, "area": 7.0, "width": 1.5, "count": 1, "knock": 10.0,
+		"per_level": {"damage": 5.0, "area": 0.4, "cooldown": -0.04},
+		"milestones": {2: {"count": 1}, 5: {"count": 1}, 7: {"width": 0.6}},
+		"color": Color(0.75, 0.75, 0.8),
+	},
+	"frost_shards": {
+		"name": "Frost Shards", "kind": "shards", "max": 7, "hero": "frost_witch",
+		"desc": "A fan of ice shards that pierce and slow what they hit.",
+		"damage": 14.0, "cooldown": 1.1, "speed": 30.0, "pierce": 1, "count": 3, "knock": 3.0, "slow": 1.5,
+		"per_level": {"damage": 4.0, "cooldown": -0.04},
+		"milestones": {3: {"count": 1}, 5: {"pierce": 1}, 7: {"count": 2}},
+		"color": Color(0.6, 0.85, 1.0),
+	},
+	"rune_slam": {
+		"name": "Rune Slam", "kind": "slam", "max": 7, "hero": "rune_golem",
+		"desc": "Smashes the ground, crushing and hurling back everything around you.",
+		"damage": 40.0, "cooldown": 2.6, "area": 5.0, "count": 1, "knock": 24.0,
+		"per_level": {"damage": 10.0, "area": 0.3, "cooldown": -0.1},
+		"milestones": {4: {"count": 1}, 7: {"count": 1}},
+		"color": Color(1.0, 0.6, 0.3),
+	},
+	"soul_blade": {
+		"name": "Soul Blade", "kind": "boomerang", "max": 7, "hero": "wraith_knight",
+		"desc": "A ghostly sword flies out through the crowd and returns to your hand.",
+		"damage": 26.0, "cooldown": 1.6, "range": 14.0, "speed": 26.0, "count": 1, "knock": 6.0,
+		"per_level": {"damage": 7.0, "cooldown": -0.06},
+		"milestones": {3: {"count": 1}, 6: {"count": 1}},
+		"color": Color(0.5, 0.95, 0.85),
+	},
+	"soul_skulls": {
+		"name": "Soul Skulls", "kind": "homing", "max": 7, "hero": "necromancer",
+		"desc": "Screaming skulls hunt down foes and burst on contact.",
+		"damage": 16.0, "cooldown": 1.4, "speed": 14.0, "area": 1.8, "count": 2, "knock": 5.0,
+		"per_level": {"damage": 5.0, "cooldown": -0.05},
+		"milestones": {3: {"count": 1}, 5: {"area": 0.6}, 7: {"count": 2}},
+		"color": Color(0.75, 0.6, 1.0),
+	},
+	"time_rift": {
+		"name": "Time Rift", "kind": "rift", "max": 7, "hero": "chronomancer",
+		"desc": "Tears open a rift that slows and grinds down everything inside.",
+		"damage": 7.0, "cooldown": 3.0, "area": 4.0, "range": 16.0, "duration": 3.0, "count": 1, "knock": 0.0,
+		"per_level": {"damage": 2.5, "area": 0.25, "cooldown": -0.1},
+		"milestones": {4: {"count": 1}, 7: {"duration": 1.5}},
+		"color": Color(0.75, 0.5, 1.0),
 	},
 }
 
@@ -194,7 +359,7 @@ const BASE_STATS := {
 	"max_hp": 0.0, "regen": 0.0, "pickup": 1.0, "xp": 1.0,
 	"crit": 0.05, "crit_mult": 1.8, "count": 0.0, "hop": 0.0, "armor": 0.0, "luck": 0.0,
 	"gold": 1.0, "thorns": 0.0, "lifesteal": 0.0, "heart_drop": 0.0, "execute": 0.0,
-	"revive": 0.0, "air_jump": 0.0,
+	"revive": 0.0, "air_jump": 0.0, "chill": 0.0,
 }
 
 

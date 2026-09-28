@@ -12,7 +12,7 @@ render_mode unshaded, cull_disabled, skip_vertex_transform, shadows_disabled;
 //   x = frame column + 16 * first atlas row of the animation
 //       (+ 4096 if the animation has a single direction)
 //   y = facing yaw in world space (atan2(dir.x, dir.z))
-//   z = hit flash 0..1
+//   z = hit flash 0..1 (+2 when chilled: frosted blue)
 //   w = visibility 0..1 (dithered fade)
 // The instance basis x axis length is the sprite scale; its direction in the
 // basis' XY plane rotates the sprite on screen (projectiles; 0 for characters).
@@ -25,6 +25,7 @@ uniform float foot_px = 61.0;              // pixel row of the feet in a frame
 uniform vec3 tint : source_color = vec3(1.0);
 uniform vec3 flash_color : source_color = vec3(1.0, 0.95, 0.85);
 uniform float lean = 1.0;                  // 1 = upright depth, 0 = flat card
+uniform float bias = 0.0;                  // meters pulled toward the camera (effects over the crowd)
 
 varying vec2 v_uv;
 varying float v_flash;
@@ -72,7 +73,7 @@ void vertex() {
 	// depth by tan(p) makes it upright without moving it on screen.
 	vec3 up = (VIEW_MATRIX * vec4(0.0, 1.0, 0.0, 0.0)).xyz;
 	float tan_p = up.z / max(up.y, 0.05);
-	VERTEX = vec3(anchor.xy + local, anchor.z + local.y * tan_p * lean);
+	VERTEX = vec3(anchor.xy + local, anchor.z + local.y * tan_p * lean + bias);
 	NORMAL = vec3(0.0, 0.0, 1.0);
 	v_uv = (vec2(col, row) + UV) / grid;
 	v_flash = INSTANCE_CUSTOM.z;
@@ -91,5 +92,8 @@ void fragment() {
 	if (c.a < 0.5 || v_alpha < bayer4(FRAGCOORD.xy)) {
 		discard;
 	}
-	ALBEDO = mix(c.rgb * tint, flash_color, v_flash * 0.8);
+	float frost = step(1.5, v_flash);
+	vec3 col = c.rgb * tint;
+	col = mix(col, vec3(dot(col, vec3(0.3, 0.5, 0.2))) * vec3(0.75, 1.05, 1.45) + vec3(0.04, 0.08, 0.14), frost * 0.8);
+	ALBEDO = mix(col, flash_color, (v_flash - frost * 2.0) * 0.8);
 }

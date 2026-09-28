@@ -228,6 +228,7 @@ func _hero_info(id: String) -> void:
 		var pas := UIStyle.label(hd.passive, UIStyle.ui_font("Regular"), 16, UIStyle.XP, 0)
 		pas.autowrap_mode = TextServer.AUTOWRAP_WORD
 		_hero_detail.add_child(pas)
+		_hero_detail.add_child(UIStyle.label("Health %d    Speed %.1f" % [hd.hp, hd.run_speed], UIStyle.ui_font("Bold"), 20, UIStyle.MUTED, 0))
 	else:
 		_hero_detail.add_child(UIStyle.label(entry.get("name", "???") if unlocked else "Locked", UIStyle.title_font(), 48, UIStyle.MUTED, 8))
 		var how := "Coming soon." if unlocked else "Unlock: %s." % entry.get("unlock", "")

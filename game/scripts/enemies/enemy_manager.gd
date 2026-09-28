@@ -18,6 +18,8 @@ const WALK_FPS := 10.0            ## Walk frames per second at the type's anim_s
 const ATTACK_FPS := 12.0
 const CLIMB_SLOPE := 1.2          ## Steeper than this is a cliff...
 const CLIMB_SLOW := 0.3           ## ...which slows them to this fraction.
+const CHILL_SLOW := 0.45          ## Speed while chilled (bosses: CHILL_SLOW_BOSS).
+const CHILL_SLOW_BOSS := 0.8
 
 enum { RISING, ALIVE, DYING }
 enum Anim { RUN, ATTACK, SPAWN, DEATH }
@@ -41,6 +43,7 @@ var yaw := PackedFloat32Array()
 var anim_t := PackedFloat32Array()
 var flash := PackedFloat32Array()
 var hit_cd := PackedFloat32Array()
+var slow_t := PackedFloat32Array()   ## Seconds of chill left.
 var speed := PackedFloat32Array()
 var radius := PackedFloat32Array()
 var top := PackedFloat32Array()      ## Height of the head above the feet.
@@ -68,7 +71,7 @@ func setup(t: Terrain, p: Player) -> void:
 	# Resize the members directly (a loop over copies would resize the copies).
 	px.resize(MAX); pz.resize(MAX); py.resize(MAX); kx.resize(MAX); kz.resize(MAX)
 	hp.resize(MAX); max_hp.resize(MAX); yaw.resize(MAX); anim_t.resize(MAX); flash.resize(MAX)
-	hit_cd.resize(MAX); speed.resize(MAX); radius.resize(MAX); top.resize(MAX); dmg.resize(MAX)
+	hit_cd.resize(MAX); slow_t.resize(MAX); speed.resize(MAX); radius.resize(MAX); top.resize(MAX); dmg.resize(MAX)
 	state.resize(MAX); typ.resize(MAX); anim.resize(MAX); elite.resize(MAX)
 	_cell.resize(MAX); _next.resize(MAX)
 	_hn = int(ceil(2.0 * terrain.half / HC))
@@ -123,6 +126,7 @@ func spawn(t: int, x: float, z: float, hp_mult := 1.0, rise := true, is_elite :=
 	anim_t[i] = 0.0
 	flash[i] = 0.0
 	hit_cd[i] = 0.0
+	slow_t[i] = 0.0
 	speed[i] = td.speed * randf_range(0.92, 1.08) * (0.9 if is_elite else 1.0)
 	radius[i] = td.radius * (1.35 if is_elite else 1.0)
 	top[i] = 2.0 * s
@@ -151,6 +155,11 @@ func damage(i: int, amount: float, push := Vector2.ZERO) -> bool:
 		killed.emit(typ[i], Vector3(px[i], py[i], pz[i]), td.xp * (8 if elite[i] == 1 else 1), elite[i] == 1)
 		return true
 	return false
+
+
+## Chills enemy i: it moves at CHILL_SLOW speed for secs (drawn frosted).
+func slow(i: int, secs: float) -> void:
+	slow_t[i] = maxf(slow_t[i], secs)
 
 
 ## Knocks every enemy within r of pos outward (m/s of push).
@@ -236,6 +245,7 @@ func _process(delta: float) -> void:
 		var td: Dictionary = types[t]
 		flash[i] = maxf(0.0, flash[i] - delta * 9.0)
 		hit_cd[i] -= delta
+		slow_t[i] = maxf(0.0, slow_t[i] - delta)
 		if st == DYING:
 			anim_t[i] += delta
 			if anim_t[i] > 6.0 / DEATH_FPS + FADE_TIME:
@@ -253,6 +263,8 @@ func _process(delta: float) -> void:
 			var d := sqrt(dx * dx + dz * dz) + 0.0001
 			var reach := radius[i] + Player.RADIUS + 1.1
 			var sp := speed[i]
+			if slow_t[i] > 0.0:
+				sp *= CHILL_SLOW_BOSS if elite[i] == 2 else CHILL_SLOW
 			if d < reach:
 				sp = 0.0
 				if anim[i] != Anim.ATTACK:
@@ -294,7 +306,7 @@ func _remove(i: int) -> void:
 	if i != j:
 		px[i] = px[j]; pz[i] = pz[j]; py[i] = py[j]; kx[i] = kx[j]; kz[i] = kz[j]
 		hp[i] = hp[j]; max_hp[i] = max_hp[j]; yaw[i] = yaw[j]; anim_t[i] = anim_t[j]
-		flash[i] = flash[j]; hit_cd[i] = hit_cd[j]; speed[i] = speed[j]; radius[i] = radius[j]
+		flash[i] = flash[j]; hit_cd[i] = hit_cd[j]; slow_t[i] = slow_t[j]; speed[i] = speed[j]; radius[i] = radius[j]
 		top[i] = top[j]; dmg[i] = dmg[j]; state[i] = state[j]; typ[i] = typ[j]
 		anim[i] = anim[j]; elite[i] = elite[j]
 	count -= 1
@@ -424,7 +436,7 @@ func _draw() -> void:
 			b[o + 11] = pz[i]
 			b[o + 12] = code
 			b[o + 13] = yaw[i]
-			b[o + 14] = flash[i]
+			b[o + 14] = flash[i] + (2.0 if slow_t[i] > 0.0 else 0.0)
 			b[o + 15] = alpha
 			o += STRIDE
 		_mm[t].buffer = b

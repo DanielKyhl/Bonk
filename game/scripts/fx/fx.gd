@@ -1,12 +1,14 @@
 class_name Fx
 extends Node3D
-## Pooled visual effects: particle chips, shockwave rings, light pillars and
-## floating damage numbers. Nothing is allocated during play.
+## Pooled visual effects: particle chips, shockwave rings, light pillars,
+## lightning and floating damage numbers.
 
 const MAX_PARTS := 600
 const MAX_RINGS := 28
 const MAX_BEAMS := 16
 const MAX_NUMBERS := 30
+const MAX_BOLTS := 12
+const BOLT_LIFE := 0.2
 
 var terrain: Terrain
 
@@ -34,6 +36,12 @@ var _nums: Array[Label3D] = []
 var _num_life := PackedFloat32Array()
 var _num_vel := PackedVector3Array()
 var _num_next := 0
+
+## Lightning: each bolt is a jagged polyline drawn as camera-facing ribbons.
+var _bolt_mesh: ImmediateMesh
+var _bolt_pts: Array[PackedVector3Array] = []
+var _bolt_life := PackedFloat32Array()
+var _bolt_col := PackedColorArray()
 
 
 func setup(t: Terrain) -> void:
@@ -99,6 +107,16 @@ func setup(t: Terrain) -> void:
 		_beams.append(mi)
 	_beam_life.resize(MAX_BEAMS)
 
+	_bolt_mesh = ImmediateMesh.new()
+	var bolts := MeshInstance3D.new()
+	bolts.mesh = _bolt_mesh
+	var bm := ShaderMaterial.new()
+	bm.shader = load("res://shaders/bolt.gdshader")
+	bolts.material_override = bm
+	bolts.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	bolts.custom_aabb = AABB(Vector3(-400, -100, -400), Vector3(800, 300, 800))
+	add_child(bolts)
+
 	# Pixel font at one font pixel per low-res pixel, so numbers are as crisp
 	# as the sprites.
 	var font := UIStyle.ui_font("Bold")
@@ -110,7 +128,11 @@ func setup(t: Terrain) -> void:
 		l.outline_modulate = Color(0.05, 0.03, 0.05, 1.0)
 		l.pixel_size = 1.0 / PixelView.PPM
 		l.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-		l.alpha_cut = Label3D.ALPHA_CUT_DISCARD
+		# Blended, so the outline reliably draws under the digits (with alpha
+		# cut both go through the opaque pass in no set order).
+		l.alpha_cut = Label3D.ALPHA_CUT_DISABLED
+		l.render_priority = 2
+		l.outline_render_priority = 1
 		l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		l.no_depth_test = true
 		l.fixed_size = false
@@ -176,6 +198,79 @@ func pillar(pos: Vector3, life := 0.4) -> void:
 	mi.global_position = pos + Vector3(0, 7.0, 0)
 	mi.scale = Vector3(1, 1, 1)
 	_beam_life[i] = life
+
+
+## A lightning bolt through the given points (jagged between each pair).
+func lightning(points: PackedVector3Array, color := Color(0.6, 0.8, 1.0)) -> void:
+	if points.size() < 2:
+		return
+	if _bolt_pts.size() >= MAX_BOLTS:
+		_bolt_pts.remove_at(0)
+		_bolt_life.remove_at(0)
+		_bolt_col.remove_at(0)
+	_bolt_pts.append(_jag(points))
+	_bolt_life.append(BOLT_LIFE)
+	_bolt_col.append(color)
+
+
+func _jag(points: PackedVector3Array) -> PackedVector3Array:
+	var out := PackedVector3Array([points[0]])
+	for k in points.size() - 1:
+		var a := points[k]
+		var b := points[k + 1]
+		var n := maxi(2, int(a.distance_to(b) / 1.1))
+		var side := (b - a).cross(Vector3.UP).normalized()
+		for j in range(1, n):
+			var q := a.lerp(b, float(j) / n)
+			out.append(q + side * randf_range(-0.45, 0.45) + Vector3(0, randf_range(-0.3, 0.3), 0))
+		out.append(b)
+	return out
+
+
+func _draw_bolts(delta: float) -> void:
+	_bolt_mesh.clear_surfaces()
+	var k := 0
+	while k < _bolt_pts.size():
+		_bolt_life[k] -= delta
+		if _bolt_life[k] <= 0.0:
+			_bolt_pts.remove_at(k)
+			_bolt_life.remove_at(k)
+			_bolt_col.remove_at(k)
+			continue
+		# Re-jag halfway so the bolt flickers.
+		if _bolt_life[k] < BOLT_LIFE * 0.5 and _bolt_life[k] + delta >= BOLT_LIFE * 0.5:
+			var pts := _bolt_pts[k]
+			for j in range(1, pts.size() - 1):
+				pts[j] += Vector3(randf_range(-0.3, 0.3), randf_range(-0.2, 0.2), randf_range(-0.3, 0.3))
+			_bolt_pts[k] = pts
+		k += 1
+	if _bolt_pts.is_empty():
+		return
+	var cam := get_viewport().get_camera_3d()
+	if cam == null:
+		return
+	var back := cam.global_transform.basis.z
+	_bolt_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+	for b in _bolt_pts.size():
+		var pts := _bolt_pts[b]
+		var col := _bolt_col[b]
+		_ribbon(pts, back, 0.3, col, Vector3.ZERO)
+		_ribbon(pts, back, 0.11, col.lerp(Color(1, 1, 1), 0.75), back * 0.2)
+	_bolt_mesh.surface_end()
+
+
+func _ribbon(pts: PackedVector3Array, back: Vector3, width: float, col: Color, lift: Vector3) -> void:
+	for j in pts.size() - 1:
+		var a := pts[j] + lift
+		var b := pts[j + 1] + lift
+		var side := (b - a).cross(back).normalized() * width * 0.5
+		_bolt_mesh.surface_set_color(col)
+		_bolt_mesh.surface_add_vertex(a - side)
+		_bolt_mesh.surface_add_vertex(a + side)
+		_bolt_mesh.surface_add_vertex(b + side)
+		_bolt_mesh.surface_add_vertex(a - side)
+		_bolt_mesh.surface_add_vertex(b + side)
+		_bolt_mesh.surface_add_vertex(b - side)
 
 
 func number(pos: Vector3, value: float, crit := false, color := Color(1, 1, 1)) -> void:
@@ -276,6 +371,8 @@ func _process(delta: float) -> void:
 			continue
 		var w := clampf(_beam_life[i] / 0.4, 0.0, 1.0)
 		mi.scale = Vector3(w, 1.0, w)
+
+	_draw_bolts(delta)
 
 	for i in MAX_NUMBERS:
 		if _num_life[i] <= 0.0:

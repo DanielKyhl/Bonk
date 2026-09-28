@@ -60,6 +60,27 @@ def pale(r, g, b):
     return (l * 0.62 + 16, l * 0.76 + 26, l * 0.92 + 44)
 
 
+def dragon_red(r, g, b):
+    """Green scales turned blood red (Dragonborn)."""
+    return (g * 1.05 + 12, r * 0.5 + 4, b * 0.45)
+
+
+def stone(r, g, b):
+    """Grey rune-stone (Rune Golem)."""
+    l = (r + g + b) / 3.0
+    return (l * 0.68 + 22, l * 0.7 + 24, l * 0.78 + 30)
+
+
+def ghostly(r, g, b):
+    """Pale spectral teal (Wraith Knight)."""
+    l = (r + g + b) / 3.0
+    return (l * 0.5 + 12, l * 0.86 + 30, l * 0.82 + 40)
+
+
+def body(target):
+    return ("body", "light", target)
+
+
 CHARACTERS = {
     "crusader": [
         {"path": "cape/solid/bg", "z": 5, "recolor": cloth("maroon")},
@@ -108,6 +129,90 @@ CHARACTERS = {
         {"path": "head/heads/skeleton/adult", "z": 100, "fn": deathly},
         {"path": "hat/formal/crown/adult|crown_gold", "z": 130},
         {"path": "weapon/polearm/scythe|scythe", "z": 140, "anims": {"spellcast": None}},
+    ],
+    # --- Heroes ---
+    "dragonborn": [
+        {"path": "body/wings/lizard/adult/bg", "z": 4, "recolor": body("green"), "fn": dragon_red},
+        {"path": "body/tail/lizard/adult/bg", "z": 6, "recolor": body("green"), "fn": dragon_red},
+        {"path": "body/bodies/male", "z": 10, "recolor": body("green"), "fn": dragon_red},
+        {"path": "legs/armour/plate/male", "z": 20, "recolor": metal("bronze")},
+        {"path": "torso/armour/plate/male", "z": 60, "recolor": metal("bronze")},
+        {"path": "shoulders/pauldrons/male", "z": 61, "recolor": ("metal", "steel", "gold")},
+        {"path": "head/heads/lizard/male", "z": 100, "fn": dragon_red},
+        {"path": "body/tail/lizard/adult/fg", "z": 105, "recolor": body("green"), "fn": dragon_red},
+        {"path": "body/wings/lizard/adult/fg", "z": 106, "recolor": body("green"), "fn": dragon_red},
+    ],
+    "stormcaller": [
+        {"path": "cape/solid/bg", "z": 5, "recolor": cloth("navy")},
+        {"path": "body/bodies/female", "z": 10},
+        {"path": "torso/clothes/robe/female|blue", "z": 35},
+        {"path": "cape/solid/fg", "z": 85, "recolor": cloth("navy")},
+        {"path": "cape/trim", "z": 90, "recolor": ("cloth", "brown", "yellow")},
+        {"path": "head/heads/human/female", "z": 100},
+        {"path": "hat/magic/wizard/base/adult|blue", "z": 130},
+    ],
+    "werewolf": [
+        {"path": "body/tail/wolf/adult/bg|fur_brown", "z": 6},
+        {"path": "body/bodies/male", "z": 10, "recolor": body("fur_brown")},
+        {"path": "legs/armour/plate/male", "z": 20, "recolor": metal("iron")},
+        {"path": "arms/hands/gloves/male", "z": 70, "recolor": metal("iron")},
+        {"path": "head/heads/wolf/male", "z": 100},
+        {"path": "body/tail/wolf/adult/fg|fur_brown", "z": 105},
+    ],
+    "chainwarden": [
+        {"path": "weapon/blunt/flail/behind|flail", "z": 9},
+        {"path": "body/bodies/male", "z": 10},
+        {"path": "legs/armour/plate/male", "z": 20, "recolor": metal("iron")},
+        {"path": "torso/armour/plate/male", "z": 60, "recolor": metal("iron")},
+        {"path": "arms/armour/plate/male", "z": 60, "recolor": metal("iron")},
+        {"path": "shoulders/pauldrons/male", "z": 61, "recolor": ("metal", "steel", "iron")},
+        {"path": "head/heads/human/male", "z": 100},
+        {"path": "hat/cloth/hood/adult", "z": 130, "recolor": cloth("black")},
+        {"path": "weapon/blunt/flail|flail", "z": 140},
+    ],
+    "frost_witch": [
+        {"path": "cape/tattered/bg", "z": 5, "recolor": cloth("sky")},
+        {"path": "body/bodies/female", "z": 10, "recolor": body("lavender")},
+        {"path": "torso/clothes/robe/female|white", "z": 35},
+        {"path": "cape/tattered/fg", "z": 85, "recolor": cloth("sky")},
+        {"path": "head/heads/human/female", "z": 100, "recolor": body("lavender")},
+        {"path": "hat/magic/wizard/base/adult|white", "z": 130},
+    ],
+    "rune_golem": [
+        {"path": "body/bodies/male", "z": 10, "fn": stone},
+        {"path": "legs/armour/plate/male", "z": 20, "recolor": metal("copper")},
+        {"path": "shoulders/pauldrons/male", "z": 61, "recolor": ("metal", "steel", "copper")},
+        {"path": "arms/hands/gloves/male", "z": 70, "recolor": metal("copper")},
+        {"path": "head/heads/troll/adult", "z": 100, "fn": stone},
+    ],
+    "wraith_knight": [
+        {"path": "cape/tattered/bg", "z": 5, "recolor": cloth("black")},
+        {"path": "weapon/sword/longsword/universal_behind|longsword", "z": 9},
+        {"path": "body/bodies/skeleton", "z": 10, "fn": ghostly},
+        {"path": "legs/armour/plate/male", "z": 20, "recolor": metal("iron")},
+        {"path": "torso/armour/plate/male", "z": 60, "recolor": metal("iron")},
+        {"path": "cape/tattered/fg", "z": 85, "recolor": cloth("black")},
+        {"path": "head/heads/skeleton/adult", "z": 100, "fn": ghostly},
+        {"path": "hat/helmet/greathelm/male", "z": 130, "recolor": metal("iron")},
+        {"path": "weapon/sword/longsword|longsword", "z": 140},
+    ],
+    "necromancer": [
+        {"path": "cape/tattered/bg", "z": 5, "recolor": cloth("black")},
+        {"path": "body/bodies/male", "z": 10, "recolor": body("taupe")},
+        {"path": "legs/armour/plate/male", "z": 20, "recolor": metal("iron")},
+        {"path": "torso/armour/plate/male", "z": 60, "recolor": metal("iron")},
+        {"path": "cape/tattered/fg", "z": 85, "recolor": cloth("black")},
+        {"path": "head/heads/human/male", "z": 100, "recolor": body("taupe")},
+        {"path": "hat/cloth/hood/adult", "z": 130, "recolor": cloth("purple")},
+    ],
+    "chronomancer": [
+        {"path": "cape/solid/bg", "z": 5, "recolor": cloth("purple")},
+        {"path": "body/bodies/female", "z": 10, "recolor": body("amber")},
+        {"path": "torso/clothes/robe/female|purple", "z": 35},
+        {"path": "cape/solid/fg", "z": 85, "recolor": cloth("purple")},
+        {"path": "cape/trim", "z": 90, "recolor": ("cloth", "brown", "yellow")},
+        {"path": "head/heads/human/female", "z": 100, "recolor": body("amber")},
+        {"path": "hat/magic/wizard/base/adult|purple", "z": 130},
     ],
     # --- Frostfang Peaks ---
     "draugr": [
@@ -191,7 +296,8 @@ CHARACTERS = {
 }
 
 CHAR_ANIMS = {"skeleton_mage": CASTER_ANIMS, "lich": CASTER_ANIMS, "frost_mage": CASTER_ANIMS,
-        "draugr_king": CASTER_ANIMS, "plague_witch": CASTER_ANIMS, "mother_rot": CASTER_ANIMS}
+        "draugr_king": CASTER_ANIMS, "plague_witch": CASTER_ANIMS, "mother_rot": CASTER_ANIMS,
+        "stormcaller": CASTER_ANIMS, "frost_witch": CASTER_ANIMS, "necromancer": CASTER_ANIMS, "chronomancer": CASTER_ANIMS}
 
 
 def build(lpc, cid, layers):

@@ -11,8 +11,9 @@ var _n := 0
 
 
 ## grid: atlas columns and rows; anchor_px: pixel row the position refers to
-## (frame_px / 2 centers the sprite on it).
-func setup(atlas: Texture2D, grid: Vector2, frame_px: float, anchor_px: float) -> void:
+## (frame_px / 2 centers the sprite on it); bias: meters pulled toward the
+## camera so effects draw over nearby characters.
+func setup(atlas: Texture2D, grid: Vector2, frame_px: float, anchor_px: float, bias := 0.0) -> void:
 	var mat := ShaderMaterial.new()
 	mat.shader = preload("res://shaders/sprite.gdshader")
 	mat.set_shader_parameter("atlas", atlas)
@@ -21,6 +22,7 @@ func setup(atlas: Texture2D, grid: Vector2, frame_px: float, anchor_px: float) -
 	mat.set_shader_parameter("frame_px", frame_px)
 	mat.set_shader_parameter("foot_px", anchor_px)
 	mat.set_shader_parameter("lean", 0.5)
+	mat.set_shader_parameter("bias", bias)
 	var q := QuadMesh.new()
 	q.size = Vector2.ONE
 	q.material = mat

@@ -8,12 +8,14 @@ var atlas: SpriteAtlas
 var flash := 0.0
 var _t := 0.0
 var _attack_t := -1.0
+var _attack := "slash"   ## "spellcast" for casters.
 var _buf := PackedFloat32Array()
 
 
 func setup(p: Player, atlas_id: String) -> void:
 	player = p
 	atlas = SpriteAtlas.get_atlas(atlas_id)
+	_attack = "slash" if atlas.has("slash") else "spellcast"
 	multimesh = atlas.multimesh(1)
 	multimesh.visible_instance_count = 1
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -21,7 +23,7 @@ func setup(p: Player, atlas_id: String) -> void:
 	_buf.resize(16)
 
 
-## Plays the attack swing once (weapons call this when they fire).
+## Plays the attack swing (or spell cast) once; weapons call this when they fire.
 func swing() -> void:
 	if _attack_t < 0.0:
 		_attack_t = 0.0
@@ -34,12 +36,12 @@ func _process(delta: float) -> void:
 	var anim := "walk"
 	var frame := 0
 	flash = maxf(0.0, flash - delta * 6.0)
-	if _attack_t >= 0.0 and atlas.has("slash"):
+	if _attack_t >= 0.0 and atlas.has(_attack):
 		_attack_t += delta * 16.0
-		if _attack_t >= atlas.frames("slash"):
+		if _attack_t >= atlas.frames(_attack):
 			_attack_t = -1.0
 		else:
-			anim = "slash"
+			anim = _attack
 			frame = int(_attack_t)
 	if anim == "walk":
 		if player.sliding or player.slide_air or player.slamming:

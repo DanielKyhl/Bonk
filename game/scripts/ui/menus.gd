@@ -173,6 +173,14 @@ func _card(i: int, c: Dictionary) -> Control:
 	return b
 
 
+## What "+1 count" means for each weapon kind.
+const COUNT_NAMES := {
+	"javelin": "projectile", "axes": "projectile", "smite": "strike", "orbit": "orb",
+	"cone": "breath", "chain": "bolt", "claw": "slash", "whip": "lash", "shards": "shard",
+	"slam": "aftershock", "boomerang": "blade", "homing": "skull", "rift": "rift",
+}
+
+
 func _weapon_delta(w: Dictionary, new_lvl: int) -> String:
 	var parts := []
 	for key: String in w.per_level:
@@ -181,12 +189,17 @@ func _weapon_delta(w: Dictionary, new_lvl: int) -> String:
 			"damage": parts.append("+%d damage" % int(v))
 			"area": parts.append("+%d%% area" % int(round(v / float(w.get("area", 1.0)) * 100.0)))
 			"cooldown": parts.append("%d%% faster" % int(round(-v / float(w.cooldown) * 100.0)))
+			"range": parts.append("+%d%% range" % int(round(v / float(w.range) * 100.0)))
 	if w.milestones.has(new_lvl):
 		for key: String in w.milestones[new_lvl]:
+			var m: float = w.milestones[new_lvl][key]
 			match key:
-				"count": parts.append("+1 %s" % ("projectile" if w.kind in ["javelin", "axes"] else "strike" if w.kind == "smite" else "orb" if w.kind == "orbit" else "swing"))
-				"pierce": parts.append("+%d pierce" % int(w.milestones[new_lvl][key]))
-				"area": parts.append("bigger area")
+				"count": parts.append("+%d %s" % [int(m), COUNT_NAMES.get(w.kind, "swing")])
+				"pierce": parts.append("+%d pierce" % int(m))
+				"area", "width": parts.append("bigger area")
+				"jumps": parts.append("+%d jumps" % int(m))
+				"angle": parts.append("wider cone")
+				"duration": parts.append("lasts longer")
 	return ", ".join(parts)
 
 

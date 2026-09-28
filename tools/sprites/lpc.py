@@ -21,6 +21,7 @@ class Lpc:
         self.used = set()
 
     def palette(self, material, name):
+        name = name.split(".")[-1]
         key = (material, name)
         if key not in self.palettes:
             for fname in os.listdir(os.path.join(self.root, "palette_definitions", material)):

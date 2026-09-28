@@ -45,7 +45,7 @@ func setup(m: MapDef, t: Terrain, props: Props, r: RunState, p: Player, f: Fx) -
 	_mesh = props.merged_mesh(CHEST, true)
 	_mesh_gold = props.merged_mesh(CHEST_GOLD, true)
 	_glints = SpriteBatch.new()
-	_glints.setup(load("res://assets/sprites/weapons_fx.png"), Vector2(4, 5), 24.0, 12.0)
+	_glints.setup(load("res://assets/sprites/weapons_fx.png"), Vector2(4, 11), 24.0, 12.0)
 	add_child(_glints)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = Game.run_seed

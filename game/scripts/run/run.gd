@@ -33,6 +33,8 @@ func _ready() -> void:
 	for a in args:
 		if a.begins_with("--map=") and Game.stage == 1:
 			Game.map_id = a.get_slice("=", 1)
+		if a.begins_with("--hero="):
+			Game.hero_id = a.get_slice("=", 1)
 	map = load(Game.map_info(Game.map_id).script).new()
 	view = PixelView.new()
 	add_child(view)
@@ -59,6 +61,7 @@ func _ready() -> void:
 		Game.carry = {}
 
 	player = load("res://scenes/actors/player.tscn").instantiate()
+	player.sprite_id = Game.hero_id
 	player.terrain = terrain
 	player.pads = props.pad_positions
 	world.add_child(player)
@@ -212,6 +215,15 @@ func _ready() -> void:
 			if k % 19 == 0:
 				type = 2
 			enemies.spawn(type, player.position.x + cos(a) * r, player.position.z + sin(a) * r, 60.0, false)
+	if "--weapon-test" in args:
+		# Screenshot setup: a sturdy ring of foes and slow motion, so weapon
+		# effects stay on screen for several frames.
+		director.paused = true
+		Engine.time_scale = 0.3
+		for k in 70:
+			var a := randf() * TAU
+			var r := randf_range(4.0, 15.0)
+			enemies.spawn(0 if k % 4 != 0 else 1, player.position.x + cos(a) * r, player.position.z + sin(a) * r, 40.0, false)
 	if "--horde" in args:
 		for k in 110:
 			var a := randf() * TAU

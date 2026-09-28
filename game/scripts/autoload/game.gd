@@ -5,6 +5,8 @@ const SAVE_PATH := "user://save.cfg"
 
 ## Selected hero and map for the next run.
 var hero_id := "crusader"
+## Debug (--unlock-all): every hero counts as unlocked.
+var unlock_all := false
 var map_id := "hallowed_vale"
 ## Stage of the current run: 1 on a fresh run, +1 for every boss portal
 ## taken. Later stages are tougher (see stage_mult).
@@ -41,7 +43,10 @@ func _ready() -> void:
 	master_volume = get_saved("settings", "master_volume", 0.8)
 	music_volume = get_saved("settings", "music_volume", 0.7)
 	sfx_volume = get_saved("settings", "sfx_volume", 0.8)
+	unlock_all = "--unlock-all" in OS.get_cmdline_user_args()
 	hero_id = get_saved("settings", "hero", "crusader")
+	if not Defs.HEROES.has(hero_id) or not is_hero_unlocked(hero_id):
+		hero_id = "crusader"
 	map_id = get_saved("settings", "map", "hallowed_vale")
 	if not is_map_unlocked(map_id):
 		map_id = MAPS[0].id
@@ -125,6 +130,8 @@ func progress(stat: String) -> float:
 
 
 func is_hero_unlocked(id: String) -> bool:
+	if unlock_all:
+		return true
 	for h in Defs.ROSTER:
 		if h.id == id:
 			return h.unlock == "" or progress(h.stat) >= h.need

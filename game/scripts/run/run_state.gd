@@ -67,6 +67,8 @@ func _process(delta: float) -> void:
 
 func recompute() -> void:
 	stats = Defs.BASE_STATS.duplicate()
+	for k: String in hero.stats:
+		stats[k] += hero.stats[k]
 	for id in tomes:
 		var t: Dictionary = Defs.TOMES[id]
 		stats[t.stat] += t.add * tomes[id]
@@ -192,7 +194,8 @@ func roll_choices() -> Array[Dictionary]:
 			pool.append({"kind": "weapon", "id": id, "weight": 3.0})
 	if weapons.size() < MAX_WEAPONS:
 		for id in Defs.WEAPONS:
-			if not weapons.has(id):
+			var owner: String = Defs.WEAPONS[id].get("hero", "")
+			if not weapons.has(id) and (owner == "" or Game.is_hero_unlocked(owner)):
 				pool.append({"kind": "weapon", "id": id, "weight": 1.4})
 	for id in tomes:
 		if tomes[id] < Defs.TOMES[id].max:

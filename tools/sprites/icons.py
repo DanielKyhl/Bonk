@@ -29,6 +29,16 @@ ICONS = {
     "smite": ("lorc/sunbeams.svg", (250, 232, 170)),
     "consecration": ("lorc/beams-aura.svg", (240, 190, 90)),
     "throwing_axes": ("lorc/battered-axe.svg", (200, 204, 214)),
+    # Hero signature weapons
+    "dragon_breath": ("lorc/dragon-breath.svg", (240, 120, 50)),
+    "chain_lightning": ("willdabeast/chain-lightning.svg", (150, 200, 250)),
+    "rending_claws": ("lorc/claw-slashes.svg", (220, 70, 70)),
+    "warden_chains": ("lorc/crossed-chains.svg", (176, 180, 192)),
+    "frost_shards": ("lorc/ice-spear.svg", (150, 214, 250)),
+    "rune_slam": ("lorc/earth-crack.svg", (220, 150, 80)),
+    "soul_blade": ("lorc/relic-blade.svg", (120, 230, 210)),
+    "soul_skulls": ("lorc/skull-bolt.svg", (190, 160, 240)),
+    "time_rift": ("lorc/time-trap.svg", (190, 130, 240)),
     # Tomes
     "might": ("lorc/mailed-fist.svg", (222, 92, 72)),
     "haste": ("lorc/hourglass.svg", (236, 196, 96)),
