@@ -11,5 +11,8 @@ void fragment() {
 	float facing = abs(dot(NORMAL, VIEW));
 	float soft = smoothstep(0.0, 0.7, facing);
 	float flicker = 0.85 + 0.15 * sin(TIME * 5.0 + UV.x * 25.0);
-	ALBEDO = color.rgb * strength * fade * soft * flicker;
+	// Hard light bands instead of a smooth gradient.
+	float v = fade * soft * flicker;
+	v = floor(v * 4.0 + 0.5) / 4.0;
+	ALBEDO = color.rgb * strength * v;
 }

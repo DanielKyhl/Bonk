@@ -157,36 +157,33 @@ func _place_landmarks() -> void:
 
 
 func _place_pads() -> void:
-	var disc_mat := StandardMaterial3D.new()
-	disc_mat.albedo_color = Color(1.0, 0.92, 0.6)
-	disc_mat.emission_enabled = true
-	disc_mat.emission = Color(1.0, 0.85, 0.45)
-	disc_mat.emission_energy_multiplier = 1.1
+	var disc_mat := ShaderMaterial.new()
+	disc_mat.shader = load("res://shaders/rune_disc.gdshader")
 	var beam_mat := ShaderMaterial.new()
 	beam_mat.shader = load("res://shaders/beam.gdshader")
-	var disc := CylinderMesh.new()
-	disc.top_radius = PAD_RADIUS * 0.8
-	disc.bottom_radius = PAD_RADIUS * 0.8
-	disc.height = 0.06
+	var disc := QuadMesh.new()
+	disc.size = Vector2.ONE * PAD_RADIUS * 1.6
+	disc.orientation = PlaneMesh.FACE_Y
 	var beam := CylinderMesh.new()
 	beam.top_radius = PAD_RADIUS * 0.35
 	beam.bottom_radius = PAD_RADIUS * 0.7
 	beam.height = 9.0
 	beam.cap_top = false
 	beam.cap_bottom = false
-	var basin: PackedScene = load("res://assets/kaykit/halloween/plaque.gltf")
+	var basin := merged_mesh("res://assets/kaykit/halloween/plaque.gltf")
 	for p in map.pads:
 		var y := terrain.base_height(p.x, p.y)
 		var root := Node3D.new()
 		root.position = Vector3(p.x, y, p.y)
 		add_child(root)
-		var b: Node3D = basin.instantiate()
+		var b := MeshInstance3D.new()
+		b.mesh = basin
 		b.scale = Vector3.ONE * 1.8
 		root.add_child(b)
 		var d := MeshInstance3D.new()
 		d.mesh = disc
 		d.material_override = disc_mat
-		d.position.y = 0.74
+		d.position.y = 0.77
 		root.add_child(d)
 		var bm := MeshInstance3D.new()
 		bm.mesh = beam

@@ -1,14 +1,16 @@
 class_name Pickups
 extends Node3D
-## XP gems, gold coins and healing orbs. Drawn as one MultiMesh per kind;
-## anything inside your pickup range flies to you (always faster than you).
+## XP soul shards, gold coins and healing hearts, drawn as pixel sprites in one
+## MultiMesh; anything inside your pickup range flies to you (always faster
+## than you).
 
 signal collected(kind: int, value: float, pos: Vector3)
 
 enum { XP, XP_BIG, GOLD, HEAL }
 const MAX := 500
 const BASE_RANGE := 3.6
-const STRIDE := 12
+const STRIDE := 16
+const FPS := 7.0
 
 var terrain: Terrain
 var player: Player
@@ -21,10 +23,10 @@ var _mag := PackedInt32Array()
 var _vy := PackedFloat32Array()
 var _n := 0
 var _t := 0.0
-var _mm: Array[MultiMesh] = []
+var _mm: MultiMesh
 
 
-func setup(t: Terrain, p: Player, r: RunState, props: Props) -> void:
+func setup(t: Terrain, p: Player, r: RunState, _props: Props) -> void:
 	terrain = t
 	player = p
 	run = r
@@ -33,42 +35,28 @@ func setup(t: Terrain, p: Player, r: RunState, props: Props) -> void:
 	_kind.resize(MAX)
 	_mag.resize(MAX)
 	_vy.resize(MAX)
-	var gem := SphereMesh.new()
-	gem.radius = 0.22
-	gem.height = 0.5
-	gem.radial_segments = 4
-	gem.rings = 2
-	var big := gem.duplicate() as SphereMesh
-	big.radius = 0.32
-	big.height = 0.72
-	var heal := SphereMesh.new()
-	heal.radius = 0.28
-	heal.height = 0.56
-	heal.radial_segments = 8
-	heal.rings = 4
-	var coin := props.merged_mesh("res://assets/kaykit/dungeon/coin.gltf.glb")
-	var meshes := [gem, big, coin, heal]
-	var colors := [Color(0.35, 0.85, 1.0), Color(0.75, 0.45, 1.0), Color(1, 1, 1), Color(1.0, 0.3, 0.35)]
-	for k in 4:
-		var mesh: Mesh = meshes[k]
-		if k != GOLD:
-			var m := StandardMaterial3D.new()
-			m.albedo_color = colors[k]
-			m.emission_enabled = true
-			m.emission = colors[k]
-			m.emission_energy_multiplier = 1.6
-			(mesh as PrimitiveMesh).material = m
-		var mm := MultiMesh.new()
-		mm.transform_format = MultiMesh.TRANSFORM_3D
-		mm.mesh = mesh
-		mm.instance_count = MAX
-		mm.visible_instance_count = 0
-		var mmi := MultiMeshInstance3D.new()
-		mmi.multimesh = mm
-		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		mmi.custom_aabb = AABB(Vector3(-400, -100, -400), Vector3(800, 300, 800))
-		add_child(mmi)
-		_mm.append(mm)
+	# Atlas rows: shard, big shard, coin, heart; four frames each.
+	var mat := ShaderMaterial.new()
+	mat.shader = preload("res://shaders/sprite.gdshader")
+	mat.set_shader_parameter("atlas", load("res://assets/sprites/pickups.png"))
+	mat.set_shader_parameter("grid", Vector2(4, 4))
+	mat.set_shader_parameter("ppm", PixelView.PPM)
+	mat.set_shader_parameter("frame_px", 16.0)
+	mat.set_shader_parameter("foot_px", 15.0)
+	var q := QuadMesh.new()
+	q.size = Vector2.ONE
+	q.material = mat
+	_mm = MultiMesh.new()
+	_mm.transform_format = MultiMesh.TRANSFORM_3D
+	_mm.use_custom_data = true
+	_mm.mesh = q
+	_mm.instance_count = MAX
+	_mm.visible_instance_count = 0
+	var mmi := MultiMeshInstance3D.new()
+	mmi.multimesh = _mm
+	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mmi.custom_aabb = AABB(Vector3(-400, -100, -400), Vector3(800, 300, 800))
+	add_child(mmi)
 
 
 func drop(kind: int, pos: Vector3, value: float) -> void:
@@ -114,7 +102,7 @@ func _process(delta: float) -> void:
 			p += d / dist * minf(dist, fly * delta)
 		else:
 			# Pop out, then settle and hover on the ground.
-			var g := terrain.grid_height(p.x, p.z) + 0.55
+			var g := terrain.grid_height(p.x, p.z) + 0.25
 			_vy[i] -= 30.0 * delta
 			p.y += _vy[i] * delta
 			if p.y < g:
@@ -122,33 +110,24 @@ func _process(delta: float) -> void:
 				_vy[i] = 0.0
 		_pos[i] = p
 		i += 1
-	# One fresh buffer per kind (a buffer taken from a list would be a copy).
-	for k in 4:
-		var b := PackedFloat32Array()
-		b.resize(MAX * STRIDE)
-		var o := 0
-		var s := 1.4 if k == GOLD else 1.0
-		for j in _n:
-			if _kind[j] != k:
-				continue
-			var p := _pos[j]
-			var spin := _t * 2.5 + j
-			var c := cos(spin) * s
-			var sn := sin(spin) * s
-			var bob := 0.0 if _mag[j] == 1 else sin(_t * 3.0 + j) * 0.12
-			b[o] = c
-			b[o + 2] = sn
-			b[o + 3] = p.x
-			b[o + 5] = s
-			b[o + 7] = p.y + bob
-			b[o + 8] = -sn
-			b[o + 10] = c
-			b[o + 11] = p.z
-			o += STRIDE
-		var cnt := o / STRIDE
-		_mm[k].visible_instance_count = cnt
-		if cnt > 0:
-			_mm[k].buffer = b
+	var buf := PackedFloat32Array()
+	buf.resize(MAX * STRIDE)
+	var o := 0
+	for j in _n:
+		var p := _pos[j]
+		var bob := 0.0 if _mag[j] == 1 else maxf(0.0, sin(_t * 3.0 + j)) * 0.18
+		buf[o] = 1.0
+		buf[o + 3] = p.x
+		buf[o + 5] = 1.0
+		buf[o + 7] = p.y + bob
+		buf[o + 10] = 1.0
+		buf[o + 11] = p.z
+		buf[o + 12] = float(int(_t * FPS + j) % 4 + 16 * _kind[j] + 4096)
+		buf[o + 15] = 1.0
+		o += STRIDE
+	_mm.visible_instance_count = _n
+	if _n > 0:
+		_mm.buffer = buf
 
 
 func _collect(i: int) -> void:

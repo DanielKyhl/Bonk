@@ -14,12 +14,15 @@ var camera: FollowCamera
 var _cd := {}
 var _t := 0.0
 var _proj: Array[Dictionary] = []
-var _javelin_mesh: Mesh
-var _axe_scene: PackedScene
-var _orbs: Array[MeshInstance3D] = []
+## Pixel sprites for orbs, the flail head, projectiles and smite bursts
+## (atlas rows: 0 orb, 1 flail, 2 javelin, 3 axe, 4 smite).
+var _sprites: SpriteBatch
+var _orb_count := 0
+var _orb_pos: Array[Vector3] = []
 var _orb_hits := {}
 var _aura: MeshInstance3D
-var _flail: MeshInstance3D
+var _flail_pos := Vector3.ZERO
+var _bursts: Array[Dictionary] = []
 var _flail_t := -1.0
 var _flail_r := 3.0
 var _smites: Array[Dictionary] = []
@@ -33,35 +36,10 @@ func setup(r: RunState, p: Player, e: EnemyManager, f: Fx, cam: FollowCamera) ->
 	enemies = e
 	fx = f
 	camera = cam
-	var jm := CylinderMesh.new()
-	jm.top_radius = 0.035
-	jm.bottom_radius = 0.07
-	jm.height = 1.8
-	var gold := StandardMaterial3D.new()
-	gold.albedo_color = Color(1.0, 0.86, 0.5)
-	gold.emission_enabled = true
-	gold.emission = Color(1.0, 0.8, 0.4)
-	gold.emission_energy_multiplier = 1.5
-	jm.material = gold
-	_javelin_mesh = jm
-	_axe_scene = load("res://assets/kaykit/heroes/items/axe_1handed.gltf")
-
-	var orb_mesh := SphereMesh.new()
-	orb_mesh.radius = 0.28
-	orb_mesh.height = 0.56
-	var orb_mat := StandardMaterial3D.new()
-	orb_mat.albedo_color = Color(0.55, 0.8, 1.0)
-	orb_mat.emission_enabled = true
-	orb_mat.emission = Color(0.35, 0.7, 1.0)
-	orb_mat.emission_energy_multiplier = 1.3
-	orb_mesh.material = orb_mat
-	for i in 8:
-		var o := MeshInstance3D.new()
-		o.mesh = orb_mesh
-		o.visible = false
-		o.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		add_child(o)
-		_orbs.append(o)
+	_sprites = SpriteBatch.new()
+	_sprites.setup(load("res://assets/sprites/weapons_fx.png"), Vector2(4, 5), 24.0, 12.0)
+	add_child(_sprites)
+	_orb_pos.resize(8)
 
 	_aura = MeshInstance3D.new()
 	var q := QuadMesh.new()
@@ -75,23 +53,6 @@ func setup(r: RunState, p: Player, e: EnemyManager, f: Fx, cam: FollowCamera) ->
 	_aura.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(_aura)
 
-	_flail = MeshInstance3D.new()
-	var fm := SphereMesh.new()
-	fm.radius = 0.38
-	fm.height = 0.76
-	fm.radial_segments = 8
-	fm.rings = 4
-	var steel := StandardMaterial3D.new()
-	steel.albedo_color = Color(1.0, 0.85, 0.45)
-	steel.metallic = 0.8
-	steel.roughness = 0.3
-	steel.emission_enabled = true
-	steel.emission = Color(1.0, 0.75, 0.3)
-	steel.emission_energy_multiplier = 0.8
-	fm.material = steel
-	_flail.mesh = fm
-	_flail.visible = false
-	add_child(_flail)
 
 
 # -----------------------------------------------------------------------------
@@ -172,13 +133,38 @@ func _process(delta: float) -> void:
 			"axes":
 				_throw_axes(id)
 	if not has_orbs:
-		for o in _orbs:
-			o.visible = false
+		_orb_count = 0
 	if not has_aura:
 		_aura.visible = false
+	_sprites.begin()
 	_run_sweeps(delta)
 	_run_smites()
 	_update_projectiles(delta)
+	_draw_sprites(delta)
+	_sprites.commit()
+
+
+func _draw_sprites(delta: float) -> void:
+	var pulse := int(_t * 8.0) % 4
+	for k in _orb_count:
+		_sprites.add(_orb_pos[k], (pulse + k) % 4, 0)
+	if _flail_t >= 0.0:
+		_sprites.add(_flail_pos, int(_t * 20.0) % 4, 1)
+	var i := 0
+	while i < _bursts.size():
+		var b := _bursts[i]
+		b.t += delta
+		if b.t >= 0.24:
+			_bursts.remove_at(i)
+			continue
+		_sprites.add(b.pos, int(b.t / 0.06), 4, 0.0, 1.6)
+		i += 1
+
+
+## Screen-space angle of a world direction, for pointing projectile sprites.
+func _screen_angle(dir: Vector3) -> float:
+	var b := camera.global_transform.basis
+	return atan2(dir.dot(b.y), dir.dot(b.x))
 
 
 # --- Sweep (Radiant Flail) -----------------------------------------------------
@@ -194,8 +180,7 @@ func _run_sweeps(delta: float) -> void:
 		_flail_t += delta
 		var a := _flail_t / 0.22 * TAU
 		var r := _flail_r * 0.85
-		_flail.visible = _flail_t < 0.22
-		_flail.global_position = player.position + Vector3(cos(a) * r, 1.1, sin(a) * r)
+		_flail_pos = player.position + Vector3(cos(a) * r, 1.1, sin(a) * r)
 		if _flail_t >= 0.22:
 			_flail_t = -1.0
 
@@ -207,6 +192,8 @@ func _sweep(id: String) -> void:
 	var p := player.position
 	fx.ring(p, r, Defs.WEAPONS[id].color, 0.3, 0.12)
 	_flail_t = 0.0
+	_flail_r = r
+	player.model.swing()
 	var knock := wstat(id, "knock")
 	var dmg := wstat(id, "damage")
 	for i in enemies.query(p.x, p.z, r):
@@ -227,11 +214,7 @@ func _fire_javelins(id: String) -> void:
 		var a := (k - (n - 1) * 0.5) * 0.14
 		var d := dir.rotated(a)
 		var sp := wstat(id, "speed") + maxf(0.0, Vector2(player.vel.x, player.vel.z).dot(d))
-		var node := MeshInstance3D.new()
-		node.mesh = _javelin_mesh
-		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		add_child(node)
-		_add_proj({"node": node, "kind": "javelin", "id": id, "pos": p + Vector3(0, 1.4, 0), "vel": Vector3(d.x * sp, 0, d.y * sp),
+		_add_proj({"kind": "javelin", "id": id, "pos": p + Vector3(0, 1.4, 0), "vel": Vector3(d.x * sp, 0, d.y * sp),
 			"life": 1.1, "pierce": int(wstat(id, "pierce")), "hits": [], "dmg": wstat(id, "damage"), "knock": wstat(id, "knock")})
 
 
@@ -241,16 +224,12 @@ func _throw_axes(id: String) -> void:
 	for k in count(id):
 		var a := randf() * TAU
 		var hv := Vector2(cos(a), sin(a)) * randf_range(5.0, 9.0) + Vector2(player.vel.x, player.vel.z) * 0.6
-		var node: Node3D = _axe_scene.instantiate()
-		node.scale = Vector3.ONE * 1.6
-		add_child(node)
-		_add_proj({"node": node, "kind": "axe", "id": id, "pos": p + Vector3(0, 1.6, 0), "vel": Vector3(hv.x, 21.0, hv.y),
+		_add_proj({"kind": "axe", "id": id, "pos": p + Vector3(0, 1.6, 0), "vel": Vector3(hv.x, 21.0, hv.y),
 			"life": 3.0, "pierce": int(wstat(id, "pierce")), "hits": [], "dmg": wstat(id, "damage"), "knock": wstat(id, "knock")})
 
 
 func _add_proj(pr: Dictionary) -> void:
 	if _proj.size() >= MAX_PROJ:
-		_proj[0].node.queue_free()
 		_proj.remove_at(0)
 	_proj.append(pr)
 
@@ -266,13 +245,10 @@ func _update_projectiles(delta: float) -> void:
 			pr.vel = vel
 		var pos: Vector3 = pr.pos + vel * delta
 		pr.pos = pos
-		var node: Node3D = pr.node
-		node.global_position = pos
 		if pr.kind == "javelin":
-			node.look_at(pos + vel, Vector3.UP)
-			node.rotate_object_local(Vector3.RIGHT, -PI * 0.5)
+			_sprites.add(pos, int(_t * 12.0) % 4, 2, _screen_angle(vel))
 		else:
-			node.rotation = Vector3(_t * 14.0, atan2(vel.x, vel.z), 0)
+			_sprites.add(pos, 0, 3, -_t * 14.0 * signf(vel.x + 0.01), 1.2)
 		var ground := enemies.terrain.grid_height(pos.x, pos.z)
 		var low := pos.y - ground < 3.2
 		if low:
@@ -290,7 +266,6 @@ func _update_projectiles(delta: float) -> void:
 			fx.dust(Vector3(pos.x, ground, pos.z), 5)
 			pr.life = 0.0
 		if pr.life <= 0.0:
-			node.queue_free()
 			_proj.remove_at(i)
 			continue
 		i += 1
@@ -298,21 +273,17 @@ func _update_projectiles(delta: float) -> void:
 
 # --- Orbs -------------------------------------------------------------------------------
 func _update_orbs(id: String, delta: float) -> void:
-	var n := mini(count(id), _orbs.size())
+	var n := mini(count(id), _orb_pos.size())
 	var r := area(id)
 	var spin := wstat(id, "spin")
 	var dmg := wstat(id, "damage")
 	var hit_cd := cooldown(id)
 	var p := player.position
-	for k in _orbs.size():
-		var o := _orbs[k]
-		if k >= n:
-			o.visible = false
-			continue
-		o.visible = true
+	_orb_count = n
+	for k in n:
 		var a := _t * spin + TAU * k / n
 		var op := p + Vector3(cos(a) * r, 1.2 + sin(_t * 3.0 + k) * 0.2, sin(a) * r)
-		o.global_position = op
+		_orb_pos[k] = op
 		for e in enemies.query(op.x, op.z, 0.55):
 			var key := e * 16 + k
 			if _orb_hits.get(key, -1.0) > _t:
@@ -353,6 +324,7 @@ func _run_smites() -> void:
 		var r := area(s.id)
 		fx.pillar(pos)
 		fx.ring(pos, r * 1.4, Color(1.0, 0.92, 0.65), 0.35)
+		_bursts.append({"pos": pos + Vector3(0, 1.0, 0), "t": 0.0})
 		fx.sparks(pos + Vector3(0, 0.5, 0), Color(1.0, 0.95, 0.75), 10)
 		for e in enemies.query(pos.x, pos.z, r):
 			var push := Vector2(enemies.px[e] - pos.x, enemies.pz[e] - pos.z).normalized() * wstat(s.id, "knock")

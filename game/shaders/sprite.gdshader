@@ -14,7 +14,8 @@ render_mode unshaded, cull_disabled, skip_vertex_transform, shadows_disabled;
 //   y = facing yaw in world space (atan2(dir.x, dir.z))
 //   z = hit flash 0..1
 //   w = visibility 0..1 (dithered fade)
-// The instance basis x axis length is the sprite scale.
+// The instance basis x axis length is the sprite scale; its direction in the
+// basis' XY plane rotates the sprite on screen (projectiles; 0 for characters).
 
 uniform sampler2D atlas : source_color, filter_nearest, repeat_disable;
 uniform vec2 grid = vec2(9.0, 9.0);        // atlas columns, rows
@@ -60,6 +61,13 @@ void vertex() {
 
 	float px = frame_px * scale / ppm;
 	vec2 local = vec2(VERTEX.x * px, (VERTEX.y + 0.5) * px - (frame_px - foot_px) * scale / ppm);
+	vec2 ax = MODEL_MATRIX[0].xy;
+	if (abs(ax.y) > 0.0001) {
+		float ang = atan(ax.y, ax.x);
+		float c = cos(ang);
+		float sn = sin(ang);
+		local = vec2(local.x * c - local.y * sn, local.x * sn + local.y * c);
+	}
 	// World up seen from the camera is (0, cos p, sin p): leaning the quad's
 	// depth by tan(p) makes it upright without moving it on screen.
 	vec3 up = (VIEW_MATRIX * vec4(0.0, 1.0, 0.0, 0.0)).xyz;

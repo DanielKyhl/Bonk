@@ -8,7 +8,6 @@ const HEROES := {
 		"name": "Aurelia, the Crusader",
 		"title": "Crusader",
 		"blurb": "A holy knight in steel and gold, sworn to burn the undead from the vale.",
-		"model": "res://assets/kaykit/heroes/Knight.glb",
 		"weapon": "radiant_flail",
 		"hp": 120.0,
 		"run_speed": 9.5,
