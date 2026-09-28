@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Momentum Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&family=Big+Shoulders+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    color-scheme: dark;
+    --ink: #0c1516;
+    --panel: #111e20;
+    --panel-2: #172b2d;
+    --line: rgba(232, 238, 226, 0.16);
+    --line-strong: rgba(232, 238, 226, 0.36);
+    --paper: #e8eee2;
+    --muted: #9db0a5;
+    --accent: #ff8a3d;
+    --accent-ink: #1d0e04;
+    --xp: #6ee7f0;
+    --hp: #ff4d6d;
+    --display: 'Big Shoulders Display', 'Arial Narrow', 'Roboto Condensed', sans-serif;
+    --body: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --top: env(safe-area-inset-top, 0px);
+    --bottom: env(safe-area-inset-bottom, 0px);
+  }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--paper);
+    font: 14px/1.45 var(--body);
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  #view { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+  /* ---------- HUD ---------- */
+  .xp { position: fixed; top: var(--top); left: 0; right: 0; height: 5px; background: rgba(12, 21, 22, 0.6); }
+  .xp-fill { height: 100%; width: 0; background: var(--xp); }
+  .hud-tl, .hud-tr { position: fixed; top: calc(var(--top) + 16px); display: grid; gap: 6px; }
+  .hud-tl, .hud-tr, .spd, .perf { text-shadow: 0 1px 3px rgba(4, 10, 11, 0.8); }
+  .hud-tl { left: 16px; }
+  .hud-tr { right: 16px; text-align: right; }
+  .lab { font: 500 10px/1 var(--mono); letter-spacing: 0.14em; color: var(--muted); text-transform: uppercase; }
+  .big { font: 900 26px/1 var(--display); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+  .hp { position: relative; width: 168px; height: 12px; background: rgba(12, 21, 22, 0.7); border: 1px solid var(--line-strong); }
+  .hp-fill { position: absolute; inset: 0; width: 100%; background: var(--hp); }
+  .hp-text { position: absolute; right: 4px; top: -1px; font: 500 10px/13px var(--mono); color: var(--paper); text-shadow: 0 1px 2px #000; }
+
+  .speedo {
+    position: fixed; left: 50%; bottom: calc(var(--bottom) + 16px); transform: translateX(-50%);
+    display: grid; justify-items: center; gap: 6px; width: min(300px, calc(100% - 32px));
+    pointer-events: none;
+  }
+  .spd { display: flex; align-items: baseline; gap: 6px; }
+  .spd b { font: 900 52px/0.9 var(--display); font-variant-numeric: tabular-nums; min-width: 2.2ch; text-align: right; transition: color 0.2s; }
+  .spd span { font: 500 11px/1 var(--mono); letter-spacing: 0.12em; color: var(--muted); }
+  .speedo.hot .spd b { color: var(--accent); }
+  .spd-bar { position: relative; width: 100%; height: 6px; background: rgba(12, 21, 22, 0.7); border: 1px solid var(--line); }
+  .spd-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--paper); }
+  .speedo.hot .spd-fill { background: var(--accent); }
+  .tick { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--muted); }
+  .tick.cap { background: var(--accent); }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .chip {
+    font: 500 11px/1 var(--mono); letter-spacing: 0.06em; padding: 4px 7px;
+    border: 1px solid var(--line); background: rgba(12, 21, 22, 0.72); color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .chip.on { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+  .perf { position: fixed; right: 16px; bottom: calc(var(--bottom) + 16px); font: 400 10px/1 var(--mono); color: var(--muted); opacity: 0.8; }
+
+  .legend {
+    position: fixed; left: 16px; bottom: calc(var(--bottom) + 16px);
+    display: grid; grid-template-columns: auto 1fr; gap: 5px 10px; align-items: center;
+    font: 400 11px/1.3 var(--mono); color: var(--muted);
+    background: rgba(12, 21, 22, 0.62); border: 1px solid var(--line); padding: 10px 12px; max-width: 290px;
+  }
+  .legend .t { grid-column: 1 / -1; font-weight: 500; letter-spacing: 0.14em; color: var(--paper); font-size: 10px; }
+  kbd {
+    font: 500 11px/1 var(--mono); color: var(--paper); padding: 3px 6px; white-space: nowrap;
+    border: 1px solid var(--line-strong); border-bottom-width: 2px; border-radius: 3px; background: var(--panel-2);
+  }
+
+  /* ---------- Overlays ---------- */
+  .overlay {
+    position: fixed; inset: 0; overflow: auto; display: grid; place-items: center;
+    padding-block: calc(var(--top) + 24px) calc(var(--bottom) + 24px); padding-inline: 16px;
+    background: rgba(9, 16, 17, 0.72);
+  }
+  .panel {
+    width: 100%; max-width: 760px; background: var(--panel); border: 1px solid var(--line-strong);
+    padding: 26px 28px 28px; display: grid; gap: 18px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  }
+  .sheet {
+    display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    font: 500 10px/1 var(--mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+    padding-bottom: 12px; border-bottom: 1px solid var(--line);
+  }
+  h1, h2 { margin: 0; font-family: var(--display); font-weight: 900; text-transform: uppercase; text-wrap: balance; }
+  h1 { font-size: clamp(64px, 13vw, 132px); line-height: 0.82; letter-spacing: -0.005em; }
+  h1 em { font-style: normal; color: var(--accent); }
+  h2 { font-size: clamp(40px, 8vw, 64px); line-height: 0.9; }
+  .pitch { margin: 0; max-width: 58ch; font-size: 16px; color: var(--paper); }
+  .tricks { display: grid; grid-template-columns: max-content 1fr; gap: 9px 16px; margin: 0; align-items: baseline; }
+  .tricks dt { display: flex; gap: 4px; flex-wrap: wrap; }
+  .tricks dd { margin: 0; color: var(--muted); max-width: 60ch; }
+  .tricks dd b { color: var(--paper); font-weight: 600; }
+  .row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .note { font: 400 11px/1.4 var(--mono); color: var(--muted); }
+  .btn {
+    font: 800 22px/1 var(--display); letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--accent-ink); background: var(--accent); border: 0; padding: 12px 22px 11px; cursor: pointer;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn:focus-visible, .card:focus-visible { outline: 2px solid var(--paper); outline-offset: 3px; }
+
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .card {
+    display: grid; align-content: start; gap: 8px; text-align: left; cursor: pointer;
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--paper); padding: 14px 14px 16px; font: inherit;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card .k { font: 500 11px/1 var(--mono); color: var(--muted); letter-spacing: 0.1em; }
+  .card .name { font: 900 26px/0.95 var(--display); text-transform: uppercase; }
+  .card .desc { color: var(--muted); font-size: 13.5px; }
+  .card .tag { font: 500 10px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+  .pips { display: flex; gap: 4px; }
+  .pips i { width: 10px; height: 4px; background: var(--line-strong); }
+  .pips i.on { background: var(--accent); }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 12px; }
+  .stats div { display: grid; gap: 4px; }
+  .stats b { font: 900 34px/1 var(--display); font-variant-numeric: tabular-nums; }
+
+  /* ---------- Touch controls ---------- */
+  .touch-zone { position: fixed; left: 0; bottom: 0; width: 55%; height: 75%; touch-action: none; }
+  .stick { position: fixed; width: 110px; height: 110px; margin: -55px 0 0 -55px; border-radius: 50%; border: 2px solid var(--line-strong); background: rgba(12, 21, 22, 0.35); pointer-events: none; }
+  .knob { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: rgba(232, 238, 226, 0.5); }
+  .tbtn {
+    position: fixed; border-radius: 50%; border: 2px solid var(--line-strong); color: var(--paper);
+    font: 800 15px/1 var(--display); letter-spacing: 0.06em; background: rgba(12, 21, 22, 0.55); touch-action: none;
+  }
+  .tbtn.down { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .tbtn.jump { right: 20px; bottom: calc(var(--bottom) + 28px); width: 92px; height: 92px; }
+  .tbtn.slide { right: 124px; bottom: calc(var(--bottom) + 20px); width: 70px; height: 70px; }
+
+  @media (max-width: 760px), (pointer: coarse) {
+    .legend { display: none; }
+  }
+  @media (max-width: 600px) {
+    .cards, .stats { grid-template-columns: 1fr; }
+    .tricks { grid-template-columns: 1fr; gap: 4px; }
+    .tricks dd { margin-bottom: 8px; }
+    .panel { padding: 20px 18px 22px; }
+    .hp { width: 120px; }
+  }
+  @media (pointer: coarse) {
+    .speedo { top: calc(var(--top) + 64px); bottom: auto; width: min(260px, calc(100% - 32px)); }
+    .spd b { font-size: 38px; }
+    .perf { right: auto; left: 16px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="view" aria-label="Game view"></canvas>
+
+<div id="hud" hidden>
+  <div class="xp"><div class="xp-fill" id="xpFill"></div></div>
+  <div class="hud-tl">
+    <div><span class="lab">Level</span> <span class="big" id="lvl">1</span></div>
+    <div class="hp"><div class="hp-fill" id="hpFill"></div><span class="hp-text" id="hpText">100</span></div>
+  </div>
+  <div class="hud-tr">
+    <div class="big" id="time">0:00</div>
+    <div class="lab"><span id="kills">0</span> KO</div>
+  </div>
+  <div class="speedo" id="speedo">
+    <div class="spd"><b id="spd">0</b><span>KM/H</span></div>
+    <div class="spd-bar"><div class="spd-fill" id="spdFill"></div><i class="tick" id="tickRun"></i><i class="tick cap" id="tickCap"></i></div>
+    <div class="chips">
+      <span class="chip" id="chipMom">DMG ×1.0</span>
+      <span class="chip" id="chipHop">HOP ×0</span>
+      <span class="chip" id="chipAir">AIR 0.0s</span>
+    </div>
+  </div>
+  <div class="perf" id="perf"></div>
+  <aside class="legend" aria-label="Trick reference">
+    <span class="t">TRICKS</span>
+    <kbd>Space</kbd><span>jump · again on landing = hop</span>
+    <kbd>Shift</kbd><span>slide · downhill = faster</span>
+    <kbd>Shift</kbd><span>in the air = slam</span>
+    <kbd>Land</kbd><span>on enemies = stomp</span>
+    <kbd>H</kbd><span>hide this · <kbd>Esc</kbd> pause</span>
+  </aside>
+</div>
+
+<div id="touch" hidden>
+  <div class="touch-zone" id="touchZone"></div>
+  <div class="stick" id="stick" hidden><div class="knob" id="knob"></div></div>
+  <button class="tbtn slide" id="tSlide" type="button">SLIDE</button>
+  <button class="tbtn jump" id="tJump" type="button">JUMP</button>
+</div>
+
+<div class="overlay" id="overlay">
+  <section class="panel" id="panelTitle">
+    <div class="sheet"><span>Sheet 01 · Movement prototype</span><span>Contour interval 1 m</span></div>
+    <h1>Momentum <em>Lab</em></h1>
+    <p class="pitch">A top-down survivor arena where speed is the build. The map has real height, so hills, crests and landings change how fast you go. Your bolts hit harder the faster you move.</p>
+    <dl class="tricks">
+      <dt><kbd>WASD</kbd><kbd>Arrows</kbd></dt><dd>Run.</dd>
+      <dt><kbd>Space</kbd></dt><dd><b>Jump.</b> Press it again right as you land to bunny hop for +12% speed. Hold it to auto-hop and keep your speed without the boost.</dd>
+      <dt><kbd>Shift</kbd></dt><dd><b>Slide.</b> Slides pick up speed downhill. Tightly packed contour lines mean steep ground.</dd>
+      <dt><kbd>Shift</kbd> in air</dt><dd><b>Slam.</b> Shockwave on impact, then slide out with a burst of speed.</dd>
+      <dt>Landing</dt><dd>Land on an enemy to <b>stomp</b> and bounce. Land on a downslope to turn your fall into speed.</dd>
+      <dt>Terrain</dt><dd>Yellow rings launch you. Hit a hill crest fast and you leave the ground.</dd>
+    </dl>
+    <div class="row">
+      <button class="btn" id="startBtn" type="button">Start run</button>
+      <span class="note" id="startNote">Space to start · Touch: stick on the left, buttons on the right</span>
+    </div>
+  </section>
+
+  <section class="panel" id="panelLevel" hidden>
+    <div class="sheet"><span id="levelSheet">Level up</span><span>Press 1, 2 or 3</span></div>
+    <h2 id="levelTitle">Level 2</h2>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="panel" id="panelPause" hidden>
+    <div class="sheet"><span>Paused</span><span>Esc to resume</span></div>
+    <h2>Paused</h2>
+    <div class="row"><button class="btn" id="resumeBtn" type="button">Resume</button></div>
+  </section>
+
+  <section class="panel" id="panelDead" hidden>
+    <div class="sheet"><span>Run over</span><span>R to run again</span></div>
+    <h2>Run over</h2>
+    <div class="stats" id="stats"></div>
+    <div class="row"><button class="btn" id="againBtn" type="button">Run again</button></div>
+  </section>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
