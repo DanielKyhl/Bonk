@@ -1,6 +1,7 @@
 Icons are based on game-icons.net (https://game-icons.net), licensed CC BY 3.0,
 redrawn as pixel icons. Authors and source icons:
 
-delapouite: crosshair.svg, expand.svg, flail.svg, jump-across.svg, sun-spear.svg, templar-shield.svg
-lorc: battered-axe.svg, beams-aura.svg, book-aura.svg, glass-heart.svg, hourglass.svg, magnet.svg, mailed-fist.svg, orbital.svg, sprint.svg, sunbeams.svg, thrown-daggers.svg, winged-leg.svg
+delapouite: cape-armor.svg, coins.svg, crosshair.svg, expand.svg, flail.svg, hand-of-god.svg, holy-water.svg, horseshoe.svg, jump-across.svg, prayer-beads.svg, quiver.svg, spiked-shoulder-armor.svg, sun-spear.svg, templar-shield.svg
+lorc: battered-axe.svg, beams-aura.svg, book-aura.svg, boots.svg, broadsword.svg, bugle-call.svg, burning-embers.svg, charm.svg, crown-of-thorns.svg, feather.svg, glass-heart.svg, heart-bottle.svg, holy-grail.svg, hourglass.svg, magnet-blast.svg, magnet.svg, mailed-fist.svg, meat.svg, orbital.svg, scythe.svg, sprint.svg, sunbeams.svg, sundial.svg, sword-smithing.svg, thrown-daggers.svg, winged-leg.svg
 sbed: regeneration.svg
+skoll: fangs.svg

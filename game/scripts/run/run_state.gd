@@ -10,6 +10,8 @@ signal leveled_up(level: int)
 signal stats_changed
 signal died
 signal blocked
+signal revived
+signal item_added(id: String)
 
 const MAX_WEAPONS := 4
 const MAX_TOMES := 4
@@ -33,7 +35,8 @@ var aegis_cd := 0.0
 const AEGIS_TIME := 12.0
 var weapons := {}   ## id -> level, in pickup order
 var tomes := {}     ## id -> level
-var items := {}     ## id -> stacks
+var items := {}     ## id -> stacks, in pickup order
+var revives_used := 0
 var stats := {}
 
 
@@ -61,6 +64,10 @@ func recompute() -> void:
 	for id in tomes:
 		var t: Dictionary = Defs.TOMES[id]
 		stats[t.stat] += t.add * tomes[id]
+	for id in items:
+		var it: Dictionary = Defs.ITEMS[id]
+		for k: String in it.stats:
+			stats[k] += it.stats[k] * items[id]
 	var old_max := max_hp
 	max_hp = hero.hp + stats.max_hp
 	if max_hp > old_max:
@@ -86,6 +93,11 @@ func add_gold(v: int) -> void:
 	gold_changed.emit(gold)
 
 
+func spend_gold(v: int) -> void:
+	gold = maxi(0, gold - v)
+	gold_changed.emit(gold)
+
+
 func heal(v: float) -> void:
 	hp = minf(max_hp, hp + v)
 	hp_changed.emit(hp, max_hp)
@@ -102,12 +114,27 @@ func take_damage(amount: float) -> bool:
 		return false
 	hp -= amount * (1.0 - clampf(stats.armor, 0.0, 0.8))
 	iframes = 0.55
-	hp_changed.emit(hp, max_hp)
 	if hp <= 0.0:
+		if stats.revive > revives_used:
+			revives_used += 1
+			hp = max_hp * 0.5
+			iframes = 2.0
+			hp_changed.emit(hp, max_hp)
+			revived.emit()
+			return true
 		hp = 0.0
 		dead = true
+		hp_changed.emit(hp, max_hp)
 		died.emit()
+		return true
+	hp_changed.emit(hp, max_hp)
 	return true
+
+
+func add_item(id: String) -> void:
+	items[id] = items.get(id, 0) + 1
+	recompute()
+	item_added.emit(id)
 
 
 # -----------------------------------------------------------------------------

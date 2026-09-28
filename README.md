@@ -21,6 +21,7 @@ A dark-fantasy pixel-art survivor game with Megabonk-style movement, built in Go
 | Mouse | Right stick | Turn the camera around the hero |
 | Space | A | Jump. Press again right as you land to bunny hop (+10% speed per hop) |
 | Shift / C | B / RB / RT | Slide; in the air it's a slam |
+| E | X | Open a chest (or use a shrine) |
 | 1, 2, 3 | D-pad + A | Pick a level-up card |
 | Esc | Start | Pause (frees the mouse; click the game to capture it again) |
 | F |  | Toggle the debug line (FPS, enemies, speed) |

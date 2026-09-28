@@ -15,6 +15,7 @@ var fx: Fx
 var pickups: Pickups
 var weapons: WeaponSystem
 var director: Director
+var chests: Chests
 var hud: Hud
 var menus: RunMenus
 var view: PixelView
@@ -77,6 +78,10 @@ func _ready() -> void:
 	world.add_child(pickups)
 	pickups.setup(terrain, player, run, props)
 
+	chests = Chests.new()
+	world.add_child(chests)
+	chests.setup(map, terrain, props, run, player, fx)
+
 	weapons = WeaponSystem.new()
 	world.add_child(weapons)
 	weapons.setup(run, player, enemies, fx, camera)
@@ -87,6 +92,10 @@ func _ready() -> void:
 
 	hud = Hud.new()
 	add_child(hud)
+	hud.chests = chests
+	hud.camera = camera
+	hud.terrain = terrain
+	hud.map = map
 	hud.setup(run, player, director, enemies, map.title)
 
 	menus = RunMenus.new()
@@ -126,6 +135,15 @@ func _ready() -> void:
 			player.place(Vector2(float(xz[0]), float(xz[1])))
 			camera.snap()
 			camera._process(0.0)
+	if "--chest" in args:
+		# Screenshot setup: stand next to a chest with gold and open it.
+		run.add_gold(300)
+		var cp: Vector3 = chests.pos[chests.pos.size() - 1]
+		player.place(Vector2(cp.x + 1.6, cp.z))
+		camera.snap()
+		camera._process(0.0)
+		get_tree().create_timer(0.4).timeout.connect(func(): chests._open(chests.nearest()))
+		get_tree().create_timer(0.7).timeout.connect(func(): chests.spawn_golden(player.position + Vector3(-3, 0, 1)))
 	if "--loadout" in args:
 		for w in ["holy_javelin", "sacred_orbs", "smite"]:
 			run.weapons[w] = 3
@@ -168,6 +186,7 @@ func _connect_signals() -> void:
 	enemies.player_hit.connect(_on_player_hit)
 	run.stats_changed.connect(_apply_stats)
 	run.died.connect(_on_death)
+	run.revived.connect(func(): fx.ring(player.position, 6.0, Color(1.0, 0.55, 0.2), 0.6, 0.2); fx.sparks(player.position + Vector3(0, 1, 0), Color(1.0, 0.6, 0.25), 30); fx.text(player.position, "RISEN", Color(1.0, 0.6, 0.25), 20); enemies.push_away(player.position, 9.0, 30.0))
 	run.blocked.connect(func(): fx.ring(player.position, 2.2, Color(1.0, 0.85, 0.45), 0.35, 0.12); fx.text(player.position, "BLOCKED", UIStyle.GOLD, 20))
 	director.banner.connect(hud.banner)
 	menus.picked.connect(_on_pick)
@@ -240,16 +259,21 @@ func _on_kill(type: int, pos: Vector3, xp: int, is_elite: bool) -> void:
 		pickups.drop(Pickups.XP_BIG, pos, xp)
 		for k in 6:
 			pickups.drop(Pickups.GOLD, pos, 4)
+		chests.spawn_golden(pos)
 		camera.add_shake(4.0)
 		return
 	pickups.drop(Pickups.XP_BIG if xp >= 3 else Pickups.XP, pos, xp)
+	if run.stats.heart_drop > 0.0 and randf() < run.stats.heart_drop:
+		pickups.drop(Pickups.HEAL, pos, 20.0)
 	if randf() < 0.16:
 		pickups.drop(Pickups.GOLD, pos, randi_range(1, 3))
 	if randf() < 0.012:
 		pickups.drop(Pickups.HEAL, pos, 20.0)
 
 
-func _on_player_hit(dmg: float, _from: Vector3) -> void:
+func _on_player_hit(dmg: float, _from: Vector3, enemy: int) -> void:
+	if run.stats.thorns > 0.0 and enemies.is_alive(enemy):
+		enemies.damage(enemy, run.stats.thorns * run.stats.damage)
 	if run.take_damage(dmg):
 		hud.hurt()
 		camera.add_shake(4.0)
@@ -286,3 +310,4 @@ func _apply_stats() -> void:
 	player.jump_vel = 26.7 * sqrt(s.jump)
 	player.hop_boost = 0.10 + 0.03 * s.hop
 	player.hop_cap = 27.8 + 4.0 * s.hop
+	player.air_jumps = int(s.air_jump)

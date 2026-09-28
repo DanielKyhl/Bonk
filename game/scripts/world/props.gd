@@ -44,10 +44,12 @@ func _process(delta: float) -> void:
 # -----------------------------------------------------------------------------
 # Meshes
 # -----------------------------------------------------------------------------
-## One mesh with every MeshInstance3D of a scene baked in (materials kept per surface).
-func merged_mesh(path: String) -> Mesh:
-	if _mesh_cache.has(path):
-		return _mesh_cache[path]
+## One mesh with every MeshInstance3D of a scene baked in (materials kept per
+## surface). vivid keeps more of the model's color (chests, loot).
+func merged_mesh(path: String, vivid := false) -> Mesh:
+	var mkey := path + ("|vivid" if vivid else "")
+	if _mesh_cache.has(mkey):
+		return _mesh_cache[mkey]
 	var root: Node = load(path).instantiate()
 	var out := ArrayMesh.new()
 	for mi: MeshInstance3D in root.find_children("*", "MeshInstance3D", true, false):
@@ -67,20 +69,20 @@ func merged_mesh(path: String) -> Mesh:
 			arrays[Mesh.ARRAY_BONES] = null
 			arrays[Mesh.ARRAY_WEIGHTS] = null
 			out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-			out.surface_set_material(out.get_surface_count() - 1, prop_material(mi.get_active_material(s)))
+			out.surface_set_material(out.get_surface_count() - 1, prop_material(mi.get_active_material(s), vivid))
 	root.free()
-	_mesh_cache[path] = out
+	_mesh_cache[mkey] = out
 	return out
 
 
 ## The gritty pixel version of a model's material (shared per texture/color).
-func prop_material(src: Material) -> Material:
+func prop_material(src: Material, vivid := false) -> Material:
 	var tex: Texture2D = null
 	var col := Color.WHITE
 	if src is BaseMaterial3D:
 		tex = (src as BaseMaterial3D).albedo_texture
 		col = (src as BaseMaterial3D).albedo_color
-	var key := "%s|%s" % [tex.resource_path if tex else "", col.to_html()]
+	var key := "%s|%s|%s" % [tex.resource_path if tex else "", col.to_html(), vivid]
 	if _mat_cache.has(key):
 		return _mat_cache[key]
 	var m := ShaderMaterial.new()
@@ -89,8 +91,8 @@ func prop_material(src: Material) -> Material:
 	if tex:
 		m.set_shader_parameter("albedo_tex", tex)
 	m.set_shader_parameter("albedo_color", col)
-	m.set_shader_parameter("saturation", map.prop_saturation)
-	m.set_shader_parameter("value", map.prop_value)
+	m.set_shader_parameter("saturation", 0.95 if vivid else map.prop_saturation)
+	m.set_shader_parameter("value", 1.0 if vivid else map.prop_value)
 	m.set_shader_parameter("grade", map.prop_grade)
 	_mat_cache[key] = m
 	return m

@@ -28,6 +28,7 @@ var _flail_r := 3.0
 var _smites: Array[Dictionary] = []
 var _sweeps_queued: Array[float] = []
 var _num_at := {}   ## enemy index -> time of its last damage number
+var _heal_acc := 0.0   ## Lifesteal gathered this frame, healed once per frame.
 
 
 func setup(r: RunState, p: Player, e: EnemyManager, f: Fx, cam: FollowCamera) -> void:
@@ -87,6 +88,10 @@ func hit(i: int, base: float, push: Vector2) -> bool:
 	var crit: bool = randf() < run.stats.crit
 	if crit:
 		dmg *= run.stats.crit_mult
+	if run.stats.execute > 0.0 and enemies.elite[i] == 0 and randf() < run.stats.execute:
+		dmg = maxf(dmg, enemies.hp[i])
+		crit = true
+	_heal_acc += dmg * run.stats.lifesteal
 	var pos := enemies.position_of(i)
 	# At most one number per enemy every quarter second (crits always show).
 	if crit or _num_at.get(i, -1.0) < _t - 0.25:
@@ -142,6 +147,9 @@ func _process(delta: float) -> void:
 	_update_projectiles(delta)
 	_draw_sprites(delta)
 	_sprites.commit()
+	if _heal_acc > 0.0:
+		run.heal(_heal_acc)
+		_heal_acc = 0.0
 
 
 func _draw_sprites(delta: float) -> void:

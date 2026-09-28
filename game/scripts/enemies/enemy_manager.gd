@@ -5,7 +5,7 @@ extends Node3D
 ## separation, collisions with buildings, and contact with the player.
 
 signal killed(type: int, pos: Vector3, xp: int, elite: bool)
-signal player_hit(damage: float, from: Vector3)
+signal player_hit(damage: float, from: Vector3, enemy: int)
 
 const MAX := 720
 const HC := 2.5                   ## Spatial hash cell size.
@@ -147,6 +147,15 @@ func damage(i: int, amount: float, push := Vector2.ZERO) -> bool:
 		killed.emit(typ[i], Vector3(px[i], py[i], pz[i]), td.xp * (8 if elite[i] == 1 else 1), elite[i] == 1)
 		return true
 	return false
+
+
+## Knocks every enemy within r of pos outward (m/s of push).
+func push_away(pos: Vector3, r: float, force: float) -> void:
+	for i in query(pos.x, pos.z, r):
+		var d := Vector2(px[i] - pos.x, pz[i] - pos.z)
+		var n := d.normalized() if d.length() > 0.01 else Vector2(1, 0)
+		kx[i] += n.x * force
+		kz[i] += n.y * force
 
 
 func is_alive(i: int) -> bool:
@@ -357,7 +366,7 @@ func _contact_player() -> void:
 	for i in query(p.position.x, p.position.z, Player.RADIUS):
 		if state[i] != ALIVE or ha > top[i] * 0.85:
 			continue
-		player_hit.emit(dmg[i], Vector3(px[i], py[i], pz[i]))
+		player_hit.emit(dmg[i], Vector3(px[i], py[i], pz[i]), i)
 
 
 func _draw() -> void:

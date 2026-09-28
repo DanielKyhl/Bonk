@@ -86,13 +86,76 @@ const TOMES := {
 	"bhop": {"name": "Tome of Agility", "desc": "Well-timed hops carry more speed.", "max": 4, "stat": "hop", "add": 1.0},
 }
 
+## Items come from chests and stack without limit; each stack adds `stats`.
+## rarity: 0 common, 1 uncommon, 2 rare, 3 legendary.
+const ITEMS := {
+	# Common
+	"iron_ration": {"name": "Iron Ration", "rarity": 0, "desc": "+15 max health.", "stats": {"max_hp": 15.0}},
+	"whetstone": {"name": "Whetstone", "rarity": 0, "desc": "+8% damage.", "stats": {"damage": 0.08}},
+	"pilgrim_boots": {"name": "Pilgrim's Boots", "rarity": 0, "desc": "+6% run speed.", "stats": {"move_speed": 0.06}},
+	"sand_glass": {"name": "Sand Glass", "rarity": 0, "desc": "+7% attack speed.", "stats": {"attack_speed": 0.07}},
+	"lodestone": {"name": "Lodestone", "rarity": 0, "desc": "+25% pickup range.", "stats": {"pickup": 0.25}},
+	"horseshoe": {"name": "Rusty Horseshoe", "rarity": 0, "desc": "+4% crit chance and better chests.", "stats": {"crit": 0.04, "luck": 0.1}},
+	"bone_charm": {"name": "Bone Charm", "rarity": 0, "desc": "+7% XP.", "stats": {"xp": 0.07}},
+	"tithe_purse": {"name": "Tithe Purse", "rarity": 0, "desc": "+15% gold.", "stats": {"gold": 0.15}},
+	# Uncommon
+	"tabard": {"name": "Blessed Tabard", "rarity": 1, "desc": "Take 7% less damage.", "stats": {"armor": 0.07}},
+	"war_horn": {"name": "War Horn", "rarity": 1, "desc": "+12% area.", "stats": {"area": 0.12}},
+	"holy_water": {"name": "Holy Water", "rarity": 1, "desc": "+0.8 health per second.", "stats": {"regen": 0.8}},
+	"spiked_pauldron": {"name": "Spiked Pauldron", "rarity": 1, "desc": "Enemies that hit you take 40 damage.", "stats": {"thorns": 40.0}},
+	"angel_feather": {"name": "Angel Feather", "rarity": 1, "desc": "One more jump in mid-air.", "stats": {"air_jump": 1.0}},
+	"heart_jar": {"name": "Heart in a Jar", "rarity": 1, "desc": "Kills have a 2% chance to drop a heart.", "stats": {"heart_drop": 0.02}},
+	"cleric_beads": {"name": "Cleric's Beads", "rarity": 1, "desc": "+3% crit chance and +15% crit damage.", "stats": {"crit": 0.03, "crit_mult": 0.15}},
+	# Rare
+	"vampire_fang": {"name": "Vampire Fang", "rarity": 2, "desc": "Heal 2% of the damage you deal.", "stats": {"lifesteal": 0.02}},
+	"crown_thorns": {"name": "Crown of Thorns", "rarity": 2, "desc": "+35% crit damage.", "stats": {"crit_mult": 0.35}},
+	"saints_finger": {"name": "Saint's Finger", "rarity": 2, "desc": "+12% damage and +10% attack speed.", "stats": {"damage": 0.12, "attack_speed": 0.10}},
+	"reaper_sigil": {"name": "Reaper's Sigil", "rarity": 2, "desc": "Hits have a 2% chance to slay outright (not elites or bosses).", "stats": {"execute": 0.02}},
+	"endless_quiver": {"name": "Endless Quiver", "rarity": 2, "desc": "+1 projectile for every weapon.", "stats": {"count": 1.0}},
+	# Legendary
+	"phoenix_ash": {"name": "Phoenix Ash", "rarity": 3, "desc": "When you fall, rise again with half your health (once per ash).", "stats": {"revive": 1.0}},
+	"holy_grail": {"name": "Holy Grail", "rarity": 3, "desc": "+50 max health and +2 health per second.", "stats": {"max_hp": 50.0, "regen": 2.0}},
+	"dawn_blade": {"name": "Blade of Dawn", "rarity": 3, "desc": "+30% damage and +20% area.", "stats": {"damage": 0.30, "area": 0.20}},
+}
+
+const RARITIES := [
+	{"name": "Common", "color": Color(0.8, 0.78, 0.74), "weight": 62.0},
+	{"name": "Uncommon", "color": Color(0.45, 0.85, 0.45), "weight": 27.0},
+	{"name": "Rare", "color": Color(0.45, 0.65, 1.0), "weight": 9.0},
+	{"name": "Legendary", "color": Color(1.0, 0.62, 0.2), "weight": 2.0},
+]
+
 ## Base values for every stat; tomes and items add to these.
 const BASE_STATS := {
 	"damage": 1.0, "attack_speed": 1.0, "area": 1.0, "move_speed": 1.0, "jump": 1.0,
 	"max_hp": 0.0, "regen": 0.0, "pickup": 1.0, "xp": 1.0,
 	"crit": 0.05, "crit_mult": 1.8, "count": 0.0, "hop": 0.0, "armor": 0.0, "luck": 0.0,
-	"gold": 1.0,
+	"gold": 1.0, "thorns": 0.0, "lifesteal": 0.0, "heart_drop": 0.0, "execute": 0.0,
+	"revive": 0.0, "air_jump": 0.0,
 }
+
+
+## Picks an item id. luck shifts weight toward rarer items; min_rarity
+## (golden chests) skips the lower tiers.
+static func roll_item(luck: float, min_rarity := 0) -> String:
+	var weights := []
+	var total := 0.0
+	for r in RARITIES.size():
+		var w: float = RARITIES[r].weight * (1.0 + luck * r) if r >= min_rarity else 0.0
+		weights.append(w)
+		total += w
+	var x := randf() * total
+	var rarity := 0
+	for r in weights.size():
+		x -= weights[r]
+		if x <= 0.0:
+			rarity = r
+			break
+	var pool := []
+	for id in ITEMS:
+		if ITEMS[id].rarity == rarity:
+			pool.append(id)
+	return pool[randi() % pool.size()]
 
 
 ## XP needed to go from `level` to the next.

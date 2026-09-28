@@ -7,6 +7,10 @@ var run: RunState
 var player: Player
 var director: Director
 var enemies: EnemyManager
+var chests: Chests
+var camera: FollowCamera
+var terrain: Terrain
+var map: MapDef
 var stage_name := ""
 
 var _xp_fill: Panel
@@ -30,6 +34,14 @@ var _hurt_t := 0.0
 var _fps: Label
 var _show_fps := true
 var _slot_sig := ""
+var _items_row: HBoxContainer
+var _prompt: Label
+var _item_card: PanelContainer
+var _item_icon: TextureRect
+var _item_name: Label
+var _item_rarity: Label
+var _item_desc: Label
+var _item_t := 0.0
 
 
 func setup(r: RunState, p: Player, d: Director, e: EnemyManager, stage: String) -> void:
@@ -44,6 +56,7 @@ func setup(r: RunState, p: Player, d: Director, e: EnemyManager, stage: String) 
 	run.xp_changed.connect(func(_x, _n, _l): _refresh_xp())
 	run.gold_changed.connect(func(_g): _gold.text = "GOLD  %d" % run.gold)
 	run.stats_changed.connect(_refresh_slots)
+	run.item_added.connect(show_item)
 	_refresh_hp()
 	_refresh_xp()
 	_refresh_slots()
@@ -138,6 +151,50 @@ func _build() -> void:
 	_tome_slots = HBoxContainer.new()
 	_tome_slots.add_theme_constant_override("separation", 8)
 	bl.add_child(_tome_slots)
+	_items_row = HBoxContainer.new()
+	_items_row.add_theme_constant_override("separation", 4)
+	bl.add_child(_items_row)
+
+	# Interact prompt (chests, shrines) above the bottom edge.
+	_prompt = UIStyle.label("", UIStyle.ui_font("Bold"), 30, UIStyle.GOLD, 8)
+	_prompt.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_prompt.position = Vector2(-400, -150)
+	_prompt.custom_minimum_size = Vector2(800, 0)
+	_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	root.add_child(_prompt)
+
+	# Item card: shows what a chest gave you.
+	_item_card = PanelContainer.new()
+	_item_card.add_theme_stylebox_override("panel", UIStyle.frame("card_hot", Vector4(16, 12, 16, 12)))
+	_item_card.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
+	_item_card.position = Vector2(-440, -90)
+	_item_card.custom_minimum_size = Vector2(420, 0)
+	_item_card.modulate.a = 0.0
+	root.add_child(_item_card)
+	var ih := HBoxContainer.new()
+	ih.add_theme_constant_override("separation", 14)
+	_item_card.add_child(ih)
+	_item_icon = UIStyle.icon_rect("whetstone", 3)
+	ih.add_child(_item_icon)
+	var iv := VBoxContainer.new()
+	iv.add_theme_constant_override("separation", 2)
+	iv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	ih.add_child(iv)
+	_item_rarity = UIStyle.label("", UIStyle.ui_font("Bold"), 20, UIStyle.MUTED, 0)
+	iv.add_child(_item_rarity)
+	_item_name = UIStyle.label("", UIStyle.title_font(), 48, UIStyle.PARCH, 8)
+	iv.add_child(_item_name)
+	_item_desc = UIStyle.label("", UIStyle.ui_font("Regular"), 16, Color(0.8, 0.77, 0.72), 0)
+	_item_desc.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_item_desc.custom_minimum_size = Vector2(290, 0)
+	iv.add_child(_item_desc)
+
+	if terrain and map and camera and chests:
+		var mm := Minimap.new()
+		mm.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+		mm.position = Vector2(-Minimap.SIZE - 20, 20)
+		root.add_child(mm)
+		mm.setup(terrain, map, player, camera, chests)
 
 	_fps = UIStyle.label("", UIStyle.ui_font("SemiBold"), 20, UIStyle.MUTED, 4)
 	_fps.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -145,6 +202,19 @@ func _build() -> void:
 	_fps.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	_fps.position = Vector2(-460, -34)
 	root.add_child(_fps)
+
+
+## Pops up the card for an item you just got.
+func show_item(id: String) -> void:
+	var it: Dictionary = Defs.ITEMS[id]
+	var rar: Dictionary = Defs.RARITIES[it.rarity]
+	_item_icon.texture = UIStyle.icon(id)
+	_item_name.text = it.name
+	_item_rarity.text = rar.name.to_upper() + ("   x%d" % run.items[id] if run.items[id] > 1 else "")
+	_item_rarity.label_settings.font_color = rar.color
+	_item_desc.text = it.desc
+	_item_t = 4.0
+	_refresh_slots()
 
 
 func banner(text: String, sub := "") -> void:
@@ -185,10 +255,28 @@ func _process(delta: float) -> void:
 		var a := clampf(_banner_t * 1.5, 0.0, 1.0)
 		_banner.modulate.a = a
 		_banner_sub.modulate.a = a
+	if _item_t > 0.0:
+		_item_t -= delta
+		_item_card.modulate.a = clampf(_item_t * 2.0, 0.0, 1.0)
+	_update_prompt()
 	_hurt_t = maxf(0.0, _hurt_t - delta)
 	var low := 0.18 + 0.08 * sin(run.time * 6.0) if run.hp < run.max_hp * 0.3 else 0.0
 	_hurt.color.a = maxf(_hurt_t * 1.1, low * 0.6)
 	_fps.text = ("%d FPS  ·  %d enemies  ·  %d km/h" % [Engine.get_frames_per_second(), enemies.count, int(round(player.speed() * Player.KMH))]) if _show_fps else ""
+
+
+func _update_prompt() -> void:
+	var i := chests.nearest() if chests else -1
+	if i < 0:
+		_prompt.text = ""
+		return
+	if chests.golden[i]:
+		_prompt.text = "E   OPEN GOLDEN CHEST"
+		_prompt.label_settings.font_color = UIStyle.GOLD
+	else:
+		var c := chests.cost()
+		_prompt.text = "E   OPEN CHEST   %d GOLD" % c
+		_prompt.label_settings.font_color = UIStyle.GOLD if run.gold >= c else UIStyle.HP
 
 
 func _refresh_hp() -> void:
@@ -202,7 +290,7 @@ func _refresh_xp() -> void:
 
 
 func _refresh_slots() -> void:
-	var sig := str(run.weapons) + str(run.tomes)
+	var sig := str(run.weapons) + str(run.tomes) + str(run.items)
 	if sig == _slot_sig:
 		return
 	_slot_sig = sig
@@ -216,6 +304,19 @@ func _refresh_slots() -> void:
 	for id: String in run.tomes:
 		var t: Dictionary = Defs.TOMES[id]
 		_tome_slots.add_child(_slot_box(id, run.tomes[id], t.max, UIStyle.XP))
+	for c in _items_row.get_children():
+		c.queue_free()
+	for id: String in run.items:
+		var box := Control.new()
+		box.custom_minimum_size = Vector2(34, 34)
+		var ic := UIStyle.icon_rect(id, 1)
+		ic.position = Vector2(4, 0)
+		box.add_child(ic)
+		if run.items[id] > 1:
+			var n := UIStyle.label(str(run.items[id]), UIStyle.ui_font("Bold"), 20, UIStyle.PARCH, 4)
+			n.position = Vector2(20, 12)
+			box.add_child(n)
+		_items_row.add_child(box)
 
 
 ## An icon in a pixel frame with level pips under it.
