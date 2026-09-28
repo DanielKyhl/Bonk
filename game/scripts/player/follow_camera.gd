@@ -1,39 +1,57 @@
 class_name FollowCamera
 extends Camera3D
-## Fixed-angle overhead camera: leads in the direction of travel, rises with
-## big jumps and pulls back as you speed up.
+## Orthographic camera for the pixel-art view. Looks down at the player from a
+## fixed pitch, snaps to the low-res pixel grid so the world never shimmers,
+## and hands the leftover sub-pixel offset to PixelView so scrolling stays
+## smooth. `yaw` turns the view around the player (0 looks toward -Z).
 
-@export var pitch_deg := 52.0
-@export var base_distance := 19.0
-@export var fast_distance := 24.0
+@export var pitch_deg := 50.0
+@export var follow_speed := 7.0
+@export var distance := 80.0    ## Only keeps the terrain in front of the near plane.
 
 var target: Player
+var view: PixelView
+var yaw := 0.0
 var shake := 0.0
-var _look := Vector3.ZERO
-var _dist := 25.0
+var _focus := Vector3.ZERO
 var _snap := true
+
+
+func _ready() -> void:
+	projection = PROJECTION_ORTHOGONAL
+	keep_aspect = KEEP_HEIGHT
+	near = 1.0
+	far = 260.0
 
 
 func _process(delta: float) -> void:
 	if target == null:
 		return
-	var t := target
-	var sp := t.speed()
-	var ground := t.terrain.height(t.position.x, t.position.z)
-	var goal := Vector3(t.position.x + t.vel.x * 0.16, lerpf(ground, t.position.y, 0.55) + 1.0, t.position.z + t.vel.z * 0.16)
-	var want_dist := lerpf(base_distance, fast_distance, clampf((sp - 13.0) / 45.0, 0.0, 1.0))
+	var goal := _goal()
 	if _snap:
-		_look = goal
-		_dist = want_dist
+		_focus = goal
 		_snap = false
-	_look = _look.lerp(goal, 1.0 - exp(-7.0 * delta))
-	_dist = lerpf(_dist, want_dist, 1.0 - exp(-2.5 * delta))
-	var p := deg_to_rad(pitch_deg)
-	var offset := Vector3(0.0, sin(p), cos(p)) * _dist
+	_focus = _focus.lerp(goal, 1.0 - exp(-follow_speed * delta))
 	shake = maxf(0.0, shake - delta * 18.0)
-	var jitter := Vector3(randf_range(-1, 1), randf_range(-1, 1), 0) * shake * 0.08
-	global_position = _look + offset + jitter
-	look_at(_look + jitter, Vector3.UP)
+	var b := Basis.from_euler(Vector3(-deg_to_rad(pitch_deg), yaw, 0.0))
+	var focus := _focus + (b.x * randf_range(-1, 1) + b.y * randf_range(-1, 1)) * shake * 0.03
+	# Snap the focus to whole low-res pixels along the screen axes.
+	var ppm := PixelView.PPM
+	var fr := focus.dot(b.x) * ppm
+	var fu := focus.dot(b.y) * ppm
+	var sr := roundf(fr)
+	var su := roundf(fu)
+	var snapped := focus + b.x * ((sr - fr) / ppm) + b.y * ((su - fu) / ppm)
+	global_transform = Transform3D(b, snapped + b.z * distance)
+	if view:
+		size = view.ortho_size()
+		view.set_shift(Vector2(fr - sr, fu - su))
+
+
+func _goal() -> Vector3:
+	var t := target
+	var ground := t.terrain.height(t.position.x, t.position.z)
+	return Vector3(t.position.x, lerpf(ground, t.position.y, 0.6) + 0.8, t.position.z)
 
 
 func add_shake(amount: float) -> void:

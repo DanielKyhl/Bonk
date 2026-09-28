@@ -17,6 +17,8 @@ var weapons: WeaponSystem
 var director: Director
 var hud: Hud
 var menus: RunMenus
+var view: PixelView
+var world: Node3D
 var _autopilot := false
 var _blink := 0.0
 
@@ -26,59 +28,61 @@ func _ready() -> void:
 	_autopilot = "--autopilot" in args
 	var t0 := Time.get_ticks_msec()
 	map = load(MAP_SCRIPT).new()
+	view = PixelView.new()
+	add_child(view)
+	world = view.world
 	var env := WorldEnv.new()
-	add_child(env)
+	world.add_child(env)
 	env.setup(map)
 	terrain = Terrain.new()
-	add_child(terrain)
+	world.add_child(terrain)
 	terrain.setup(map)
 	props = Props.new()
-	add_child(props)
+	world.add_child(props)
 	props.setup(map, terrain)
 	var grass := Grass.new()
-	add_child(grass)
+	world.add_child(grass)
 	grass.setup(map, terrain, props.pad_positions)
 	print("world built in %d ms" % (Time.get_ticks_msec() - t0))
 
 	run = RunState.new()
-	add_child(run)
+	world.add_child(run)
 	run.setup(Game.hero_id)
 
 	player = load("res://scenes/actors/player.tscn").instantiate()
 	player.terrain = terrain
 	player.pads = props.pad_positions
-	add_child(player)
-	_dress_crusader(player.model)
+	world.add_child(player)
 	player.place(map.spawn)
 
 	fx = Fx.new()
-	add_child(fx)
+	world.add_child(fx)
 	fx.setup(terrain)
 
 	enemies = EnemyManager.new()
-	add_child(enemies)
+	world.add_child(enemies)
 	enemies.setup(terrain, player)
 	player.stomp_probe = enemies.stomp_probe
 	player.stomp_top = enemies.stomp_top
 
 	camera = FollowCamera.new()
-	camera.fov = 42.0
 	camera.target = player
-	add_child(camera)
+	camera.view = view
+	world.add_child(camera)
 	camera.make_current()
 	camera.snap()
 	camera._process(0.0)
 
 	pickups = Pickups.new()
-	add_child(pickups)
+	world.add_child(pickups)
 	pickups.setup(terrain, player, run, props)
 
 	weapons = WeaponSystem.new()
-	add_child(weapons)
+	world.add_child(weapons)
 	weapons.setup(run, player, enemies, fx, camera)
 
 	director = Director.new()
-	add_child(director)
+	world.add_child(director)
 	director.setup(run, enemies, player, terrain)
 
 	hud = Hud.new()
@@ -279,11 +283,3 @@ func _apply_stats() -> void:
 	player.jump_vel = 26.7 * sqrt(s.jump)
 	player.hop_boost = 0.10 + 0.03 * s.hop
 	player.hop_cap = 27.8 + 4.0 * s.hop
-
-
-## Placeholder look for the Crusader: the KayKit knight with sword and badge shield.
-func _dress_crusader(model: Node) -> void:
-	for n in ["1H_Sword_Offhand", "Rectangle_Shield", "Round_Shield", "Spike_Shield", "2H_Sword"]:
-		var node := model.find_child(n, true, false)
-		if node:
-			node.visible = false

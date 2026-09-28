@@ -13,6 +13,7 @@ var terrain: Terrain
 var pad_positions: Array[Vector2] = []
 
 var _mesh_cache := {}
+var _mat_cache := {}
 var _buckets := {}          ## "path|rx|rz" -> Array[Transform3D]
 var _bucket_shadow := {}    ## "path|rx|rz" -> bool
 var _pad_beams: Array[MeshInstance3D] = []
@@ -66,11 +67,33 @@ func merged_mesh(path: String) -> Mesh:
 			arrays[Mesh.ARRAY_BONES] = null
 			arrays[Mesh.ARRAY_WEIGHTS] = null
 			out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-			var mat := mi.get_active_material(s)
-			out.surface_set_material(out.get_surface_count() - 1, mat)
+			out.surface_set_material(out.get_surface_count() - 1, prop_material(mi.get_active_material(s)))
 	root.free()
 	_mesh_cache[path] = out
 	return out
+
+
+## The gritty pixel version of a model's material (shared per texture/color).
+func prop_material(src: Material) -> Material:
+	var tex: Texture2D = null
+	var col := Color.WHITE
+	if src is BaseMaterial3D:
+		tex = (src as BaseMaterial3D).albedo_texture
+		col = (src as BaseMaterial3D).albedo_color
+	var key := "%s|%s" % [tex.resource_path if tex else "", col.to_html()]
+	if _mat_cache.has(key):
+		return _mat_cache[key]
+	var m := ShaderMaterial.new()
+	m.shader = preload("res://shaders/prop.gdshader")
+	m.set_shader_parameter("use_texture", tex != null)
+	if tex:
+		m.set_shader_parameter("albedo_tex", tex)
+	m.set_shader_parameter("albedo_color", col)
+	m.set_shader_parameter("saturation", map.prop_saturation)
+	m.set_shader_parameter("value", map.prop_value)
+	m.set_shader_parameter("grade", map.prop_grade)
+	_mat_cache[key] = m
+	return m
 
 
 func _relative_xf(n: Node3D, root: Node) -> Transform3D:

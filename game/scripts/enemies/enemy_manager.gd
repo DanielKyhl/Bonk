@@ -1,7 +1,7 @@
 class_name EnemyManager
 extends Node3D
 ## All regular enemies, stored as flat arrays (no node per enemy) and drawn as
-## one MultiMesh per type with baked vertex animation. Handles movement, crowd
+## one MultiMesh of pixel-art sprites per type. Handles movement, crowd
 ## separation, collisions with buildings, and contact with the player.
 
 signal killed(type: int, pos: Vector3, xp: int, elite: bool)
@@ -11,19 +11,22 @@ const MAX := 720
 const HC := 2.5                   ## Spatial hash cell size.
 const DRAW_RADIUS := 62.0
 const STRIDE := 16                ## Floats per MultiMesh instance (transform + custom).
-const SPAWN_SPEED := 2.4          ## Rise-from-the-ground animation speedup.
-const DEATH_SPEED := 1.7
-const SINK_TIME := 0.7
+const RISE_TIME := 0.55           ## Seconds to climb out of the ground.
+const DEATH_FPS := 12.0
+const FADE_TIME := 0.45           ## Dithered fade after the death frames.
+const WALK_FPS := 10.0            ## Walk frames per second at the type's anim_speed.
+const ATTACK_FPS := 12.0
 
 enum { RISING, ALIVE, DYING }
 enum Anim { RUN, ATTACK, SPAWN, DEATH }
 
-## Enemy types for Hallowed Vale. speed in m/s, radius/scale in m.
+## Enemy types for Hallowed Vale. speed in m/s, radius in m; scale is the
+## sprite's pixel scale; anim_speed is the speed at which walk runs at WALK_FPS.
 var types: Array[Dictionary] = [
-	{"name": "Skeleton", "vat": "res://assets/vat/skeleton_minion.res", "radius": 0.5, "scale": 1.0, "speed": 6.2, "hp": 20.0, "dmg": 8.0, "xp": 1, "anim_speed": 6.5},
-	{"name": "Skeleton Rogue", "vat": "res://assets/vat/skeleton_rogue.res", "radius": 0.45, "scale": 0.95, "speed": 9.6, "hp": 12.0, "dmg": 6.0, "xp": 1, "anim_speed": 9.0},
-	{"name": "Skeleton Warrior", "vat": "res://assets/vat/skeleton_warrior.res", "radius": 0.95, "scale": 1.55, "speed": 4.2, "hp": 150.0, "dmg": 18.0, "xp": 6, "anim_speed": 2.6},
-	{"name": "Skeleton Mage", "vat": "res://assets/vat/skeleton_mage.res", "radius": 0.5, "scale": 1.05, "speed": 4.6, "hp": 36.0, "dmg": 10.0, "xp": 3, "anim_speed": 2.8},
+	{"name": "Skeleton", "sprite": "skeleton", "attack": "slash", "radius": 0.5, "scale": 1.0, "speed": 6.2, "hp": 20.0, "dmg": 8.0, "xp": 1, "anim_speed": 6.2},
+	{"name": "Ghoul", "sprite": "ghoul", "attack": "slash", "radius": 0.45, "scale": 1.0, "speed": 9.6, "hp": 12.0, "dmg": 6.0, "xp": 1, "anim_speed": 8.0},
+	{"name": "Skeleton Warrior", "sprite": "skeleton_warrior", "attack": "slash", "radius": 0.95, "scale": 1.5, "speed": 4.2, "hp": 150.0, "dmg": 18.0, "xp": 6, "anim_speed": 4.2},
+	{"name": "Skeleton Mage", "sprite": "skeleton_mage", "attack": "spellcast", "radius": 0.5, "scale": 1.0, "speed": 4.6, "hp": 36.0, "dmg": 10.0, "xp": 3, "anim_speed": 4.6},
 ]
 
 var terrain: Terrain
@@ -57,7 +60,7 @@ var _next := PackedInt32Array()      ## Next enemy in the same cell.
 var _solid_cell := PackedByteArray() ## 1 where a hash cell touches a building.
 var _frame := 0
 var _mm: Array[MultiMesh] = []
-var _anim_len: Array[PackedFloat32Array] = []   ## per type: seconds for each Anim
+var _atlas: Array[SpriteAtlas] = []
 var _query := PackedInt32Array()
 
 
@@ -80,30 +83,10 @@ func setup(t: Terrain, p: Player) -> void:
 			var z := -terrain.half + (cz + 0.5) * HC
 			_solid_cell[cz * _hn + cx] = 1 if terrain.in_solid(x, z, HC + 1.0) else 0
 	_query.resize(MAX)
-	var albedo: Texture2D = load("res://assets/kaykit/skeletons/skeleton_texture.png")
-	var shader: Shader = load("res://shaders/vat.gdshader")
 	for td in types:
-		var data: VatData = load(td.vat)
-		var mat := ShaderMaterial.new()
-		mat.shader = shader
-		mat.set_shader_parameter("pos_tex", ImageTexture.create_from_image(data.positions))
-		mat.set_shader_parameter("nrm_tex", ImageTexture.create_from_image(data.normals))
-		mat.set_shader_parameter("albedo_tex", albedo)
-		var lens := PackedFloat32Array()
-		for i in 4:
-			var key: String = ["run", "attack", "spawn", "death"][i]
-			var a: Vector4 = data.anims[key]
-			mat.set_shader_parameter("anim%d" % i, a)
-			lens.append(a.y / a.z)
-		_anim_len.append(lens)
-		var mesh := data.mesh.duplicate() as ArrayMesh
-		mesh.surface_set_material(0, mat)
-		var mm := MultiMesh.new()
-		mm.transform_format = MultiMesh.TRANSFORM_3D
-		mm.use_custom_data = true
-		mm.mesh = mesh
-		mm.instance_count = MAX
-		mm.visible_instance_count = 0
+		var atlas := SpriteAtlas.get_atlas(td.sprite)
+		_atlas.append(atlas)
+		var mm := atlas.multimesh(MAX)
 		var mmi := MultiMeshInstance3D.new()
 		mmi.multimesh = mm
 		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -121,7 +104,7 @@ func spawn(t: int, x: float, z: float, hp_mult := 1.0, rise := true, is_elite :=
 	var i := count
 	count += 1
 	var td: Dictionary = types[t]
-	var s: float = td.scale * (1.35 if is_elite else 1.0)
+	var s: float = td.scale * (1.5 if is_elite else 1.0)
 	var p := terrain.clamp_to_map(Vector2(x, z), 4.0)
 	px[i] = p.x
 	pz[i] = p.y
@@ -136,7 +119,7 @@ func spawn(t: int, x: float, z: float, hp_mult := 1.0, rise := true, is_elite :=
 	hit_cd[i] = 0.0
 	speed[i] = td.speed * randf_range(0.92, 1.08) * (0.9 if is_elite else 1.0)
 	radius[i] = td.radius * (1.35 if is_elite else 1.0)
-	top[i] = 2.1 * s
+	top[i] = 2.0 * s
 	dmg[i] = td.dmg * (1.5 if is_elite else 1.0)
 	state[i] = RISING if rise else ALIVE
 	anim[i] = Anim.SPAWN if rise else Anim.RUN
@@ -239,13 +222,13 @@ func _process(delta: float) -> void:
 		flash[i] = maxf(0.0, flash[i] - delta * 9.0)
 		hit_cd[i] -= delta
 		if st == DYING:
-			anim_t[i] += delta * DEATH_SPEED
-			if anim_t[i] > _anim_len[t][Anim.DEATH] + SINK_TIME * DEATH_SPEED:
+			anim_t[i] += delta
+			if anim_t[i] > 6.0 / DEATH_FPS + FADE_TIME:
 				_remove(i)
 				continue
 		elif st == RISING:
-			anim_t[i] += delta * SPAWN_SPEED
-			if anim_t[i] >= _anim_len[t][Anim.SPAWN]:
+			anim_t[i] += delta
+			if anim_t[i] >= RISE_TIME:
 				state[i] = ALIVE
 				anim[i] = Anim.RUN
 				anim_t[i] = randf() * 2.0
@@ -386,30 +369,40 @@ func _draw() -> void:
 		_mm[t].visible_instance_count = n
 		if n == 0:
 			continue
-		var base_s: float = types[t].scale
+		var atlas := _atlas[t]
+		var td: Dictionary = types[t]
+		var base_s: float = td.scale
+		var attack: String = td.attack
+		var attack_n := atlas.frames(attack)
 		var b := PackedFloat32Array()
 		b.resize(MAX * STRIDE)
 		var o := 0
 		for i in list:
-			var s := base_s * (1.35 if elite[i] == 1 else 1.0)
-			var c := cos(yaw[i]) * s
-			var sn := sin(yaw[i]) * s
-			var sink := 0.0
-			if state[i] == DYING:
-				var over := anim_t[i] - _anim_len[t][Anim.DEATH]
-				if over > 0.0:
-					sink = over / (SINK_TIME * DEATH_SPEED) * 1.2
-			b[o] = c
-			b[o + 2] = sn
+			var s := base_s * (1.5 if elite[i] == 1 else 1.0)
+			var y := py[i]
+			var alpha := 1.0
+			var code := 0.0
+			match anim[i]:
+				Anim.RUN:
+					code = atlas.code("walk", 1 + int(anim_t[i] * WALK_FPS) % 8)
+				Anim.ATTACK:
+					code = atlas.code(attack, int(anim_t[i] * ATTACK_FPS) % attack_n)
+				Anim.SPAWN:
+					code = atlas.code("walk", 0)
+					y -= (1.0 - anim_t[i] / RISE_TIME) * top[i]
+				Anim.DEATH:
+					var f := int(anim_t[i] * DEATH_FPS)
+					code = atlas.code("hurt", mini(f, 5))
+					alpha = 1.0 - maxf(0.0, anim_t[i] - 6.0 / DEATH_FPS) / FADE_TIME
+			b[o] = s
 			b[o + 3] = px[i]
 			b[o + 5] = s
-			b[o + 7] = py[i]
-			b[o + 8] = -sn
-			b[o + 10] = c
+			b[o + 7] = y
+			b[o + 10] = s
 			b[o + 11] = pz[i]
-			b[o + 12] = float(anim[i])
-			b[o + 13] = anim_t[i]
+			b[o + 12] = code
+			b[o + 13] = yaw[i]
 			b[o + 14] = flash[i]
-			b[o + 15] = sink
+			b[o + 15] = alpha
 			o += STRIDE
 		_mm[t].buffer = b

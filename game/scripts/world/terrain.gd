@@ -240,13 +240,14 @@ func path_mask(x: float, z: float) -> float:
 	return _path[iz * _n + ix]
 
 
-## Ground color at a point (linear), matching the terrain mesh palette.
+## Ground color at a point, matching the terrain mesh palette. Colors stay in
+## sRGB: the Compatibility renderer treats shader albedo as sRGB.
 func color_at(x: float, z: float) -> Color:
 	var ix := clampi(int((x + half) / CELL + 0.5), 1, _n - 2)
 	var iz := clampi(int((z + half) / CELL + 0.5), 1, _n - 2)
 	var o := iz * _n + ix
 	var nrm := Vector3(_base[o - 1] - _base[o + 1], 2.0 * CELL, _base[o - _n] - _base[o + _n]).normalized()
-	return _ground_color(x, z, _base[o], nrm.y, _path[o]).srgb_to_linear()
+	return _ground_color(x, z, _base[o], nrm.y, _path[o])
 
 
 ## Up-component of the terrain normal from the grid (1 = flat).
@@ -445,7 +446,7 @@ func _chunk_mesh(ix0: int, iz0: int, w: int, h: int) -> ArrayMesh:
 			var nrm := Vector3(hl - hr, 2.0 * CELL, hd - hu).normalized()
 			verts.append(Vector3(x, hh, z))
 			normals.append(nrm)
-			colors.append(_ground_color(x, z, hh, nrm.y, _path[o]).srgb_to_linear())
+			colors.append(_ground_color(x, z, hh, nrm.y, _path[o]))
 	var row := w + 1
 	for j in h:
 		for i in w:
@@ -480,11 +481,8 @@ func _ground_color(x: float, z: float, h: float, ny: float, path: float) -> Colo
 
 
 func _build_ramp_meshes() -> void:
-	var mat := StandardMaterial3D.new()
-	mat.vertex_color_use_as_albedo = true
-	mat.vertex_color_is_srgb = true
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	mat.roughness = 0.9
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://shaders/terrain.gdshader")
 	for o in range(0, _ramps.size(), RS):
 		var mi := MeshInstance3D.new()
 		mi.mesh = _ramp_mesh(o)
@@ -503,10 +501,10 @@ func _ramp_mesh(o: int) -> ArrayMesh:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var planks := int(length / 0.55)
-	var wood_a := Color(0.55, 0.35, 0.20)
-	var wood_b := Color(0.47, 0.29, 0.16)
-	var side := Color(0.36, 0.22, 0.12)
-	var gold := Color(0.93, 0.76, 0.34)
+	var wood_a := Color(0.40, 0.31, 0.24)
+	var wood_b := Color(0.33, 0.25, 0.20)
+	var side := Color(0.24, 0.18, 0.15)
+	var gold := Color(0.62, 0.52, 0.34)
 	var up := Vector3(-d.x * slope, 1.0, -d.y * slope).normalized()
 	for k in planks:
 		var u0 := length * k / planks

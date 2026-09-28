@@ -48,6 +48,15 @@ var sky_horizon := Color(0.80, 0.78, 0.70)
 var sun_color := Color(1.0, 0.93, 0.80)
 var sun_energy := 1.0
 var fog_color := Color(0.74, 0.74, 0.70)
+## Pixel look: ambient light, background, and how props are toned down.
+var ambient := Color(0.30, 0.27, 0.40)
+var ambient_energy := 1.0
+var background := Color(0.05, 0.04, 0.07)
+var sun_elevation := 38.0
+var sun_yaw := 128.0
+var prop_saturation := 0.45
+var prop_value := 0.72
+var prop_grade := Color(1.0, 0.94, 0.9)
 
 
 func hill(x: float, z: float, h: float, sx: float, sz := -1.0, rot := 0.0) -> void:

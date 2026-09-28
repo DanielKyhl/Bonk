@@ -76,6 +76,7 @@ var air_jumps_left := 0
 var facing := Vector2(0, 1)
 var wish := Vector2.ZERO
 var input_locked := false
+var sprite_id := "crusader"
 
 var _t := 0.0
 var _jump_buf := -1.0
@@ -90,20 +91,19 @@ var _pad_cd := 0.0
 var _squash := 0.0
 var _land_anim := 0.0
 
-@onready var pivot: Node3D = $Pivot
-@onready var model: Node3D = $Pivot/Model
-var anim: AnimationPlayer
+## The hero's sprite (run.gd blinks it while invulnerable).
+var model: PlayerSprite
 var _shadow: MeshInstance3D
 
 
 func _ready() -> void:
-	anim = model.find_child("AnimationPlayer", true, false)
-	for n in ["Running_A", "Running_B", "Idle", "Jump_Idle", "Sit_Floor_Pose", "Walking_A"]:
-		if anim.has_animation(n):
-			anim.get_animation(n).loop_mode = Animation.LOOP_LINEAR
+	model = PlayerSprite.new()
+	add_child(model)
+	model.top_level = true
+	model.setup(self, sprite_id)
 	_shadow = MeshInstance3D.new()
 	var q := QuadMesh.new()
-	q.size = Vector2(1.6, 1.6)
+	q.size = Vector2(1.4, 0.9)
 	q.orientation = PlaneMesh.FACE_Y
 	_shadow.mesh = q
 	var sm := ShaderMaterial.new()
@@ -502,44 +502,7 @@ func _rotate_toward(d: Vector2, target: Vector2, max_ang: float) -> Vector2:
 # -----------------------------------------------------------------------------
 # Visuals
 # -----------------------------------------------------------------------------
-func _update_visuals(delta: float) -> void:
-	var sp := speed()
-	var target_yaw := atan2(facing.x, facing.y)
-	pivot.rotation.y = lerp_angle(pivot.rotation.y, target_yaw, 1.0 - exp(-14.0 * delta))
-	var slide_pose := sliding or slide_air
-	var tilt := 0.0
-	var sq := Vector3.ONE
-	if slide_pose and sp > 0.5:
-		tilt = -0.35
-	elif slamming:
-		tilt = 0.5
-		sq = Vector3(0.85, 1.2, 0.85)
-	elif _squash > 0.0:
-		sq = Vector3(1.0 + 0.3 * _squash, 1.0 - 0.28 * _squash, 1.0 + 0.3 * _squash)
-	elif not grounded:
-		var st := clampf(vel.y / 100.0, -0.15, 0.15)
-		sq = Vector3(1.0 - absf(st) * 0.5, 1.0 + absf(st), 1.0 - absf(st) * 0.5)
-	model.rotation.x = lerpf(model.rotation.x, tilt, 1.0 - exp(-16.0 * delta))
-	model.scale = model.scale.lerp(sq, 1.0 - exp(-20.0 * delta))
-
-	_land_anim -= delta
-	var want := "Idle"
-	var spd := 1.0
-	if slamming:
-		want = "Jump_Idle"
-	elif slide_pose:
-		want = "Sit_Floor_Pose"
-	elif not grounded:
-		want = "Jump_Idle"
-	elif _land_anim > 0.0 and sp < 3.0:
-		want = "Jump_Land"
-	elif sp > 1.0:
-		want = "Running_A"
-		spd = clampf(sp / 9.0, 0.8, 2.4)
-	if anim.current_animation != want:
-		anim.play(want, 0.12)
-	anim.speed_scale = spd
-
+func _update_visuals(_delta: float) -> void:
 	var gy := terrain.height(position.x, position.z)
 	var ha := maxf(0.0, position.y - gy)
 	_shadow.global_position = Vector3(position.x, gy + 0.06, position.z)

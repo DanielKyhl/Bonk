@@ -1,0 +1,278 @@
+Character sprites are composited from the Universal LPC Spritesheet Character Generator
+(https://github.com/LiberatedPixelCup/Universal-LPC-Spritesheet-Character-Generator).
+Sources, authors and licenses of each sheet used:
+
+arms/armour/plate/male/hurt.png
+  Authors: Michael Whitlock (bigbeargames),Matthew Krohn (makrohn),Johannes Sjölund (wulax),bluecarrot16,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,http://opengameart.org/content/lpc-clothing-updates 
+
+arms/armour/plate/male/slash.png
+  Authors: Michael Whitlock (bigbeargames),Matthew Krohn (makrohn),Johannes Sjölund (wulax),bluecarrot16,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,http://opengameart.org/content/lpc-clothing-updates 
+
+arms/armour/plate/male/walk.png
+  Authors: Michael Whitlock (bigbeargames),Matthew Krohn (makrohn),Johannes Sjölund (wulax),bluecarrot16,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,http://opengameart.org/content/lpc-clothing-updates 
+
+arms/hands/gloves/male/hurt.png
+  Authors: Michael Whitlock (bigbeargames),Matthew Krohn (makrohn),Johannes Sjölund (wulax),bluecarrot16,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,http://opengameart.org/content/lpc-clothing-updates 
+
+arms/hands/gloves/male/slash.png
+  Authors: Michael Whitlock (bigbeargames),Matthew Krohn (makrohn),Johannes Sjölund (wulax),bluecarrot16,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,http://opengameart.org/content/lpc-clothing-updates 
+
+arms/hands/gloves/male/walk.png
+  Authors: Michael Whitlock (bigbeargames),Matthew Krohn (makrohn),Johannes Sjölund (wulax),bluecarrot16,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,http://opengameart.org/content/lpc-clothing-updates 
+
+body/bodies/male/hurt.png
+  Authors: bluecarrot16,JaidynReiman,Benjamin K. Smith (BenCreating),Evert,Eliza Wyatt (ElizaWy),TheraHedwig,MuffinElZangano,Durrani,Johannes Sjölund (wulax),Stephen Challener (Redshrike) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-male-jumping-animation-by-durrani,https://opengameart.org/content/lpc-runcycle-and-diagonal-walkcycle,https://opengameart.org/content/lpc-revised-character-basics,https://opengameart.org/content/lpc-be-seated,https://opengameart.org/content/lpc-runcycle-for-male-muscular-and-pregnant-character-bases-with-modular-heads,https://opengameart.org/content/lpc-jump-expanded,https://opengameart.org/content/lpc-character-bases 
+
+body/bodies/male/slash.png
+  Authors: bluecarrot16,JaidynReiman,Benjamin K. Smith (BenCreating),Evert,Eliza Wyatt (ElizaWy),TheraHedwig,MuffinElZangano,Durrani,Johannes Sjölund (wulax),Stephen Challener (Redshrike) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-male-jumping-animation-by-durrani,https://opengameart.org/content/lpc-runcycle-and-diagonal-walkcycle,https://opengameart.org/content/lpc-revised-character-basics,https://opengameart.org/content/lpc-be-seated,https://opengameart.org/content/lpc-runcycle-for-male-muscular-and-pregnant-character-bases-with-modular-heads,https://opengameart.org/content/lpc-jump-expanded,https://opengameart.org/content/lpc-character-bases 
+
+body/bodies/male/walk.png
+  Authors: bluecarrot16,JaidynReiman,Benjamin K. Smith (BenCreating),Evert,Eliza Wyatt (ElizaWy),TheraHedwig,MuffinElZangano,Durrani,Johannes Sjölund (wulax),Stephen Challener (Redshrike) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-male-jumping-animation-by-durrani,https://opengameart.org/content/lpc-runcycle-and-diagonal-walkcycle,https://opengameart.org/content/lpc-revised-character-basics,https://opengameart.org/content/lpc-be-seated,https://opengameart.org/content/lpc-runcycle-for-male-muscular-and-pregnant-character-bases-with-modular-heads,https://opengameart.org/content/lpc-jump-expanded,https://opengameart.org/content/lpc-character-bases 
+
+body/bodies/skeleton/hurt.png
+  Authors: bluecarrot16,Napsio,JaidynReiman,Johannes Sjölund (wulax),Stephen Challener (Redshrike) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-skeleton,https://opengameart.org/content/lpc-character-bases 
+
+body/bodies/skeleton/slash.png
+  Authors: bluecarrot16,Napsio,JaidynReiman,Johannes Sjölund (wulax),Stephen Challener (Redshrike) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-skeleton,https://opengameart.org/content/lpc-character-bases 
+
+body/bodies/skeleton/spellcast.png
+  Authors: bluecarrot16,Napsio,JaidynReiman,Johannes Sjölund (wulax),Stephen Challener (Redshrike) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-skeleton,https://opengameart.org/content/lpc-character-bases 
+
+body/bodies/skeleton/walk.png
+  Authors: bluecarrot16,Napsio,JaidynReiman,Johannes Sjölund (wulax),Stephen Challener (Redshrike) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-skeleton,https://opengameart.org/content/lpc-character-bases 
+
+cape/solid/bg/hurt.png
+  Authors: Nila122,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more,https://opengameart.org/content/lpc-roman-armor 
+
+cape/solid/bg/slash.png
+  Authors: Nila122,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more,https://opengameart.org/content/lpc-roman-armor 
+
+cape/solid/bg/walk.png
+  Authors: Nila122,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more,https://opengameart.org/content/lpc-roman-armor 
+
+cape/solid/fg/hurt.png
+  Authors: bluecarrot16,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more,https://opengameart.org/content/lpc-roman-armor,http://opengameart.org/content/lpc-clothing-updates 
+
+cape/solid/fg/slash.png
+  Authors: bluecarrot16,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more,https://opengameart.org/content/lpc-roman-armor,http://opengameart.org/content/lpc-clothing-updates 
+
+cape/solid/fg/walk.png
+  Authors: bluecarrot16,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more,https://opengameart.org/content/lpc-roman-armor,http://opengameart.org/content/lpc-clothing-updates 
+
+cape/tattered/bg/hurt.png
+  Authors: Nila122,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more,https://opengameart.org/content/lpc-roman-armor 
+
+cape/tattered/bg/slash.png
+  Authors: Nila122,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more,https://opengameart.org/content/lpc-roman-armor 
+
+cape/tattered/bg/spellcast.png
+  Authors: Nila122,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more,https://opengameart.org/content/lpc-roman-armor 
+
+cape/tattered/bg/walk.png
+  Authors: Nila122,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more,https://opengameart.org/content/lpc-roman-armor 
+
+cape/tattered/fg/hurt.png
+  Authors: Nila122,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more,https://opengameart.org/content/lpc-roman-armor 
+
+cape/tattered/fg/slash.png
+  Authors: Nila122,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more,https://opengameart.org/content/lpc-roman-armor 
+
+cape/tattered/fg/spellcast.png
+  Authors: Nila122,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more,https://opengameart.org/content/lpc-roman-armor 
+
+cape/tattered/fg/walk.png
+  Authors: Nila122,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more,https://opengameart.org/content/lpc-roman-armor 
+
+cape/trim/hurt.png
+  Authors: bluecarrot16,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more,http://opengameart.org/content/lpc-clothing-updates 
+
+cape/trim/slash.png
+  Authors: bluecarrot16,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more,http://opengameart.org/content/lpc-clothing-updates 
+
+cape/trim/walk.png
+  Authors: bluecarrot16,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more,http://opengameart.org/content/lpc-clothing-updates 
+
+feet/armour/plate/male/hurt.png
+  Authors: Matthew Krohn (makrohn),Johannes Sjölund (wulax) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites 
+
+feet/armour/plate/male/slash.png
+  Authors: Matthew Krohn (makrohn),Johannes Sjölund (wulax) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites 
+
+feet/armour/plate/male/walk.png
+  Authors: Matthew Krohn (makrohn),Johannes Sjölund (wulax) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites 
+
+hat/helmet/greathelm/male/hurt.png
+  Authors: bluecarrot16 
+  Licenses: OGA-BY 3.0,CC-BY 3.0,CC-BY 4.0,GPL 2.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-helmets,https://opengameart.org/content/lpc-expanded-hats-facial-helmets 
+
+hat/helmet/greathelm/male/slash.png
+  Authors: bluecarrot16 
+  Licenses: OGA-BY 3.0,CC-BY 3.0,CC-BY 4.0,GPL 2.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-helmets,https://opengameart.org/content/lpc-expanded-hats-facial-helmets 
+
+hat/helmet/greathelm/male/walk.png
+  Authors: bluecarrot16 
+  Licenses: OGA-BY 3.0,CC-BY 3.0,CC-BY 4.0,GPL 2.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-helmets,https://opengameart.org/content/lpc-expanded-hats-facial-helmets 
+
+head/heads/human/male/hurt.png
+  Authors: bluecarrot16,Benjamin K. Smith (BenCreating),Stephen Challener (Redshrike) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-character-bases 
+
+head/heads/human/male/slash.png
+  Authors: bluecarrot16,Benjamin K. Smith (BenCreating),Stephen Challener (Redshrike) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-character-bases 
+
+head/heads/human/male/walk.png
+  Authors: bluecarrot16,Benjamin K. Smith (BenCreating),Stephen Challener (Redshrike) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-character-bases 
+
+head/heads/skeleton/adult/hurt.png
+  Authors: bluecarrot16,Napsio,JaidynReiman,Johannes Sjölund (wulax),Stephen Challener (Redshrike) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-skeleton,https://opengameart.org/content/lpc-character-bases 
+
+head/heads/skeleton/adult/slash.png
+  Authors: bluecarrot16,Napsio,JaidynReiman,Johannes Sjölund (wulax),Stephen Challener (Redshrike) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-skeleton,https://opengameart.org/content/lpc-character-bases 
+
+head/heads/skeleton/adult/spellcast.png
+  Authors: bluecarrot16,Napsio,JaidynReiman,Johannes Sjölund (wulax),Stephen Challener (Redshrike) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-skeleton,https://opengameart.org/content/lpc-character-bases 
+
+head/heads/skeleton/adult/walk.png
+  Authors: bluecarrot16,Napsio,JaidynReiman,Johannes Sjölund (wulax),Stephen Challener (Redshrike) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-skeleton,https://opengameart.org/content/lpc-character-bases 
+
+head/heads/zombie/adult/hurt.png
+  Authors: bluecarrot16,Benjamin K. Smith (BenCreating),Sander Frenken (castelonia),Stephen Challener (Redshrike) 
+  Licenses: CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-zombie,https://opengameart.org/content/lpc-character-bases 
+
+head/heads/zombie/adult/slash.png
+  Authors: bluecarrot16,Benjamin K. Smith (BenCreating),Sander Frenken (castelonia),Stephen Challener (Redshrike) 
+  Licenses: CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-zombie,https://opengameart.org/content/lpc-character-bases 
+
+head/heads/zombie/adult/walk.png
+  Authors: bluecarrot16,Benjamin K. Smith (BenCreating),Sander Frenken (castelonia),Stephen Challener (Redshrike) 
+  Licenses: CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-zombie,https://opengameart.org/content/lpc-character-bases 
+
+legs/armour/plate/male/hurt.png
+  Authors: bluecarrot16,JaidynReiman,Michael Whitlock (bigbeargames),Matthew Krohn (makrohn),Johannes Sjölund (wulax) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites 
+
+legs/armour/plate/male/slash.png
+  Authors: bluecarrot16,JaidynReiman,Michael Whitlock (bigbeargames),Matthew Krohn (makrohn),Johannes Sjölund (wulax) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites 
+
+legs/armour/plate/male/walk.png
+  Authors: bluecarrot16,JaidynReiman,Michael Whitlock (bigbeargames),Matthew Krohn (makrohn),Johannes Sjölund (wulax) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites 
+
+shoulders/pauldrons/male/hurt.png
+  Authors: Matthew Krohn (makrohn),Johannes Sjölund (wulax),bluecarrot16,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,http://opengameart.org/content/lpc-clothing-updates 
+
+shoulders/pauldrons/male/slash.png
+  Authors: Matthew Krohn (makrohn),Johannes Sjölund (wulax),bluecarrot16,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,http://opengameart.org/content/lpc-clothing-updates 
+
+shoulders/pauldrons/male/walk.png
+  Authors: Matthew Krohn (makrohn),Johannes Sjölund (wulax),bluecarrot16,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,http://opengameart.org/content/lpc-clothing-updates 
+
+torso/armour/plate/male/hurt.png
+  Authors: Napsio (Vitruvian Studio),JaidynReiman,bluecarrot16,Michael Whitlock (bigbeargames),Johannes Sjölund (wulax) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-combat-armor-for-women 
+
+torso/armour/plate/male/slash.png
+  Authors: Napsio (Vitruvian Studio),JaidynReiman,bluecarrot16,Michael Whitlock (bigbeargames),Johannes Sjölund (wulax) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-combat-armor-for-women 
+
+torso/armour/plate/male/walk.png
+  Authors: Napsio (Vitruvian Studio),JaidynReiman,bluecarrot16,Michael Whitlock (bigbeargames),Johannes Sjölund (wulax) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-combat-armor-for-women 

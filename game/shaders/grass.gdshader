@@ -1,9 +1,11 @@
 shader_type spatial;
-render_mode diffuse_lambert, specular_disabled, cull_disabled;
+render_mode specular_disabled, cull_disabled;
 // Grass tufts: per-instance tint (INSTANCE_CUSTOM.rgb) matches the ground under
-// them; blades darken at the base and brighten at the tips; wind sways the tips.
+// them; blades darken at the base and bleach at the tips; wind sways the tips.
 
-uniform float wind_strength = 0.16;
+#include "res://shaders/pixel_light.gdshaderinc"
+
+uniform float wind_strength = 0.1;
 varying vec3 tint;
 varying float tip;
 
@@ -19,9 +21,8 @@ void vertex() {
 }
 
 void fragment() {
-	vec3 warm = tint * vec3(1.55, 1.5, 1.05);
-	ALBEDO = mix(tint * 0.85, warm, tip);
+	vec3 dead = mix(tint, vec3(dot(tint, vec3(0.33))), 0.5) * vec3(1.5, 1.4, 1.1);
+	ALBEDO = tip > 0.6 ? dead : (tip > 0.25 ? tint : tint * 0.7);
 	// Light both sides of the blade like the ground under it.
 	NORMAL = normalize((VIEW_MATRIX * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
-	ROUGHNESS = 1.0;
 }

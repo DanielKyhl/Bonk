@@ -1,6 +1,7 @@
 extends MapDef
-## Map 1: Hallowed Vale. Autumn hills, a hilltop cathedral, a graveyard bowl,
-## a windmill hamlet, a ruined keep on a plateau and a quarry full of kickers.
+## Map 1: Hallowed Vale. A dying valley at dusk: a hilltop cathedral, a
+## graveyard bowl, a windmill hamlet, a ruined keep on a plateau and a quarry
+## full of kickers.
 
 const MED := "res://assets/kaykit/medieval/"
 const HAL := "res://assets/kaykit/halloween/"
@@ -11,6 +12,23 @@ func _init() -> void:
 	title = "Hallowed Vale"
 	layout_seed = 1107
 	spawn = Vector2(0, 8)
+
+	# --- Palette: dead grass, black mud and cold stone under a blood-red dusk.
+	grass = Color(0.27, 0.31, 0.25)
+	grass_dry = Color(0.37, 0.36, 0.30)
+	dirt = Color(0.29, 0.25, 0.23)
+	rock = Color(0.42, 0.42, 0.46)
+	low_tint = Color(0.20, 0.23, 0.21)
+	sun_color = Color(0.96, 0.74, 0.64)
+	sun_energy = 1.05
+	sun_elevation = 40.0
+	sun_yaw = 128.0
+	ambient = Color(0.52, 0.54, 0.74)
+	ambient_energy = 0.9
+	background = Color(0.04, 0.03, 0.05)
+	prop_saturation = 0.4
+	prop_value = 0.7
+	prop_grade = Color(1.0, 0.92, 0.88)
 
 	# --- Landforms -----------------------------------------------------------
 	hill(0, -86, 13.0, 26, 22)            # Cathedral Hill
@@ -153,8 +171,8 @@ func _init() -> void:
 	scatter.append({"scenes": [HAL + "fence.gltf", HAL + "fence_broken.gltf"], "circle": {"center": Vector2(96, 4), "radius": 31, "gap_deg": [170.0, 190.0]}, "scale": Vector2(1.0, 1.0)})
 
 	tints = [
-		{"pos": Vector2(96, 4), "radius": 34, "color": Color(0.36, 0.40, 0.27), "strength": 0.7},
-		{"pos": Vector2(-10, 96), "radius": 30, "color": Color(0.46, 0.46, 0.36), "strength": 0.5},
-		{"pos": Vector2(85, 90), "radius": 40, "color": Color(0.60, 0.53, 0.40), "strength": 0.5},
-		{"pos": Vector2(80, -100), "radius": 40, "color": Color(0.62, 0.50, 0.26), "strength": 0.45},
+		{"pos": Vector2(96, 4), "radius": 34, "color": Color(0.20, 0.21, 0.19), "strength": 0.8},
+		{"pos": Vector2(-10, 96), "radius": 30, "color": Color(0.34, 0.32, 0.31), "strength": 0.6},
+		{"pos": Vector2(85, 90), "radius": 40, "color": Color(0.40, 0.35, 0.30), "strength": 0.6},
+		{"pos": Vector2(80, -100), "radius": 40, "color": Color(0.33, 0.24, 0.21), "strength": 0.5},
 	]
