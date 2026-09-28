@@ -4,21 +4,40 @@ extends Node3D
 ## Batched per 32 m region so off-screen tufts cost nothing.
 
 const REGION := 32.0
-const SPACING := 1.5
+const SPACING := 1.8
 
 var terrain: Terrain
 var map: MapDef
 
 
+## title|seed -> MultiMeshes, so a restart on the same map reuses them.
+static var _cache := {}
+
+
 func setup(m: MapDef, t: Terrain, pads: Array[Vector2]) -> void:
 	map = m
 	terrain = t
+	var key := "%s|%d" % [m.title, m.layout_seed]
+	if not _cache.has(key):
+		_cache[key] = _build(pads)
+	for mm: MultiMesh in _cache[key]:
+		var mmi := MultiMeshInstance3D.new()
+		mmi.multimesh = mm
+		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(mmi)
+
+
+func _build(pads: Array[Vector2]) -> Array[MultiMesh]:
 	var mesh := _tuft_mesh()
 	var mat := ShaderMaterial.new()
 	mat.shader = load("res://shaders/grass.gdshader")
 	mesh.surface_set_material(0, mat)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = map.layout_seed * 7 + 3
+	# Pads, looked up by 8 m cell instead of checking every pad per tuft.
+	var pad_cells := {}
+	for q in pads:
+		pad_cells[Vector2i(int(floor(q.x / 8.0)), int(floor(q.y / 8.0)))] = q
 	var buckets := {}
 	var edge := map.half_size - 8.0
 	var x := -edge
@@ -31,35 +50,38 @@ func setup(m: MapDef, t: Terrain, pads: Array[Vector2]) -> void:
 				continue
 			if terrain.in_solid(p.x, p.y, 0.6) or p.distance_to(map.spawn) < 3.0:
 				continue
+			var pc := Vector2i(int(floor(p.x / 8.0)), int(floor(p.y / 8.0)))
 			var near_pad := false
-			for q in pads:
-				if p.distance_squared_to(q) < 7.0:
-					near_pad = true
-					break
+			for dz in range(-1, 2):
+				for dx in range(-1, 2):
+					var q: Variant = pad_cells.get(pc + Vector2i(dx, dz))
+					if q != null and p.distance_squared_to(q) < 7.0:
+						near_pad = true
 			if near_pad:
 				continue
-			var key := Vector2i(int(floor((p.x + map.half_size) / REGION)), int(floor((p.y + map.half_size) / REGION)))
-			if not buckets.has(key):
-				buckets[key] = []
+			var bk := Vector2i(int(floor((p.x + map.half_size) / REGION)), int(floor((p.y + map.half_size) / REGION)))
+			if not buckets.has(bk):
+				buckets[bk] = PackedFloat32Array()
 			var s := rng.randf_range(0.7, 1.35)
-			var xf := Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(s, s * rng.randf_range(0.8, 1.2), s)), Vector3(p.x, terrain.base_grid_height(p.x, p.y) - 0.03, p.y))
+			var sy := s * rng.randf_range(0.8, 1.2)
+			var a := rng.randf() * TAU
 			var c := terrain.color_at(p.x, p.y)
-			buckets[key].append([xf, c])
+			var ca := cos(a) * s
+			var sa := sin(a) * s
+			buckets[bk].append_array([ca, 0.0, sa, p.x, 0.0, sy, 0.0, terrain.base_grid_height(p.x, p.y) - 0.03,
+					-sa, 0.0, ca, p.y, c.r, c.g, c.b, 1.0])
 		x += SPACING
-	for key in buckets:
-		var list: Array = buckets[key]
+	var out: Array[MultiMesh] = []
+	for bk in buckets:
+		var buf: PackedFloat32Array = buckets[bk]
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
 		mm.use_custom_data = true
 		mm.mesh = mesh
-		mm.instance_count = list.size()
-		for i in list.size():
-			mm.set_instance_transform(i, list[i][0])
-			mm.set_instance_custom_data(i, list[i][1])
-		var mmi := MultiMeshInstance3D.new()
-		mmi.multimesh = mm
-		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		add_child(mmi)
+		mm.instance_count = buf.size() / 16
+		mm.buffer = buf
+		out.append(mm)
+	return out
 
 
 func _tuft_mesh() -> ArrayMesh:

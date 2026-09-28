@@ -9,7 +9,7 @@ var results := {}
 
 func _ready() -> void:
 	Engine.max_fps = 60
-	var map: MapDef = load("res://scripts/world/maps/hallowed_vale.gd").new()
+	var map: MapDef = load("res://tests/test_map.gd").new()
 	terrain = Terrain.new()
 	add_child(terrain)
 	terrain.setup(map)
@@ -92,7 +92,7 @@ func _run_tests() -> void:
 		await _frames(1)
 	results["run hill"] = "%d km/h" % int(top * Player.KMH)
 
-	# Ramp at (14, 22) pointing east: run off it fast.
+	# Kicker at (12, 22) facing east: run up it fast and you fly.
 	await _place(4, 22, 30, 0)
 	Input.action_press("move_right")
 	var max_h := 0.0
@@ -101,7 +101,7 @@ func _run_tests() -> void:
 		max_h = maxf(max_h, player.height_above_ground())
 		max_air = maxf(max_air, player.air_time)
 		await _frames(1)
-	results["ramp"] = "%.1f m high, %.2f s air" % [max_h, max_air]
+	results["kicker"] = "%.1f m high, %.2f s air" % [max_h, max_air]
 
 	# Slam from 8 m up while moving: should slide out faster.
 	await _place(40, 20, 12.5, 0)
@@ -129,9 +129,9 @@ func _run_tests() -> void:
 		await _frames(1)
 	results["pad"] = "%.1f m high" % max_h
 
-	# Plateau walls: running at the keep plateau side should stop you (no ramp there).
+	# Plateau walls: running at the plateau's cliff should stop you.
 	await _place(-10, 128, 0, -12.5)
 	Input.action_press("move_up")
 	await _frames(120)
-	results["plateau wall"] = "stopped at z=%.1f, y=%.1f (edge ~z=123)" % [player.position.z, player.position.y]
+	results["plateau wall"] = "stopped at z=%.1f, y=%.1f (edge ~z=121)" % [player.position.z, player.position.y]
 	_release_all()

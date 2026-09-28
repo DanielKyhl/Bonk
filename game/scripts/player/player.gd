@@ -1,7 +1,7 @@
 class_name Player
 extends Node3D
 ## The hero's movement: running, bunny hops, slides, slams, stomps, slope
-## landings, ramp and crest launches, launch pads. Ported from the browser
+## landings, crest launches, launch pads. Ported from the browser
 ## prototype (prototype/game.js) and converted to meters (24 units = 1 m).
 ##
 ## Physics runs in fixed substeps of at most 1/120 s inside _process.
@@ -297,7 +297,7 @@ func _on_jump_press() -> void:
 		_jump_buf = _t
 		return
 	if coyote > 0.0 and not slamming:
-		# Jumping right after the ground drops away (a crest or ramp lip) stacks on your rise.
+		# Jumping right after the ground drops away (a crest or a cliff lip) stacks on your rise.
 		vel.y = maxf(vel.y, 0.0) + jump_vel
 		coyote = 0.0
 		_jump_buf = -1.0

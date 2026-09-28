@@ -8,6 +8,9 @@ extends RefCounted
 
 var title := ""
 var half_size := 160.0
+## The edges curve up into a quarter-pipe this wide and high, then sheer cliffs.
+var rim_band := 30.0
+var rim_height := 10.0
 ## Deterministic seed for scattered decoration (same every run).
 var layout_seed := 1
 
@@ -21,8 +24,6 @@ var mesas: Array[Dictionary] = []
 var cliffs: Array[Dictionary] = []
 ## Steep-walled trenches along a polyline that shallow out at both ends. See ravine().
 var ravines: Array[Dictionary] = []
-## Wooden ramps: base at pos, rising along yaw direction.
-var ramps: Array[Dictionary] = []
 ## Launch pads (holy springs).
 var pads: Array[Vector2] = []
 ## Dirt paths, drawn into the ground colors.
@@ -81,6 +82,14 @@ func plateau(x: float, z: float, h: float, rx: float, rz := -1.0, rot_deg := 0.0
 			"edge": edge, "rough": rough, "slope": slope_deg, "slope_len": slope_len, "slope_width": slope_width_deg})
 
 
+## A kicker: a grassy rise that curves up to a sharp lip and drops away, so
+## anything fast coming up it flies. yaw_deg is the direction you ride it.
+func kicker(x: float, z: float, yaw_deg: float, h := 2.4, length := 8.0, width := 5.0) -> void:
+	var d := Vector2(cos(deg_to_rad(yaw_deg)), sin(deg_to_rad(yaw_deg)))
+	plateau(x + d.x, z + d.y, h, width * 0.5, 1.4, yaw_deg + 90.0, 1.0, 0.08, yaw_deg + 180.0, length, 70.0)
+	cliffs[-1]["kick"] = true
+
+
 ## A rock spire: a small, tall plateau you can't climb.
 func spire(x: float, z: float, h: float, r: float) -> void:
 	var k := fposmod(sin(x * 12.9898 + z * 78.233) * 43758.5453, 1.0)
@@ -94,10 +103,6 @@ func ravine(points: Array, width: float, depth: float, edge := 1.4, taper := 16.
 	for v in points:
 		p.append(v)
 	ravines.append({"points": p, "width": width, "depth": depth, "edge": edge, "taper": taper})
-
-
-func ramp(x: float, z: float, yaw_deg: float, length := 8.0, width := 4.0, height := 2.6) -> void:
-	ramps.append({"pos": Vector2(x, z), "yaw": deg_to_rad(yaw_deg), "length": length, "width": width, "height": height})
 
 
 func landmark(scene: String, x: float, z: float, yaw_deg := 0.0, scale := 1.0, solid := {}) -> void:

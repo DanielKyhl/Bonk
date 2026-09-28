@@ -33,7 +33,9 @@ A dark-fantasy pixel-art survivor game with Megabonk-style movement, built in Go
 - **Slam**: slide in the air to drop fast, then slide out of the landing.
 - **Stomp**: land on a skeleton's head to bounce off it.
 - **Landings**: landing on a downslope turns your fall into speed.
-- **Ramps, crests and holy springs** launch you. Jump right as you leave a ramp for a much bigger launch.
+- **Steep hills** are where speed comes from: slide down them. The Tor, Windmill Ridge, the barrow mounds and the curved map edges are the big ones.
+- **Kickers** (grassy rises with a sharp lip) and **holy springs** launch you. Jump right as you leave a lip for a bigger launch.
+- **Cliffs** can't be climbed: find the natural slope up (the Keep's is on its north side).
 - **Crusader**: Holy Aegis blocks one hit, then recharges for 12 seconds.
 
 Movement never deals damage by itself; your weapons do the killing.
@@ -62,7 +64,7 @@ The *Build game* workflow can also be run by hand from the Actions tab; the zips
 | `scripts/ui/` | HUD and menus |
 | `scripts/render/` | Pixel view (low-res render and upscale), sprite atlases and batches |
 | `tools/map_preview.gd` | Renders a top-down hillshade of a map (`godot --headless --path game --script res://tools/map_preview.gd -- out.png`) |
-| `tests/` | Headless movement tests: `godot --headless --path game res://tests/movement_test.tscn` |
+| `tests/` | Headless movement tests on their own test map: `godot --headless --path game res://tests/movement_test.tscn` |
 
 ## Rebuilding the art
 

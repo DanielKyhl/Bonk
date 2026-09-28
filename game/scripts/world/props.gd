@@ -295,7 +295,7 @@ func _put(path: String, p: Vector2, yaw: float, s: float, shadow: bool, sink: fl
 	_add_instance(path, Vector3(p.x, y - sink * s, p.y), yaw, s, shadow)
 
 
-## True when a spot is clear of landmarks, pads, ramps, paths and spawn.
+## True when a spot is clear of landmarks, pads, paths, cliffs and spawn.
 func _free(p: Vector2, margin: float, avoid_paths: bool) -> bool:
 	if p.distance_to(map.spawn) < 12.0:
 		return false
@@ -308,10 +308,6 @@ func _free(p: Vector2, margin: float, avoid_paths: bool) -> bool:
 		return false
 	for q in pad_positions:
 		if p.distance_to(q) < PAD_RADIUS + margin + 1.0:
-			return false
-	for rp in map.ramps:
-		var mid: Vector2 = rp.pos + Vector2(cos(rp.yaw), sin(rp.yaw)) * rp.length * 0.5
-		if p.distance_to(mid) < rp.length * 0.6 + margin:
 			return false
 	return true
 
