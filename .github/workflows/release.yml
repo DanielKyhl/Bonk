@@ -82,4 +82,5 @@ jobs:
             - **macOS:** unzip, then right-click `Momentum.app` and choose *Open* the first time.
             - **Linux:** run `Momentum.x86_64` (mark it executable if needed).
 
-            Controls: WASD or left stick to move, Space / A to jump, Shift / B to slide (slam in the air), Esc to pause, F for the FPS counter.
+            Controls: WASD or left stick to move, Space / A to jump, Shift / B to slide (slam in the air), Esc to pause.
+            F shows the FPS counter, F9 lowers the render resolution if it stutters, F11 toggles fullscreen.

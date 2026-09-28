@@ -186,7 +186,7 @@ func _build() -> void:
 
 	_fps = UIStyle.label("", UIStyle.ui_font("SemiBold"), 16, UIStyle.MUTED, 4)
 	_fps.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	_fps.position = Vector2(-220, -34)
+	_fps.position = Vector2(-300, -34)
 	root.add_child(_fps)
 
 
@@ -249,7 +249,7 @@ func _process(delta: float) -> void:
 	_hurt_t = maxf(0.0, _hurt_t - delta)
 	var low := 0.18 + 0.08 * sin(run.time * 6.0) if run.hp < run.max_hp * 0.3 else 0.0
 	_hurt.color.a = maxf(_hurt_t * 1.1, low * 0.6)
-	_fps.text = ("%d FPS  ·  %d enemies" % [Engine.get_frames_per_second(), enemies.count]) if _show_fps else ""
+	_fps.text = ("%d FPS  ·  %d enemies  ·  render %d%%" % [Engine.get_frames_per_second(), enemies.count, int(Game.render_scale * 100)]) if _show_fps else ""
 
 
 func _set_chip(l: Label, text: String, on: bool) -> void:

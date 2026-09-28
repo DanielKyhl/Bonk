@@ -7,14 +7,35 @@ const SAVE_PATH := "user://save.cfg"
 var hero_id := "crusader"
 ## Seed for the random parts of a run (chest, shrine and boss placement).
 var run_seed := 0
+## 3D render resolution (1.0 = native). F9 cycles it; lower is faster on weak GPUs.
+var render_scale := 1.0
+const RENDER_SCALES := [1.0, 0.85, 0.7]
 
 var _save := ConfigFile.new()
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	_setup_input()
 	_save.load(SAVE_PATH)
 	run_seed = randi()
+	render_scale = get_saved("settings", "render_scale", 1.0)
+	get_viewport().scaling_3d_scale = render_scale
+	if get_saved("settings", "fullscreen", false):
+		get_window().mode = Window.MODE_FULLSCREEN
+
+
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed("fullscreen"):
+		var w := get_window()
+		var full := w.mode != Window.MODE_FULLSCREEN
+		w.mode = Window.MODE_FULLSCREEN if full else Window.MODE_WINDOWED
+		set_saved("settings", "fullscreen", full)
+	elif event.is_action_pressed("render_scale"):
+		var i := RENDER_SCALES.find(render_scale)
+		render_scale = RENDER_SCALES[(i + 1) % RENDER_SCALES.size()]
+		get_viewport().scaling_3d_scale = render_scale
+		set_saved("settings", "render_scale", render_scale)
 
 
 # -----------------------------------------------------------------------------
@@ -33,6 +54,8 @@ func _setup_input() -> void:
 	_bind("pick_2", [KEY_2], [], [])
 	_bind("pick_3", [KEY_3], [], [])
 	_bind("toggle_fps", [KEY_F], [], [])
+	_bind("fullscreen", [KEY_F11], [], [])
+	_bind("render_scale", [KEY_F9], [], [])
 
 
 func _bind(action: String, keys: Array, buttons: Array, axes: Array) -> void:

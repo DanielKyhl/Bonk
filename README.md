@@ -23,6 +23,8 @@ A fast, movement-first survivor game built in Godot 4. You play the Crusader and
 | 1, 2, 3 | D-pad + A | Pick a level-up card |
 | Esc | Start | Pause |
 | F |  | Toggle the FPS counter |
+| F9 |  | Lower the 3D render resolution (100% / 85% / 70%) if the game stutters |
+| F11 |  | Fullscreen |
 
 ## Tricks
 
