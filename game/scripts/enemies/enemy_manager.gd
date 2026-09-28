@@ -29,7 +29,10 @@ var types: Array[Dictionary] = [
 	{"name": "Ghoul", "sprite": "ghoul", "attack": "slash", "radius": 0.45, "scale": 1.0, "speed": 9.6, "hp": 12.0, "dmg": 6.0, "xp": 1, "anim_speed": 8.0},
 	{"name": "Skeleton Warrior", "sprite": "skeleton_warrior", "attack": "slash", "radius": 0.95, "scale": 1.5, "speed": 4.2, "hp": 150.0, "dmg": 18.0, "xp": 6, "anim_speed": 4.2},
 	{"name": "Skeleton Mage", "sprite": "skeleton_mage", "attack": "spellcast", "radius": 0.5, "scale": 1.0, "speed": 4.6, "hp": 36.0, "dmg": 10.0, "xp": 3, "anim_speed": 4.6},
+	# The stage boss (see Boss); elite[i] == 2 marks it.
+	{"name": "Varnoth, the Lich King", "sprite": "lich", "attack": "spellcast", "radius": 1.6, "scale": 3.0, "speed": 5.5, "hp": 60000.0, "dmg": 35.0, "xp": 0, "anim_speed": 5.5},
 ]
+const BOSS := 4
 
 var terrain: Terrain
 var player: Player
@@ -100,6 +103,14 @@ func setup(t: Terrain, p: Player) -> void:
 # -----------------------------------------------------------------------------
 # Spawning and damage
 # -----------------------------------------------------------------------------
+## Index of the living boss, or -1.
+func boss_index() -> int:
+	for i in count:
+		if elite[i] == 2 and state[i] != DYING:
+			return i
+	return -1
+
+
 func spawn(t: int, x: float, z: float, hp_mult := 1.0, rise := true, is_elite := false) -> int:
 	if count >= MAX:
 		return -1
@@ -126,7 +137,7 @@ func spawn(t: int, x: float, z: float, hp_mult := 1.0, rise := true, is_elite :=
 	state[i] = RISING if rise else ALIVE
 	anim[i] = Anim.SPAWN if rise else Anim.RUN
 	typ[i] = t
-	elite[i] = 1 if is_elite else 0
+	elite[i] = 2 if t == BOSS else (1 if is_elite else 0)
 	return i
 
 
@@ -136,7 +147,7 @@ func damage(i: int, amount: float, push := Vector2.ZERO) -> bool:
 		return false
 	hp[i] -= amount
 	flash[i] = 1.0
-	var w := 0.5 / radius[i]
+	var w := 0.5 / radius[i] * (0.15 if elite[i] == 2 else 1.0)
 	kx[i] += push.x * w
 	kz[i] += push.y * w
 	if hp[i] <= 0.0:

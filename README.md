@@ -27,6 +27,12 @@ A dark-fantasy pixel-art survivor game with Megabonk-style movement, built in Go
 | F |  | Toggle the debug line (FPS, enemies, speed) |
 | F11 |  | Fullscreen |
 
+## A run
+
+- A stage lasts 10 minutes; the horde grows and toughens, elites come every minute, and at 10:00 the endless final swarm begins.
+- Explore for **chests** (gold, pricier each time; elites drop free golden ones) and **shrines**: stand in a prayer circle for a blessing, wake a cursed altar for elites and golden chests, or make an offering to greed.
+- Somewhere a red beam marks **the Lich King's altar**. You can summon him any time, but he takes a strong build to beat. Slay him and his altar becomes a portal: leave to win and unlock the next map, or stay and fight on (kills score double).
+
 ## Tricks
 
 - **Bunny hop**: jump the moment you land for +10% speed. Hold jump to auto-hop without the boost.

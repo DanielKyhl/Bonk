@@ -246,15 +246,19 @@ func show_pause() -> void:
 	v.add_child(_button("Quit game", func(): quit_requested.emit()))
 
 
-func show_death(title: String, rows: Array) -> void:
+func show_death(title: String, rows: Array, sub := "") -> void:
 	_clear()
 	_mode = "death"
 	_root.visible = true
 	_backdrop(0.7)
 	var v := _center_box(760)
-	var t := UIStyle.label(title, UIStyle.title_font(), 72, UIStyle.HP, 10)
+	var t := UIStyle.label(title, UIStyle.title_font(), 72, UIStyle.GOLD if title == "Victory" else UIStyle.HP, 10)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(t)
+	if sub != "":
+		var st := UIStyle.label(sub, UIStyle.ui_font("Bold"), 30, UIStyle.PARCH, 6)
+		st.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		v.add_child(st)
 	var grid := GridContainer.new()
 	grid.columns = 3
 	grid.add_theme_constant_override("h_separation", 40)

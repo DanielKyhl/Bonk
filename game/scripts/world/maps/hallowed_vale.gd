@@ -16,6 +16,7 @@ var _keep_clear: Array = []
 
 
 func _init() -> void:
+	id = "hallowed_vale"
 	title = "Hallowed Vale"
 	layout_seed = 1107
 	half_size = 320.0

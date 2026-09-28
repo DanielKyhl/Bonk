@@ -8,5 +8,6 @@ const ATLASES := {
 	"skeleton": {"cols": 9, "rows": 9, "anims": {"walk": [0, 9, 4], "slash": [4, 6, 4], "hurt": [8, 6, 1]}},
 	"ghoul": {"cols": 9, "rows": 9, "anims": {"walk": [0, 9, 4], "slash": [4, 6, 4], "hurt": [8, 6, 1]}},
 	"skeleton_warrior": {"cols": 9, "rows": 9, "anims": {"walk": [0, 9, 4], "slash": [4, 6, 4], "hurt": [8, 6, 1]}},
+	"lich": {"cols": 9, "rows": 9, "anims": {"walk": [0, 9, 4], "spellcast": [4, 7, 4], "hurt": [8, 6, 1]}},
 	"skeleton_mage": {"cols": 9, "rows": 9, "anims": {"walk": [0, 9, 4], "spellcast": [4, 7, 4], "hurt": [8, 6, 1]}},
 }

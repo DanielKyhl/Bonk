@@ -9,6 +9,7 @@ var director: Director
 var enemies: EnemyManager
 var chests: Chests
 var shrines: Shrines
+var boss: Boss
 var camera: FollowCamera
 var terrain: Terrain
 var map: MapDef
@@ -43,6 +44,8 @@ var _item_name: Label
 var _item_rarity: Label
 var _item_desc: Label
 var _item_t := 0.0
+var _boss_box: VBoxContainer
+var _boss_fill: Panel
 
 
 func setup(r: RunState, p: Player, d: Director, e: EnemyManager, stage: String) -> void:
@@ -156,6 +159,20 @@ func _build() -> void:
 	_items_row.add_theme_constant_override("separation", 4)
 	bl.add_child(_items_row)
 
+	# Boss health, under the clock.
+	_boss_box = VBoxContainer.new()
+	_boss_box.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_boss_box.position = Vector2(-320, 150)
+	_boss_box.custom_minimum_size = Vector2(640, 0)
+	_boss_box.visible = false
+	root.add_child(_boss_box)
+	var bn := UIStyle.label("Varnoth, the Lich King", UIStyle.title_font(), 48, UIStyle.PARCH, 8)
+	bn.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_boss_box.add_child(bn)
+	var bb := UIStyle.bar(640, 22, Color(0.6, 0.15, 0.7))
+	_boss_fill = bb[1]
+	_boss_box.add_child(bb[0])
+
 	# Interact prompt (chests, shrines) above the bottom edge.
 	_prompt = UIStyle.label("", UIStyle.ui_font("Bold"), 30, UIStyle.GOLD, 8)
 	_prompt.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
@@ -195,7 +212,7 @@ func _build() -> void:
 		mm.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 		mm.position = Vector2(-Minimap.SIZE - 20, 20)
 		root.add_child(mm)
-		mm.setup(terrain, map, player, camera, chests, shrines)
+		mm.setup(terrain, map, player, camera, chests, shrines, boss)
 
 	_fps = UIStyle.label("", UIStyle.ui_font("SemiBold"), 20, UIStyle.MUTED, 4)
 	_fps.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -261,13 +278,26 @@ func _process(delta: float) -> void:
 		_item_t -= delta
 		_item_card.modulate.a = clampf(_item_t * 2.0, 0.0, 1.0)
 	_update_prompt()
+	_update_boss()
 	_hurt_t = maxf(0.0, _hurt_t - delta)
 	var low := 0.18 + 0.08 * sin(run.time * 6.0) if run.hp < run.max_hp * 0.3 else 0.0
 	_hurt.color.a = maxf(_hurt_t * 1.1, low * 0.6)
 	_fps.text = ("%d FPS  ·  %d enemies  ·  %d km/h" % [Engine.get_frames_per_second(), enemies.count, int(round(player.speed() * Player.KMH))]) if _show_fps else ""
 
 
+func _update_boss() -> void:
+	var i := boss.boss_index() if boss else -1
+	_boss_box.visible = i >= 0
+	if i >= 0:
+		_boss_fill.size.x = 636.0 * clampf(enemies.hp[i] / enemies.max_hp[i], 0.0, 1.0)
+
+
 func _update_prompt() -> void:
+	if boss and boss.in_reach():
+		var summon := boss.state == Boss.WAITING
+		_prompt.text = "E   SUMMON THE LICH KING" if summon else "E   ENTER THE PORTAL AND LEAVE THE VALE"
+		_prompt.label_settings.font_color = UIStyle.HP if summon else UIStyle.XP
+		return
 	if shrines and shrines.praying() >= 0:
 		var k := shrines.praying()
 		_prompt.text = "PRAYING   %d%%" % int(shrines.charge[k] / Shrines.CHARGE_TIME * 100.0)

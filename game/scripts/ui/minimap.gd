@@ -14,14 +14,16 @@ var player: Player
 var camera: FollowCamera
 var chests: Chests
 var shrines: Shrines
+var boss: Boss
 var _rect: TextureRect
 var _mat: ShaderMaterial
 
 static var _tex_cache := {}
 
 
-func setup(t: Terrain, m: MapDef, p: Player, cam: FollowCamera, c: Chests, s: Shrines) -> void:
+func setup(t: Terrain, m: MapDef, p: Player, cam: FollowCamera, c: Chests, s: Shrines, b: Boss) -> void:
 	shrines = s
+	boss = b
 	terrain = t
 	map = m
 	player = p
@@ -99,6 +101,17 @@ func _draw_icons(c: Control) -> void:
 			var col: Color = Shrines.COLORS[shrines.kind[i]]
 			c.draw_rect(Rect2(at - Vector2(1, 5), Vector2(3, 11)), col)
 			c.draw_rect(Rect2(at - Vector2(5, 2), Vector2(11, 3)), col)
+	# The altar, once you've been near it; pinned to the rim when far.
+	if boss and boss.discovered and boss.state != Boss.GONE:
+		var s := _project(boss.altar)
+		if s.length() > 1.0:
+			s = s.normalized()
+		var at := mid + s * r
+		var col := Color(1.0, 0.2, 0.15) if boss.state != Boss.DEFEATED else Color(0.6, 0.9, 1.0)
+		c.draw_circle(at, 7.0, Color(0.05, 0.02, 0.03))
+		c.draw_circle(at, 5.0, col)
+		c.draw_rect(Rect2(at - Vector2(2, 2), Vector2(2, 2)), Color(0.05, 0.02, 0.03))
+		c.draw_rect(Rect2(at + Vector2(1, -2), Vector2(2, 2)), Color(0.05, 0.02, 0.03))
 	# The hero: an arrow pointing up (the way the camera looks).
 	c.draw_colored_polygon(PackedVector2Array([mid + Vector2(0, -8), mid + Vector2(6, 6), mid + Vector2(0, 3), mid + Vector2(-6, 6)]), Color(0.95, 0.9, 0.8))
 

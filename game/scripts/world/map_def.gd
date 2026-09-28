@@ -6,6 +6,7 @@ extends RefCounted
 ## Units are meters. The map spans -half_size..half_size on X and Z.
 ## +Z is south (toward the bottom of the screen).
 
+var id := ""
 var title := ""
 var half_size := 160.0
 ## The edges curve up into a quarter-pipe this wide and high, then sheer cliffs.

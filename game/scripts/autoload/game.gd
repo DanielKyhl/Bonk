@@ -8,6 +8,16 @@ var hero_id := "crusader"
 ## Seed for the random parts of a run (chest, shrine and boss placement).
 var run_seed := 0
 
+## The maps in order. Beating a map's boss and taking the portal unlocks the
+## next one; unlocked maps can be picked from the main menu.
+const MAPS := [
+	{"id": "hallowed_vale", "name": "Hallowed Vale", "script": "res://scripts/world/maps/hallowed_vale.gd"},
+	{"id": "frostfang_peaks", "name": "Frostfang Peaks", "script": ""},
+	{"id": "blightmire", "name": "Blightmire", "script": ""},
+	{"id": "ashen_forge", "name": "Ashen Forge", "script": ""},
+	{"id": "dragons_spine", "name": "Dragon's Spine", "script": ""},
+]
+
 var _save := ConfigFile.new()
 
 
@@ -70,6 +80,19 @@ func _bind(action: String, keys: Array, buttons: Array, axes: Array) -> void:
 # -----------------------------------------------------------------------------
 # Saved progress
 # -----------------------------------------------------------------------------
+func is_map_unlocked(id: String) -> bool:
+	return id == MAPS[0].id or get_saved("unlocks", id, false)
+
+
+## Unlocks the map after `id`; returns its name ("" if it was the last one).
+func unlock_next_map(id: String) -> String:
+	for k in MAPS.size() - 1:
+		if MAPS[k].id == id:
+			set_saved("unlocks", MAPS[k + 1].id, true)
+			return MAPS[k + 1].name
+	return ""
+
+
 func get_saved(section: String, key: String, default: Variant = null) -> Variant:
 	return _save.get_value(section, key, default)
 

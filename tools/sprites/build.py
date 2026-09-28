@@ -37,6 +37,12 @@ def grime(r, g, b):
     return (l * 0.86 + 14, l * 0.80 + 10, l * 0.66 + 6)
 
 
+def deathly(r, g, b):
+    """Bone bleached cold and blue, for the Lich."""
+    l = (r + g + b) / 3.0
+    return (l * 0.72 + 8, l * 0.8 + 14, l * 0.92 + 26)
+
+
 CHARACTERS = {
     "crusader": [
         {"path": "cape/solid/bg", "z": 5, "recolor": cloth("maroon")},
@@ -76,6 +82,16 @@ CHARACTERS = {
         {"path": "weapon/sword/longsword|longsword", "z": 140},
         {"path": "weapon/sword/longsword/universal_behind|longsword", "z": 9},
     ],
+    "lich": [
+        {"path": "cape/tattered/bg", "z": 5, "recolor": cloth("black")},
+        {"path": "weapon/polearm/scythe/universal_behind|scythe", "z": 9, "anims": {"spellcast": None}},
+        {"path": "body/bodies/skeleton", "z": 10, "fn": deathly},
+        {"path": "torso/clothes/robe/female|black", "z": 35},
+        {"path": "cape/tattered/fg", "z": 85, "recolor": cloth("black")},
+        {"path": "head/heads/skeleton/adult", "z": 100, "fn": deathly},
+        {"path": "hat/formal/crown/adult|crown_gold", "z": 130},
+        {"path": "weapon/polearm/scythe|scythe", "z": 140, "anims": {"spellcast": None}},
+    ],
     "skeleton_mage": [
         {"path": "cape/tattered/bg", "z": 5, "recolor": cloth("purple")},
         {"path": "body/bodies/skeleton", "z": 10, "fn": grime},
@@ -84,7 +100,7 @@ CHARACTERS = {
     ],
 }
 
-CHAR_ANIMS = {"skeleton_mage": CASTER_ANIMS}
+CHAR_ANIMS = {"skeleton_mage": CASTER_ANIMS, "lich": CASTER_ANIMS}
 
 
 def build(lpc, cid, layers):

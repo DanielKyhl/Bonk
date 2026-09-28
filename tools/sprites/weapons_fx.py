@@ -1,4 +1,7 @@
-"""Pixel sprites for weapon effects, 24px frames, 4 columns x 5 rows:
+"""Pixel sprites for weapon effects (weapons_fx.png) and boss projectiles
+(boss_fx.png: 0 death bolt, 1 soul orb), 24px frames, 4 columns.
+
+weapons_fx.png rows:
 
     0 holy orb (pulsing)      1 flail head (spinning spikes)
     2 javelin (points right)  3 throwing axe (points right)
@@ -53,17 +56,17 @@ class Frame:
                     self.set(x, y, INK)
 
 
-def orb(img):
+def orb(img, row=0, colors=((70, 130, 220, 255), (130, 200, 255, 255), (210, 240, 255, 255))):
     for f in range(4):
-        fr = Frame(img, f, 0)
+        fr = Frame(img, f, row)
         r = 5 + (1 if f in (1, 2) else 0)
-        fr.disc(11.5, 11.5, r + 1.5, (70, 130, 220, 255))
-        fr.disc(11.5, 11.5, r, (130, 200, 255, 255))
-        fr.disc(10.5, 10.5, r - 2, (210, 240, 255, 255))
+        fr.disc(11.5, 11.5, r + 1.5, colors[0])
+        fr.disc(11.5, 11.5, r, colors[1])
+        fr.disc(10.5, 10.5, r - 2, colors[2])
         fr.disc(9.5, 9.5, 1.2, (255, 255, 255, 255))
         # Sparkles orbiting the orb.
         a = f * math.pi / 2
-        fr.set(11.5 + math.cos(a) * 10, 11.5 + math.sin(a) * 10, (200, 235, 255, 255))
+        fr.set(11.5 + math.cos(a) * 10, 11.5 + math.sin(a) * 10, colors[2])
         fr.outline()
 
 
@@ -124,6 +127,20 @@ def smite(img):
             fr.outline()
 
 
+def death_bolt(img):
+    """A violet ball of soulfire with a flickering tail (points right)."""
+    for f in range(4):
+        fr = Frame(img, f, 0)
+        for k in range(5):
+            y = 11.5 + (k - 2) * 1.6
+            ln = 8 - abs(k - 2) * 2 + (f + k) % 3
+            fr.line(13 - ln, y, 13, y, (110, 30, 160, 255))
+        fr.disc(14.5, 11.5, 5.5, (140, 50, 200, 255))
+        fr.disc(15.0, 11.5, 3.8, (200, 130, 255, 255))
+        fr.disc(15.5, 11.0, 1.8, (250, 230, 255, 255))
+        fr.outline()
+
+
 def main():
     img = Image.new("RGBA", (4 * F, 5 * F))
     orb(img)
@@ -134,6 +151,10 @@ def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     img.save(OUT)
     print("saved", OUT)
+    boss = Image.new("RGBA", (4 * F, 2 * F))
+    death_bolt(boss)
+    orb(boss, 1, ((40, 120, 60, 255), (90, 220, 110, 255), (200, 255, 190, 255)))
+    boss.save(os.path.join(os.path.dirname(OUT), "boss_fx.png"))
 
 
 if __name__ == "__main__":

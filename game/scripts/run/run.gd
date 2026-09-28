@@ -17,6 +17,7 @@ var weapons: WeaponSystem
 var director: Director
 var chests: Chests
 var shrines: Shrines
+var boss: Boss
 var hud: Hud
 var menus: RunMenus
 var view: PixelView
@@ -97,7 +98,12 @@ func _ready() -> void:
 
 	hud = Hud.new()
 	add_child(hud)
+	boss = Boss.new()
+	world.add_child(boss)
+	boss.setup(map, terrain, props, run, player, enemies, fx, camera)
+
 	hud.chests = chests
+	hud.boss = boss
 	hud.shrines = shrines
 	hud.camera = camera
 	hud.terrain = terrain
@@ -141,6 +147,21 @@ func _ready() -> void:
 			player.place(Vector2(float(xz[0]), float(xz[1])))
 			camera.snap()
 			camera._process(0.0)
+	if "--boss" in args:
+		player.place(Vector2(boss.altar.x + 2.0, boss.altar.z + 14.0))
+		camera.snap()
+		camera._process(0.0)
+		director.paused = true
+		get_tree().create_timer(0.3).timeout.connect(boss._summon)
+	if "--victory" in args:
+		# Test the win flow: summon, slay, then step through the portal.
+		player.place(Vector2(boss.altar.x + 2.0, boss.altar.z + 2.0))
+		camera.snap()
+		camera._process(0.0)
+		director.paused = true
+		boss._summon()
+		get_tree().create_timer(0.8).timeout.connect(func(): enemies.damage(enemies.boss_index(), 1e9))
+		get_tree().create_timer(2.0).timeout.connect(func(): boss.portal_entered.emit())
 	if "--shrine" in args:
 		var si := shrines.kind.find(Shrines.PRAYER)
 		player.place(Vector2(shrines.pos[si].x + 1.0, shrines.pos[si].z))
@@ -202,6 +223,8 @@ func _connect_signals() -> void:
 	run.blocked.connect(func(): fx.ring(player.position, 2.2, Color(1.0, 0.85, 0.45), 0.35, 0.12); fx.text(player.position, "BLOCKED", UIStyle.GOLD, 20))
 	director.banner.connect(hud.banner)
 	shrines.prayed.connect(_on_prayed)
+	boss.summoned.connect(func(): hud.banner("Varnoth, the Lich King", "The dead king rises"))
+	boss.portal_entered.connect(_on_victory)
 	shrines.cursed.connect(func(): director.summon_elites(3); hud.banner("The altar wakes", "Slay its champions for golden chests"); camera.add_shake(5.0))
 	shrines.greed_taken.connect(func(): director.greed += 1; hud.banner("Greed", "+25% gold, but the dead come faster"))
 	menus.picked.connect(_on_pick)
@@ -268,6 +291,10 @@ func _on_hop(_chain: int) -> void:
 
 func _on_kill(type: int, pos: Vector3, xp: int, is_elite: bool) -> void:
 	run.kills += 1
+	run.score += 25 if is_elite else (2 if run.boss_killed else 1)
+	if type == EnemyManager.BOSS:
+		_on_boss_down(pos)
+		return
 	fx.bone_burst(pos, type == 2 or is_elite)
 	if is_elite:
 		run.elites += 1
@@ -286,8 +313,37 @@ func _on_kill(type: int, pos: Vector3, xp: int, is_elite: bool) -> void:
 		pickups.drop(Pickups.HEAL, pos, 20.0)
 
 
+func _on_boss_down(pos: Vector3) -> void:
+	run.boss_killed = true
+	boss.on_defeated(pos)
+	fx.bone_burst(pos, true)
+	fx.ring(pos, 16.0, Color(0.6, 0.9, 1.0), 0.9, 0.2)
+	camera.add_shake(10.0)
+	chests.spawn_golden(pos + Vector3(-3, 0, 2), 3)
+	chests.spawn_golden(pos + Vector3(3, 0, 2), 3)
+	chests.spawn_golden(pos + Vector3(0, 0, -3), 2)
+	for k in 12:
+		pickups.drop(Pickups.XP_BIG, pos, 40.0)
+		pickups.drop(Pickups.GOLD, pos, 10)
+	hud.banner("The Lich King has fallen", "Take the portal at his altar to leave, or stay and fight on for glory")
+
+
+func _on_victory() -> void:
+	player.input_locked = true
+	director.paused = true
+	var next := Game.unlock_next_map(map.id)
+	get_tree().paused = true
+	hud.clear_banner()
+	var t := int(run.time)
+	var rows := [
+		["Score", run.final_score()], ["Time", "%d:%02d" % [t / 60, t % 60]], ["Kills", run.kills],
+		["Level", run.level], ["Elites slain", run.elites], ["Items", run.items.size()],
+	]
+	menus.show_death("Victory", rows, "The Vale is cleansed." + ("  %s is now open." % next if next != "" else ""))
+
+
 func _on_player_hit(dmg: float, _from: Vector3, enemy: int) -> void:
-	if run.stats.thorns > 0.0 and enemies.is_alive(enemy):
+	if run.stats.thorns > 0.0 and enemy >= 0 and enemies.is_alive(enemy):
 		enemies.damage(enemy, run.stats.thorns * run.stats.damage)
 	if run.take_damage(dmg):
 		hud.hurt()
@@ -317,7 +373,7 @@ func _on_death() -> void:
 	get_tree().paused = true
 	var t := int(run.time)
 	menus.show_death("You have fallen", [
-		["Survived", "%d:%02d" % [t / 60, t % 60]], ["Kills", run.kills], ["Level", run.level],
+		["Score", run.final_score()], ["Survived", "%d:%02d" % [t / 60, t % 60]], ["Kills", run.kills], ["Level", run.level],
 		["Elites slain", run.elites], ["Gold", run.gold],
 	])
 

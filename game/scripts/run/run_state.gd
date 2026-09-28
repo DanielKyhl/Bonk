@@ -38,6 +38,10 @@ var tomes := {}     ## id -> level
 var items := {}     ## id -> stacks, in pickup order
 var revives_used := 0
 var blessings := {}  ## stat -> total from prayer shrines
+var boss_killed := false
+## Kills and elites add score as you play (doubled after the boss falls);
+## final_score() adds time and level.
+var score := 0
 var stats := {}
 
 
@@ -132,6 +136,10 @@ func take_damage(amount: float) -> bool:
 		return true
 	hp_changed.emit(hp, max_hp)
 	return true
+
+
+func final_score() -> int:
+	return score + int(time) * 2 + level * 20 + (5000 if boss_killed else 0)
 
 
 func add_blessing(b: Dictionary) -> void:
