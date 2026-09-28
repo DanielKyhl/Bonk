@@ -39,6 +39,7 @@ var items := {}     ## id -> stacks, in pickup order
 var revives_used := 0
 var blessings := {}  ## stat -> total from prayer shrines
 var boss_killed := false
+var boss_time := 0.0
 ## Kills and elites add score as you play (doubled after the boss falls);
 ## final_score() adds time and level.
 var score := 0

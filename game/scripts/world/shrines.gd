@@ -32,6 +32,7 @@ var _discs: Array[ShaderMaterial] = []
 var _models: Array[Node3D] = []
 var _near := -1
 var _inside := -1
+var prayers := 0
 
 
 func setup(m: MapDef, t: Terrain, props: Props, r: RunState, p: Player, f: Fx, avoid: Array[Vector3]) -> void:
@@ -143,6 +144,7 @@ func _spend(i: int) -> void:
 
 func _finish_prayer(i: int) -> void:
 	_spend(i)
+	prayers += 1
 	prayed.emit(Defs.roll_blessings(run.stats.luck))
 
 

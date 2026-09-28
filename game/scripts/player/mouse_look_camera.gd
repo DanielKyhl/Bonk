@@ -25,6 +25,7 @@ var _target_yaw := 0.0
 
 func _ready() -> void:
 	super()
+	mouse_sensitivity = Game.mouse_sensitivity
 	# Runs while paused too, to free the cursor for menus.
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_target_yaw = yaw

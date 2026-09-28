@@ -16,6 +16,22 @@ const HEROES := {
 	},
 }
 
+## Every hero in menu order, with what unlocks them. `stat` is a saved
+## progress value (see Game.record_run) that must reach `need`. Heroes not in
+## HEROES yet are shown as coming soon.
+const ROSTER := [
+	{"id": "crusader", "name": "Crusader", "unlock": ""},
+	{"id": "dragonborn", "name": "Dragonborn", "unlock": "Slay the Lich King", "stat": "boss_kills", "need": 1},
+	{"id": "stormcaller", "name": "Stormcaller", "unlock": "Reach level 30 in one run", "stat": "best_level", "need": 30},
+	{"id": "werewolf", "name": "Werewolf", "unlock": "Slay 1,500 foes in one run", "stat": "best_kills", "need": 1500},
+	{"id": "chainwarden", "name": "Chainwarden", "unlock": "Open 12 chests in one run", "stat": "best_chests", "need": 12},
+	{"id": "frost_witch", "name": "Frost Witch", "unlock": "Survive 3 minutes of the Final Swarm", "stat": "best_swarm", "need": 180},
+	{"id": "rune_golem", "name": "Rune Golem", "unlock": "Pray at 6 shrines in one run", "stat": "best_prayers", "need": 6},
+	{"id": "wraith_knight", "name": "Wraith Knight", "unlock": "Slay 100 elites in all", "stat": "total_elites", "need": 100},
+	{"id": "necromancer", "name": "Necromancer", "unlock": "Slay 25,000 foes in all", "stat": "total_kills", "need": 25000},
+	{"id": "chronomancer", "name": "Chronomancer", "unlock": "Slay the Lich King before 8:00", "stat": "fast_boss", "need": 1},
+]
+
 ## Weapons. Values are for level 1; `per_level` adds per level after 1.
 ## kind picks the behavior in WeaponSystem.
 const WEAPONS := {

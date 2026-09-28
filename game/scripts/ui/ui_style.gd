@@ -120,6 +120,28 @@ static func bar(width: float, height: float, fill_color: Color, bg := Color(0.04
 	return [root, fill]
 
 
+## A pixel-frame button with the chunky font.
+static func button(text: String, cb: Callable, width := 300.0) -> Button:
+	var b := Button.new()
+	b.text = text
+	b.custom_minimum_size = Vector2(width, 58)
+	b.add_theme_font_override("font", ui_font("Bold"))
+	b.add_theme_font_size_override("font_size", 30)
+	b.add_theme_color_override("font_color", PARCH)
+	b.add_theme_color_override("font_focus_color", INK)
+	b.add_theme_color_override("font_hover_color", INK)
+	b.add_theme_color_override("font_pressed_color", INK)
+	b.add_theme_color_override("font_disabled_color", MUTED)
+	b.add_theme_stylebox_override("normal", frame("button"))
+	b.add_theme_stylebox_override("disabled", frame("slot"))
+	var hi := frame("button_hot")
+	b.add_theme_stylebox_override("hover", hi)
+	b.add_theme_stylebox_override("focus", hi)
+	b.add_theme_stylebox_override("pressed", hi)
+	b.pressed.connect(cb)
+	return b
+
+
 static func icon(id: String) -> Texture2D:
 	var path := "res://assets/icons/%s.png" % id
 	return load(path) if ResourceLoader.exists(path) else null

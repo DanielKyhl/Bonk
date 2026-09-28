@@ -2,7 +2,7 @@ extends Node3D
 ## One stage of a run: builds the map, spawns the hero and wires every system
 ## together (enemies, weapons, pickups, director, HUD, menus).
 
-const MAP_SCRIPT := "res://scripts/world/maps/hallowed_vale.gd"
+const MENU_SCENE := "res://scenes/menu.tscn"
 
 var map: MapDef
 var terrain: Terrain
@@ -30,7 +30,7 @@ func _ready() -> void:
 	var args := OS.get_cmdline_user_args()
 	_autopilot = "--autopilot" in args
 	var t0 := Time.get_ticks_msec()
-	map = load(MAP_SCRIPT).new()
+	map = load(Game.map_info(Game.map_id).script).new()
 	view = PixelView.new()
 	add_child(view)
 	world = view.world
@@ -231,6 +231,7 @@ func _connect_signals() -> void:
 	menus.resume_requested.connect(func(): get_tree().paused = false)
 	menus.restart_requested.connect(_restart)
 	menus.quit_requested.connect(func(): get_tree().quit())
+	menus.menu_requested.connect(func(): get_tree().paused = false; Input.mouse_mode = Input.MOUSE_MODE_VISIBLE; get_tree().change_scene_to_file(MENU_SCENE))
 
 
 func _process(delta: float) -> void:
@@ -315,6 +316,7 @@ func _on_kill(type: int, pos: Vector3, xp: int, is_elite: bool) -> void:
 
 func _on_boss_down(pos: Vector3) -> void:
 	run.boss_killed = true
+	run.boss_time = run.time
 	boss.on_defeated(pos)
 	fx.bone_burst(pos, true)
 	fx.ring(pos, 16.0, Color(0.6, 0.9, 1.0), 0.9, 0.2)
@@ -339,7 +341,16 @@ func _on_victory() -> void:
 		["Score", run.final_score()], ["Time", "%d:%02d" % [t / 60, t % 60]], ["Kills", run.kills],
 		["Level", run.level], ["Elites slain", run.elites], ["Items", run.items.size()],
 	]
-	menus.show_death("Victory", rows, "The Vale is cleansed." + ("  %s is now open." % next if next != "" else ""))
+	var sub := "The Vale is cleansed." + ("  %s is now open." % next if next != "" else "")
+	var heroes := _record()
+	if not heroes.is_empty():
+		sub += "\nNew hero: " + ", ".join(heroes)
+	menus.show_death("Victory", rows, sub)
+
+
+## Saves this run's progress; returns heroes it unlocked.
+func _record() -> Array[String]:
+	return Game.record_run(run, maxf(0.0, run.time - Director.STAGE_TIME), chests.opened_count, shrines.prayers, run.boss_time)
 
 
 func _on_player_hit(dmg: float, _from: Vector3, enemy: int) -> void:
@@ -372,10 +383,11 @@ func _on_death() -> void:
 	await get_tree().create_timer(0.8).timeout
 	get_tree().paused = true
 	var t := int(run.time)
+	var heroes := _record()
 	menus.show_death("You have fallen", [
 		["Score", run.final_score()], ["Survived", "%d:%02d" % [t / 60, t % 60]], ["Kills", run.kills], ["Level", run.level],
 		["Elites slain", run.elites], ["Gold", run.gold],
-	])
+	], "New hero: " + ", ".join(heroes) if not heroes.is_empty() else "")
 
 
 func _restart() -> void:

@@ -21,6 +21,7 @@ var run: RunState
 var player: Player
 var fx: Fx
 var bought := 0
+var opened_count := 0
 
 ## Per chest: position, golden?, minimum rarity, opened?, visual.
 var pos: Array[Vector3] = []
@@ -134,6 +135,7 @@ func _open(i: int) -> void:
 		run.spend_gold(c)
 		bought += 1
 	is_open[i] = true
+	opened_count += 1
 	_nodes[i].visible = false
 	var item := Defs.roll_item(run.stats.luck, min_rarity[i])
 	var col: Color = Defs.RARITIES[Defs.ITEMS[item].rarity].color

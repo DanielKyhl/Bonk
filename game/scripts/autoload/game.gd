@@ -3,8 +3,14 @@ extends Node
 
 const SAVE_PATH := "user://save.cfg"
 
-## Selected hero id for the next run.
+## Selected hero and map for the next run.
 var hero_id := "crusader"
+var map_id := "hallowed_vale"
+## Settings (saved).
+var mouse_sensitivity := 0.25
+var master_volume := 0.8
+var music_volume := 0.7
+var sfx_volume := 0.8
 ## Seed for the random parts of a run (chest, shrine and boss placement).
 var run_seed := 0
 
@@ -26,6 +32,15 @@ func _ready() -> void:
 	_setup_input()
 	_save.load(SAVE_PATH)
 	run_seed = randi()
+	mouse_sensitivity = get_saved("settings", "mouse_sensitivity", 0.25)
+	master_volume = get_saved("settings", "master_volume", 0.8)
+	music_volume = get_saved("settings", "music_volume", 0.7)
+	sfx_volume = get_saved("settings", "sfx_volume", 0.8)
+	hero_id = get_saved("settings", "hero", "crusader")
+	map_id = get_saved("settings", "map", "hallowed_vale")
+	if not is_map_unlocked(map_id):
+		map_id = MAPS[0].id
+	_setup_audio()
 	if get_saved("settings", "fullscreen", false):
 		get_window().mode = Window.MODE_FULLSCREEN
 
@@ -80,6 +95,71 @@ func _bind(action: String, keys: Array, buttons: Array, axes: Array) -> void:
 # -----------------------------------------------------------------------------
 # Saved progress
 # -----------------------------------------------------------------------------
+func map_info(id: String) -> Dictionary:
+	for m in MAPS:
+		if m.id == id:
+			return m
+	return MAPS[0]
+
+
+func progress(stat: String) -> float:
+	return get_saved("progress", stat, 0.0)
+
+
+func is_hero_unlocked(id: String) -> bool:
+	for h in Defs.ROSTER:
+		if h.id == id:
+			return h.unlock == "" or progress(h.stat) >= h.need
+	return false
+
+
+## Folds a finished run into the saved progress (bests and totals). Returns
+## the names of heroes this run unlocked.
+func record_run(r: RunState, swarm_time: float, chests_opened: int, prayers: int, boss_time: float) -> Array[String]:
+	var before := {}
+	for h in Defs.ROSTER:
+		before[h.id] = is_hero_unlocked(h.id)
+	_best("best_level", r.level)
+	_best("best_kills", r.kills)
+	_best("best_chests", chests_opened)
+	_best("best_swarm", swarm_time)
+	_best("best_prayers", prayers)
+	set_saved("progress", "total_elites", progress("total_elites") + r.elites)
+	set_saved("progress", "total_kills", progress("total_kills") + r.kills)
+	if r.boss_killed:
+		set_saved("progress", "boss_kills", progress("boss_kills") + 1)
+		if boss_time < 480.0:
+			set_saved("progress", "fast_boss", 1.0)
+	_best("best_score", r.final_score())
+	var out: Array[String] = []
+	for h in Defs.ROSTER:
+		if not before[h.id] and is_hero_unlocked(h.id):
+			out.append(h.name)
+	return out
+
+
+func _best(stat: String, v: float) -> void:
+	if v > progress(stat):
+		set_saved("progress", stat, v)
+
+
+## Master plus Music and SFX buses; the settings sliders drive their volumes.
+func _setup_audio() -> void:
+	for bus in ["Music", "SFX"]:
+		if AudioServer.get_bus_index(bus) < 0:
+			AudioServer.add_bus()
+			var i := AudioServer.bus_count - 1
+			AudioServer.set_bus_name(i, bus)
+			AudioServer.set_bus_send(i, "Master")
+	apply_volumes()
+
+
+func apply_volumes() -> void:
+	AudioServer.set_bus_volume_db(0, linear_to_db(maxf(master_volume, 0.0001)))
+	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Music"), linear_to_db(maxf(music_volume, 0.0001)))
+	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("SFX"), linear_to_db(maxf(sfx_volume, 0.0001)))
+
+
 func is_map_unlocked(id: String) -> bool:
 	return id == MAPS[0].id or get_saved("unlocks", id, false)
 

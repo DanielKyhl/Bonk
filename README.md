@@ -29,6 +29,8 @@ A dark-fantasy pixel-art survivor game with Megabonk-style movement, built in Go
 
 ## A run
 
+Pick a hero and a map in the main menu (heroes unlock by reaching goals shown on their locked cards; maps unlock by beating the previous map's boss).
+
 - A stage lasts 10 minutes; the horde grows and toughens, elites come every minute, and at 10:00 the endless final swarm begins.
 - Explore for **chests** (gold, pricier each time; elites drop free golden ones) and **shrines**: stand in a prayer circle for a blessing, wake a cursed altar for elites and golden chests, or make an offering to greed.
 - Somewhere a red beam marks **the Lich King's altar**. You can summon him any time, but he takes a strong build to beat. Slay him and his altar becomes a portal: leave to win and unlock the next map, or stay and fight on (kills score double).
@@ -68,7 +70,7 @@ The *Build game* workflow can also be run by hand from the Actions tab; the zips
 | `scripts/enemies/` | Enemy manager (flat arrays, drawn as sprite MultiMeshes) |
 | `scripts/combat/` | Weapons and pickups |
 | `scripts/run/` | Run controller, run state, spawn director |
-| `scripts/ui/` | HUD and menus |
+| `scripts/ui/` | Main menu, HUD, in-run menus and minimap |
 | `scripts/render/` | Pixel view (low-res render and upscale), sprite atlases and batches |
 | `tools/map_preview.gd` | Renders a top-down hillshade of a map (`godot --headless --path game --script res://tools/map_preview.gd -- out.png`) |
 | `tests/` | Headless movement tests on their own test map: `godot --headless --path game res://tests/movement_test.tscn` |

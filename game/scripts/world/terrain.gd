@@ -48,32 +48,80 @@ var _chunk_data: Array = []          ## Mesh arrays per chunk from worker thread
 var _tints := PackedColorArray()     ## Base ground color (patches + region tints) every TINT_CELL meters.
 var _tn := 0
 static var _cache := {}              ## title|seed -> built grids and meshes
+static var _cache_lock := Mutex.new()
 
 
 func setup(m: MapDef) -> void:
+	_init_map(m)
+	# The layout never changes, so a second run on the same map reuses what
+	# the first built (or what prebuild() made while the menu was open).
+	var key := cache_key(m)
+	_cache_lock.lock()
+	var c: Dictionary = _cache.get(key, {})
+	_cache_lock.unlock()
+	if c.is_empty():
+		c = _compute()
+		_cache_lock.lock()
+		_cache[key] = c
+		_cache_lock.unlock()
+	_n = c.n
+	_base = c.base
+	_full = c.full
+	_path = c.path
+	_tints = c.tints
+	_tn = int(2.0 * half / TINT_CELL) + 1
+	if not c.has("meshes"):
+		var meshes: Array[ArrayMesh] = []
+		for arrays in c.arrays:
+			var mesh := ArrayMesh.new()
+			mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+			meshes.append(mesh)
+		c.meshes = meshes
+		c.erase("arrays")
+	_add_chunks(c.meshes)
+
+
+static func cache_key(m: MapDef) -> String:
+	return "%s|%d" % [m.title, m.layout_seed]
+
+
+## Builds a map's grids and mesh data ahead of time (safe to call from a
+## thread; meshes are made later on the main thread by setup()).
+static func prebuild(m: MapDef) -> void:
+	var key := cache_key(m)
+	_cache_lock.lock()
+	var done := _cache.has(key)
+	_cache_lock.unlock()
+	if done:
+		return
+	var t := Terrain.new()
+	t._init_map(m)
+	var c := t._compute()
+	t.free()
+	_cache_lock.lock()
+	if not _cache.has(key):
+		_cache[key] = c
+	_cache_lock.unlock()
+
+
+func _init_map(m: MapDef) -> void:
 	map = m
 	half = m.half_size
 	_rim_band = m.rim_band
 	_rim_h = m.rim_height
 	_build_features()
-	# The layout never changes, so a second run on the same map reuses the
-	# grids and meshes built the first time.
-	var key := "%s|%d" % [m.title, m.layout_seed]
-	if _cache.has(key):
-		var c: Dictionary = _cache[key]
-		_n = c.n
-		_base = c.base
-		_full = c.full
-		_path = c.path
-		_tints = c.tints
-		_tn = int(2.0 * half / TINT_CELL) + 1
-		_add_chunks(c.meshes)
-		return
+
+
+func _compute() -> Dictionary:
 	_build_tints()
 	_build_grids()
-	var meshes := _build_meshes()
-	_add_chunks(meshes)
-	_cache[key] = {"n": _n, "base": _base, "full": _full, "path": _path, "tints": _tints, "meshes": meshes}
+	var chunks := int(ceil(float(_n - 1) / CHUNK))
+	_chunk_data.resize(chunks * chunks)
+	var task := WorkerThreadPool.add_group_task(_chunk_arrays.bind(chunks), chunks * chunks)
+	WorkerThreadPool.wait_for_group_task_completion(task)
+	var arrays := _chunk_data.duplicate()
+	_chunk_data.clear()
+	return {"n": _n, "base": _base, "full": _full, "path": _path, "tints": _tints, "arrays": arrays}
 
 
 # -----------------------------------------------------------------------------
@@ -553,21 +601,6 @@ func _stamp_segment(a: Vector2, b: Vector2, inner: float, outer: float) -> void:
 			var m := 1.0 - smoothstep(inner, outer, d)
 			var o := iz * _n + ix
 			_path[o] = maxf(_path[o], m)
-
-
-func _build_meshes() -> Array:
-	var chunks := int(ceil(float(_n - 1) / CHUNK))
-	# Vertex data per chunk on worker threads; meshes are made here.
-	_chunk_data.resize(chunks * chunks)
-	var task := WorkerThreadPool.add_group_task(_chunk_arrays.bind(chunks), chunks * chunks)
-	WorkerThreadPool.wait_for_group_task_completion(task)
-	var meshes: Array[ArrayMesh] = []
-	for k in chunks * chunks:
-		var mesh := ArrayMesh.new()
-		mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, _chunk_data[k])
-		meshes.append(mesh)
-	_chunk_data.clear()
-	return meshes
 
 
 func _add_chunks(meshes: Array) -> void:

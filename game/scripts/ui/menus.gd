@@ -7,6 +7,7 @@ signal picked(choice: Dictionary)
 signal resume_requested
 signal restart_requested
 signal quit_requested
+signal menu_requested
 
 var run: RunState
 var _root: Control
@@ -243,6 +244,7 @@ func show_pause() -> void:
 	v.add_child(t)
 	v.add_child(_button("Resume", func(): _close(); resume_requested.emit()))
 	v.add_child(_button("Restart run", func(): _close(); restart_requested.emit()))
+	v.add_child(_button("Main menu", func(): menu_requested.emit()))
 	v.add_child(_button("Quit game", func(): quit_requested.emit()))
 
 
@@ -271,27 +273,15 @@ func show_death(title: String, rows: Array, sub := "") -> void:
 		cell.add_child(UIStyle.label(str(r[0]).to_upper(), UIStyle.ui_font("SemiBold"), 20, UIStyle.MUTED, 0))
 		cell.add_child(UIStyle.label(str(r[1]), UIStyle.ui_font("ExtraBold"), 40, UIStyle.PARCH, 0))
 		grid.add_child(cell)
-	var bc := CenterContainer.new()
+	var bc := HBoxContainer.new()
+	bc.alignment = BoxContainer.ALIGNMENT_CENTER
+	bc.add_theme_constant_override("separation", 20)
 	v.add_child(bc)
 	var b := _button("Run again", func(): _close(); restart_requested.emit())
 	bc.add_child(b)
+	bc.add_child(_button("Main menu", func(): menu_requested.emit()))
 	b.call_deferred("grab_focus")
 
 
 func _button(text: String, cb: Callable) -> Button:
-	var b := Button.new()
-	b.text = text
-	b.custom_minimum_size = Vector2(300, 58)
-	b.add_theme_font_override("font", UIStyle.ui_font("Bold"))
-	b.add_theme_font_size_override("font_size", 30)
-	b.add_theme_color_override("font_color", UIStyle.PARCH)
-	b.add_theme_color_override("font_focus_color", UIStyle.INK)
-	b.add_theme_color_override("font_hover_color", UIStyle.INK)
-	b.add_theme_color_override("font_pressed_color", UIStyle.INK)
-	b.add_theme_stylebox_override("normal", UIStyle.frame("button"))
-	var hi := UIStyle.frame("button_hot")
-	b.add_theme_stylebox_override("hover", hi)
-	b.add_theme_stylebox_override("focus", hi)
-	b.add_theme_stylebox_override("pressed", hi)
-	b.pressed.connect(cb)
-	return b
+	return UIStyle.button(text, cb)
