@@ -45,11 +45,11 @@ var spawn := Vector2.ZERO
 ## speed in m/s, radius in m; scale is the sprite's pixel scale; anim_speed
 ## is the speed at which the walk plays at its normal rate.
 var enemy_types: Array[Dictionary] = [
-	{"name": "Skeleton", "sprite": "skeleton", "attack": "slash", "radius": 0.5, "scale": 1.0, "speed": 6.2, "hp": 20.0, "dmg": 8.0, "xp": 1, "anim_speed": 6.2},
-	{"name": "Ghoul", "sprite": "ghoul", "attack": "slash", "radius": 0.45, "scale": 1.0, "speed": 9.6, "hp": 12.0, "dmg": 6.0, "xp": 1, "anim_speed": 8.0},
-	{"name": "Skeleton Warrior", "sprite": "skeleton_warrior", "attack": "slash", "radius": 0.95, "scale": 1.5, "speed": 4.2, "hp": 150.0, "dmg": 18.0, "xp": 6, "anim_speed": 4.2},
-	{"name": "Skeleton Mage", "sprite": "skeleton_mage", "attack": "spellcast", "radius": 0.5, "scale": 1.0, "speed": 4.6, "hp": 36.0, "dmg": 10.0, "xp": 3, "anim_speed": 4.6},
-	{"name": "Varnoth, the Lich King", "sprite": "lich", "attack": "spellcast", "radius": 1.6, "scale": 3.0, "speed": 5.5, "hp": 60000.0, "dmg": 35.0, "xp": 0, "anim_speed": 5.5},
+	{"name": "Skeleton", "sprite": "skeleton", "attack": "slash", "radius": 0.5, "scale": 1.0, "speed": 5.0, "hp": 20.0, "dmg": 8.0, "xp": 1, "anim_speed": 6.2},
+	{"name": "Ghoul", "sprite": "ghoul", "attack": "slash", "radius": 0.45, "scale": 1.0, "speed": 7.7, "hp": 12.0, "dmg": 6.0, "xp": 1, "anim_speed": 8.0},
+	{"name": "Skeleton Warrior", "sprite": "skeleton_warrior", "attack": "slash", "radius": 0.95, "scale": 1.5, "speed": 3.4, "hp": 150.0, "dmg": 18.0, "xp": 6, "anim_speed": 4.2},
+	{"name": "Skeleton Mage", "sprite": "skeleton_mage", "attack": "spellcast", "radius": 0.5, "scale": 1.0, "speed": 3.7, "hp": 36.0, "dmg": 10.0, "xp": 3, "anim_speed": 4.6},
+	{"name": "Varnoth, the Lich King", "sprite": "lich", "attack": "spellcast", "radius": 1.6, "scale": 3.0, "speed": 4.4, "hp": 60000.0, "dmg": 35.0, "xp": 0, "anim_speed": 5.5},
 ]
 ## The boss: banner lines, colors, and which boss_fx rows its shots use.
 var boss := {

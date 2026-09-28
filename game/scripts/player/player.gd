@@ -41,7 +41,7 @@ const MAX_SPEED := 91.7
 const KMH := 3.6
 
 # --- Stats (upgrades change these) ------------------------------------------
-var run_speed := 9.5
+var run_speed := 7.6
 var jump_vel := 26.7
 var air_jumps := 0
 ## Bunny hops start modest; Tomes of Agility raise both (see run.gd).

@@ -36,11 +36,11 @@ func _init() -> void:
 	prop_grade = Color(0.84, 0.92, 1.06)
 
 	enemy_types = [
-		{"name": "Draugr", "sprite": "draugr", "attack": "slash", "radius": 0.5, "scale": 1.0, "speed": 6.4, "hp": 30.0, "dmg": 10.0, "xp": 1, "anim_speed": 6.4},
-		{"name": "Ice Wraith", "sprite": "ice_wraith", "attack": "slash", "radius": 0.45, "scale": 1.0, "speed": 10.2, "hp": 16.0, "dmg": 8.0, "xp": 1, "anim_speed": 8.5},
-		{"name": "Draugr Warrior", "sprite": "draugr_warrior", "attack": "slash", "radius": 0.95, "scale": 1.5, "speed": 4.4, "hp": 200.0, "dmg": 22.0, "xp": 7, "anim_speed": 4.4},
-		{"name": "Frost Mage", "sprite": "frost_mage", "attack": "spellcast", "radius": 0.5, "scale": 1.0, "speed": 4.8, "hp": 48.0, "dmg": 12.0, "xp": 3, "anim_speed": 4.8},
-		{"name": "Skarn, the Draugr King", "sprite": "draugr_king", "attack": "spellcast", "radius": 1.6, "scale": 3.0, "speed": 5.8, "hp": 60000.0, "dmg": 40.0, "xp": 0, "anim_speed": 5.8},
+		{"name": "Draugr", "sprite": "draugr", "attack": "slash", "radius": 0.5, "scale": 1.0, "speed": 5.1, "hp": 30.0, "dmg": 10.0, "xp": 1, "anim_speed": 6.4},
+		{"name": "Ice Wraith", "sprite": "ice_wraith", "attack": "slash", "radius": 0.45, "scale": 1.0, "speed": 8.2, "hp": 16.0, "dmg": 8.0, "xp": 1, "anim_speed": 8.5},
+		{"name": "Draugr Warrior", "sprite": "draugr_warrior", "attack": "slash", "radius": 0.95, "scale": 1.5, "speed": 3.5, "hp": 200.0, "dmg": 22.0, "xp": 7, "anim_speed": 4.4},
+		{"name": "Frost Mage", "sprite": "frost_mage", "attack": "spellcast", "radius": 0.5, "scale": 1.0, "speed": 3.8, "hp": 48.0, "dmg": 12.0, "xp": 3, "anim_speed": 4.8},
+		{"name": "Skarn, the Draugr King", "sprite": "draugr_king", "attack": "spellcast", "radius": 1.6, "scale": 3.0, "speed": 4.6, "hp": 60000.0, "dmg": 40.0, "xp": 0, "anim_speed": 5.8},
 	]
 	boss = {
 		"name": "Skarn, the Draugr King", "rises": "The frozen king wakes", "falls": "The Draugr King is shattered",
