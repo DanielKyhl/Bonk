@@ -1,0 +1,85 @@
+name: Build game
+
+# Push a tag like v0.1.0 to build Windows, Linux and macOS and publish them
+# as a GitHub release. "Run workflow" on the Actions tab builds without
+# publishing (the zips appear as run artifacts).
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  GODOT_VERSION: 4.7.2
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot and export templates
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}
+
+      - name: Install Godot and export templates
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          curl -sSL -o godot.zip "$base/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q godot.zip
+          mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" ~/godot
+          chmod +x ~/godot
+          curl -sSL -o templates.tpz "$base/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          dest=~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          mkdir -p "$dest"
+          unzip -q -j templates.tpz templates/linux_release.x86_64 templates/windows_release_x86_64.exe templates/macos.zip templates/version.txt -d "$dest"
+          rm godot.zip templates.tpz
+
+      - name: Import project
+        run: ~/godot --headless --path game --import
+
+      - name: Export builds
+        run: |
+          mkdir -p build/windows build/linux build/macos
+          ~/godot --headless --path game --export-release "Windows" ../build/windows/Momentum.exe
+          ~/godot --headless --path game --export-release "Linux" ../build/linux/Momentum.x86_64
+          ~/godot --headless --path game --export-release "macOS" ../build/macos/Momentum.zip
+          test -s build/windows/Momentum.exe
+          test -s build/linux/Momentum.x86_64
+          test -s build/macos/Momentum.zip
+
+      - name: Package
+        run: |
+          cd build
+          (cd windows && zip -q -r ../Momentum-windows.zip .)
+          (cd linux && zip -q -r ../Momentum-linux.zip .)
+          cp macos/Momentum.zip Momentum-macos.zip
+          ls -la
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: momentum-builds
+          path: build/Momentum-*.zip
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/Momentum-*.zip
+          body: |
+            **Download the zip for your system, unzip it and run the game.**
+
+            - **Windows:** run `Momentum.exe`. If Windows says it protected your PC, click *More info*, then *Run anyway* (the game isn't code-signed).
+            - **macOS:** unzip, then right-click `Momentum.app` and choose *Open* the first time.
+            - **Linux:** run `Momentum.x86_64` (mark it executable if needed).
+
+            Controls: WASD or left stick to move, Space / A to jump, Shift / B to slide (slam in the air), Esc to pause, F for the FPS counter.

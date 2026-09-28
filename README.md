@@ -1,52 +1,65 @@
-# Momentum Lab
+# Momentum (working title)
 
-A top-down survivors-style prototype that tests one question: can the movement tricks that make games like Megabonk fun survive in 2D, where the game is much cheaper to run?
+A fast, movement-first survivor game built in Godot 4. You play the Crusader and carve through hordes of the undead, and speed is your damage: bunny hop, slide down hills, slam into crowds and launch off ramps.
 
-The map isn't flat. It's a heightfield with hills, bowls and ramps, and the player has real vertical physics: gravity, slopes, launches and landings. It's drawn top-down in 2D, with a shadow and a dashed altitude line to show how high you are.
+- `game/`: the Godot 4.7 project (the actual game)
+- `prototype/`: the original browser movement prototype (open `prototype/index.html`)
 
-## Run it
+## Play it
 
-Open `prototype/index.html` in a browser. There's no build step and there are no dependencies.
+**From a release:** download the zip for your system from the repo's Releases page, unzip and run it.
+- Windows: run `Momentum.exe`. If Windows says it protected your PC, click *More info*, then *Run anyway* (the game isn't code-signed).
+- macOS: right-click `Momentum.app` and choose *Open* the first time.
 
-If your browser won't load the script from a local file, serve the folder instead:
-
-```sh
-cd prototype && python3 -m http.server 8000
-# then open http://localhost:8000
-```
+**From source:** install [Godot 4.7](https://godotengine.org/download), open `game/project.godot` and press F5.
 
 ## Controls
 
-| Input | Action |
-| --- | --- |
-| WASD / arrows | Run |
-| Space | Jump |
-| Shift (or C) | Slide on the ground, slam in the air |
-| 1, 2, 3 | Pick an upgrade |
-| Esc | Pause |
-| H / F | Hide the trick list / toggle the FPS counter |
-
-On touch screens: drag anywhere on the left side to steer, and use the Jump and Slide buttons on the right.
+| Keyboard | Gamepad | Action |
+| --- | --- | --- |
+| WASD / arrows | Left stick | Run |
+| Space | A | Jump. Press again right as you land to bunny hop (+12% speed per hop) |
+| Shift / C | B / RB / RT | Slide; in the air it's a slam |
+| 1, 2, 3 | D-pad + A | Pick a level-up card |
+| Esc | Start | Pause |
+| F |  | Toggle the FPS counter |
 
 ## Tricks
 
-- **Bunny hop**: press jump right as you land for +12% speed per hop, up to 123 km/h. Hold jump to auto-hop: you keep your speed but get no boost.
-- **Slide**: slides speed up downhill and slowly lose speed on flat ground. Tightly packed contour lines mean steep ground.
-- **Slam**: Shift in the air. You get a shockwave on impact, then slide out with extra speed.
-- **Stomp**: land on an enemy to bounce off it. It counts as a perfect hop.
-- **Landings**: landing on a downslope turns your fall into ground speed. Landing on an upslope costs you speed.
-- **Ramps and crests**: run off a ramp lip or a hill crest fast to catch air. Jump right as you leave the ground for a much bigger launch.
-- **Pads**: yellow rings launch you straight up.
+- **Bunny hop**: jump the moment you land for +12% speed, up to 123 km/h. Hold jump to auto-hop without the boost.
+- **Slide**: slides speed up downhill. Steep ground turns to dirt and rock.
+- **Slam**: slide in the air. Shockwave on impact, then you slide out faster.
+- **Stomp**: land on a skeleton's head to bounce off it.
+- **Landings**: landing on a downslope turns your fall into speed.
+- **Ramps, crests and holy springs** launch you. Jump right as you leave a ramp for a much bigger launch.
+- **Crusader**: above 60 km/h her shield bashes anything she runs into, and big landings burst with holy light.
 
-Speed feeds damage. Your bolts hit harder the faster you move, slides tackle enemies out of the way, and half the upgrades lean into it.
+## Making a release
 
-## Tuning
+Push a tag and GitHub Actions builds Windows, Linux and macOS and publishes them as a release:
 
-Every movement number lives in `CFG` at the top of `prototype/game.js`. You can also change them live from the browser console through `__lab`, for example `__lab.CFG.gravity = 1800`.
+```sh
+git tag v0.1.0
+git push origin v0.1.0
+```
 
-## Why it runs cheaply
+The *Build game* workflow can also be run by hand from the Actions tab; the zips then show up as run artifacts instead of a release.
 
-- Plain Canvas 2D with no engine and no libraries.
-- The terrain is painted once to an offscreen canvas, so each frame draws it as a single image.
-- Enemies are pre-rendered sprites, and collisions go through a spatial grid rebuilt each frame.
-- In headless Chromium with software rendering, 600 enemies run at 60 fps.
+## Project layout (game/)
+
+| Path | What's there |
+| --- | --- |
+| `scripts/data/defs.gd` | Heroes, weapons, tomes and balance numbers |
+| `scripts/player/player.gd` | Movement physics (tuning constants at the top) |
+| `scripts/world/` | Map definitions, terrain, props, grass |
+| `scripts/enemies/` | Enemy manager and baked vertex-animation data |
+| `scripts/combat/` | Weapons and pickups |
+| `scripts/run/` | Run controller, run state, spawn director |
+| `scripts/ui/` | HUD and menus |
+| `tools/bake_vat.gd` | Bakes enemy animations into textures (re-run after changing enemy models) |
+| `tests/` | Headless movement tests: `godot --headless --path game res://tests/movement_test.tscn` |
+
+## Credits
+
+- 3D models: [KayKit](https://kaylousberg.com) by Kay Lousberg, CC0 (licenses in `game/assets/kaykit/*/LICENSE.txt`)
+- Fonts: Cinzel and Barlow Condensed, SIL Open Font License (`game/assets/fonts/*-OFL.txt`)
