@@ -19,7 +19,7 @@ A dark-fantasy pixel-art survivor game with Megabonk-style movement, built in Go
 | --- | --- | --- |
 | WASD / arrows | Left stick | Run (relative to the camera: W is always up the screen) |
 | Mouse | Right stick | Turn the camera around the hero |
-| Space | A | Jump. Press again right as you land to bunny hop (+10% speed per hop) |
+| Space | A | Jump. Press again right as you land to bunny hop (+5% speed per hop) |
 | Shift / C | B / RB / RT | Slide; in the air it's a slam |
 | E | X | Open a chest (or use a shrine) |
 | 1, 2, 3 | D-pad + A | Pick a level-up card |
@@ -62,7 +62,7 @@ Chilled or slowed enemies turn frost-blue and move at half speed.
 
 ## Tricks
 
-- **Bunny hop**: jump the moment you land for +10% speed. Hold jump to auto-hop without the boost.
+- **Bunny hop**: jump the moment you land for +5% speed, up to 54 km/h. Tomes of Agility raise both the gain and the limit (about 100 km/h with four). Hold jump to auto-hop without the boost.
 - **Slide**: slides speed up downhill. Steep ground turns to dirt and rock.
 - **Slam**: slide in the air to drop fast, then slide out of the landing.
 - **Stomp**: land on a skeleton's head to bounce off it.

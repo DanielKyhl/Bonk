@@ -505,6 +505,7 @@ func _apply_stats() -> void:
 	var h: Dictionary = run.hero
 	player.run_speed = h.run_speed * s.move_speed
 	player.jump_vel = 26.7 * sqrt(s.jump)
-	player.hop_boost = 0.10 + 0.03 * s.hop
-	player.hop_cap = 27.8 + 4.0 * s.hop
+	# Hops start at +5% up to 54 km/h; four Tomes of Agility reach ~100 km/h.
+	player.hop_boost = 0.05 + 0.025 * s.hop
+	player.hop_cap = 15.0 + 3.5 * s.hop
 	player.air_jumps = int(s.air_jump)

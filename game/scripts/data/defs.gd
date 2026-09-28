@@ -264,7 +264,7 @@ const TOMES := {
 	"wisdom": {"name": "Tome of Wisdom", "desc": "+10% XP.", "max": 6, "stat": "xp", "add": 0.10},
 	"precision": {"name": "Tome of Precision", "desc": "+6% critical hit chance.", "max": 6, "stat": "crit", "add": 0.06},
 	"multitude": {"name": "Tome of Multitude", "desc": "+1 projectile for every weapon.", "max": 2, "stat": "count", "add": 1.0},
-	"bhop": {"name": "Tome of Agility", "desc": "Well-timed hops carry more speed.", "max": 4, "stat": "hop", "add": 1.0},
+	"bhop": {"name": "Tome of Agility", "desc": "Well-timed hops gain more speed, and hop faster.", "max": 4, "stat": "hop", "add": 1.0},
 }
 
 ## Items come from chests and stack without limit; each stack adds `stats`.

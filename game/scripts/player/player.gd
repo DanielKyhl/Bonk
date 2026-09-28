@@ -44,8 +44,9 @@ const KMH := 3.6
 var run_speed := 9.5
 var jump_vel := 26.7
 var air_jumps := 0
-var hop_boost := 0.10
-var hop_cap := 27.8
+## Bunny hops start modest; Tomes of Agility raise both (see run.gd).
+var hop_boost := 0.05
+var hop_cap := 15.0
 var slide_friction := 8.0
 var slide_boost := 1.2
 var air_turn := 2.6
