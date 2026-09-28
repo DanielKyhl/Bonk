@@ -9,6 +9,7 @@ signal gold_changed(gold: int)
 signal leveled_up(level: int)
 signal stats_changed
 signal died
+signal blocked
 
 const MAX_WEAPONS := 4
 const MAX_TOMES := 4
@@ -27,6 +28,9 @@ var elites := 0
 var time := 0.0
 var iframes := 0.0
 var dead := false
+## Crusader passive: Holy Aegis blocks one hit, then recharges.
+var aegis_cd := 0.0
+const AEGIS_TIME := 12.0
 var weapons := {}   ## id -> level, in pickup order
 var tomes := {}     ## id -> level
 var items := {}     ## id -> stacks
@@ -47,6 +51,7 @@ func _process(delta: float) -> void:
 		return
 	time += delta
 	iframes = maxf(0.0, iframes - delta)
+	aegis_cd = maxf(0.0, aegis_cd - delta)
 	if stats.regen > 0.0 and hp < max_hp:
 		heal(stats.regen * delta)
 
@@ -63,11 +68,6 @@ func recompute() -> void:
 	hp = minf(hp, max_hp)
 	stats_changed.emit()
 	hp_changed.emit(hp, max_hp)
-
-
-## Damage multiplier from speed: the core rule of the game.
-func momentum_mult(speed: float) -> float:
-	return 1.0 + stats.momentum * maxf(0.0, speed - 12.5) / 12.5
 
 
 func add_xp(v: float) -> void:
@@ -94,6 +94,11 @@ func heal(v: float) -> void:
 ## Returns true if the hit landed (not blocked by invulnerability frames).
 func take_damage(amount: float) -> bool:
 	if iframes > 0.0 or dead:
+		return false
+	if hero_id == "crusader" and aegis_cd <= 0.0:
+		aegis_cd = AEGIS_TIME
+		iframes = 0.5
+		blocked.emit()
 		return false
 	hp -= amount * (1.0 - clampf(stats.armor, 0.0, 0.8))
 	iframes = 0.55

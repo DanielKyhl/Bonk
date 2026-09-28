@@ -28,10 +28,10 @@ const HOP_AFTER := 0.07           ## ...or this long after.
 const SLIDE_MIN := 5.8
 const SLIDE_BOOST_CD := 0.9
 const SLIDE_TURN := 1.5
-const SLOPE_SLIDE := 95.8         ## Downhill pull while sliding, per unit of gradient.
+const SLOPE_SLIDE := 70.0         ## Downhill pull while sliding, per unit of gradient.
 const SLOPE_RUN := 15.8
 const SLAM_VEL := 70.8
-const SLAM_BOOST := 10.8
+const SLAM_BOOST := 5.0
 const PAD_LAUNCH := 47.9
 const PAD_RADIUS := 1.7
 const COYOTE := 0.08
@@ -41,13 +41,13 @@ const MAX_SPEED := 91.7
 const KMH := 3.6
 
 # --- Stats (upgrades change these) ------------------------------------------
-var run_speed := 12.5
+var run_speed := 9.5
 var jump_vel := 26.7
 var air_jumps := 0
-var hop_boost := 0.12
-var hop_cap := 34.2
-var slide_friction := 6.25
-var slide_boost := 4.6
+var hop_boost := 0.10
+var hop_cap := 27.8
+var slide_friction := 8.0
+var slide_boost := 1.2
 var air_turn := 2.6
 var air_accel := 45.8
 

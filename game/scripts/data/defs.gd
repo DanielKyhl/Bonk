@@ -7,12 +7,12 @@ const HEROES := {
 	"crusader": {
 		"name": "Aurelia, the Crusader",
 		"title": "Crusader",
-		"blurb": "A holy knight in white and gold. At high speed her shield becomes a battering ram, and every landing blesses the ground.",
+		"blurb": "A holy knight in steel and gold, sworn to burn the undead from the vale.",
 		"model": "res://assets/kaykit/heroes/Knight.glb",
 		"weapon": "radiant_flail",
 		"hp": 120.0,
-		"run_speed": 12.0,
-		"passive": "Shield Ram: above 60 km/h, running into enemies bashes them. Blessed Landings: big landings burst with holy light.",
+		"run_speed": 9.5,
+		"passive": "Holy Aegis: a holy shield blocks one hit, then recharges for 12 seconds.",
 		"unlock": "",
 	},
 }
@@ -77,20 +77,20 @@ const TOMES := {
 	"reach": {"name": "Tome of Reach", "desc": "+12% area.", "max": 8, "stat": "area", "add": 0.12},
 	"swiftness": {"name": "Tome of Swiftness", "desc": "+8% run speed.", "max": 6, "stat": "move_speed", "add": 0.08},
 	"leaping": {"name": "Tome of Leaping", "desc": "+8% jump height.", "max": 5, "stat": "jump", "add": 0.04},
-	"momentum": {"name": "Tome of Momentum", "desc": "Speed adds more damage.", "max": 6, "stat": "momentum", "add": 0.15},
+	"iron": {"name": "Tome of Iron", "desc": "Take 6% less damage.", "max": 5, "stat": "armor", "add": 0.06},
 	"vitality": {"name": "Tome of Vitality", "desc": "+25 max health.", "max": 8, "stat": "max_hp", "add": 25.0},
 	"renewal": {"name": "Tome of Renewal", "desc": "+0.6 health per second.", "max": 6, "stat": "regen", "add": 0.6},
 	"attraction": {"name": "Tome of Attraction", "desc": "+30% pickup range.", "max": 5, "stat": "pickup", "add": 0.3},
 	"wisdom": {"name": "Tome of Wisdom", "desc": "+10% XP.", "max": 6, "stat": "xp", "add": 0.10},
 	"precision": {"name": "Tome of Precision", "desc": "+6% critical hit chance.", "max": 6, "stat": "crit", "add": 0.06},
 	"multitude": {"name": "Tome of Multitude", "desc": "+1 projectile for every weapon.", "max": 2, "stat": "count", "add": 1.0},
-	"bhop": {"name": "Tome of the Hop", "desc": "Perfect hops add +3% more speed and raise the hop cap.", "max": 4, "stat": "hop", "add": 1.0},
+	"bhop": {"name": "Tome of Agility", "desc": "Well-timed hops carry more speed.", "max": 4, "stat": "hop", "add": 1.0},
 }
 
 ## Base values for every stat; tomes and items add to these.
 const BASE_STATS := {
 	"damage": 1.0, "attack_speed": 1.0, "area": 1.0, "move_speed": 1.0, "jump": 1.0,
-	"momentum": 0.35, "max_hp": 0.0, "regen": 0.0, "pickup": 1.0, "xp": 1.0,
+	"max_hp": 0.0, "regen": 0.0, "pickup": 1.0, "xp": 1.0,
 	"crit": 0.05, "crit_mult": 1.8, "count": 0.0, "hop": 0.0, "armor": 0.0, "luck": 0.0,
 	"gold": 1.0,
 }

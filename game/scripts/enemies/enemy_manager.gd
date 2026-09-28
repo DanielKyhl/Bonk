@@ -6,7 +6,6 @@ extends Node3D
 
 signal killed(type: int, pos: Vector3, xp: int, elite: bool)
 signal player_hit(damage: float, from: Vector3)
-signal tackled(pos: Vector3)
 
 const MAX := 720
 const HC := 2.5                   ## Spatial hash cell size.
@@ -15,7 +14,6 @@ const STRIDE := 16                ## Floats per MultiMesh instance (transform + 
 const SPAWN_SPEED := 2.4          ## Rise-from-the-ground animation speedup.
 const DEATH_SPEED := 1.7
 const SINK_TIME := 0.7
-const TACKLE_SPEED := 13.7
 
 enum { RISING, ALIVE, DYING }
 enum Anim { RUN, ATTACK, SPAWN, DEATH }
@@ -31,10 +29,6 @@ var types: Array[Dictionary] = [
 var terrain: Terrain
 var player: Player
 var count := 0
-## Multiplies contact damage dealt to enemies by slide tackles.
-var tackle_mult := 1.0
-## Running into enemies above this speed bashes them (Crusader's Shield Ram). 0 = off.
-var ram_speed := 0.0
 
 var px := PackedFloat32Array()
 var pz := PackedFloat32Array()
@@ -368,24 +362,10 @@ func _collide_world() -> void:
 func _contact_player() -> void:
 	var p := player
 	var ha := p.height_above_ground()
-	var sp := p.speed()
-	var ram := ram_speed > 0.0 and p.grounded and sp >= ram_speed
-	var tackling := ((p.sliding or p.slide_air) and sp >= TACKLE_SPEED) or ram
 	for i in query(p.position.x, p.position.z, Player.RADIUS):
 		if state[i] != ALIVE or ha > top[i] * 0.85:
 			continue
-		var dx := px[i] - p.position.x
-		var dz := pz[i] - p.position.z
-		var d := sqrt(dx * dx + dz * dz) + 0.0001
-		if tackling:
-			if hit_cd[i] > 0.0:
-				continue
-			hit_cd[i] = 0.3
-			var push := Vector2(dx / d * 17.5 + p.vel.x * 0.5, dz / d * 17.5 + p.vel.z * 0.5)
-			damage(i, 16.0 * (sp / 12.5) * tackle_mult, push)
-			tackled.emit(Vector3(px[i], py[i] + 1.0, pz[i]))
-		else:
-			player_hit.emit(dmg[i], Vector3(px[i], py[i], pz[i]))
+		player_hit.emit(dmg[i], Vector3(px[i], py[i], pz[i]))
 
 
 func _draw() -> void:

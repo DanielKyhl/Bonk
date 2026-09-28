@@ -5,7 +5,7 @@ extends Camera3D
 
 @export var pitch_deg := 52.0
 @export var base_distance := 19.0
-@export var fast_distance := 30.0
+@export var fast_distance := 24.0
 
 var target: Player
 var shake := 0.0

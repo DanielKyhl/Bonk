@@ -1,7 +1,7 @@
 class_name WeaponSystem
 extends Node3D
 ## Fires every weapon the hero owns. Weapon numbers come from Defs.WEAPONS;
-## every hit goes through hit(), which applies damage stats, momentum and crits.
+## every hit goes through hit(), which applies damage stats and crits.
 
 const MAX_PROJ := 64
 
@@ -122,7 +122,7 @@ func count(id: String) -> int:
 
 ## Applies weapon damage to enemy i. Returns true if it killed.
 func hit(i: int, base: float, push: Vector2) -> bool:
-	var dmg: float = base * run.stats.damage * run.momentum_mult(player.speed())
+	var dmg: float = base * run.stats.damage
 	var crit: bool = randf() < run.stats.crit
 	if crit:
 		dmg *= run.stats.crit_mult

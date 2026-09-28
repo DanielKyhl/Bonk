@@ -3,7 +3,6 @@ extends Node3D
 ## together (enemies, weapons, pickups, director, HUD, menus).
 
 const MAP_SCRIPT := "res://scripts/world/maps/hallowed_vale.gd"
-const SHIELD_RAM_SPEED := 16.7    ## ~60 km/h
 
 var map: MapDef
 var terrain: Terrain
@@ -59,7 +58,6 @@ func _ready() -> void:
 	enemies = EnemyManager.new()
 	add_child(enemies)
 	enemies.setup(terrain, player)
-	enemies.ram_speed = SHIELD_RAM_SPEED
 	player.stomp_probe = enemies.stomp_probe
 	player.stomp_top = enemies.stomp_top
 
@@ -93,7 +91,7 @@ func _ready() -> void:
 
 	_connect_signals()
 	_apply_stats()
-	hud.banner(map.title, "Survive. Go fast. Hit hard.")
+	hud.banner(map.title, "Survive until the dead stop rising.")
 
 	var cap := DebugCapture.new()
 	add_child(cap)
@@ -161,9 +159,9 @@ func _connect_signals() -> void:
 	player.slide_started.connect(func(p): fx.dust(p, 5))
 	enemies.killed.connect(_on_kill)
 	enemies.player_hit.connect(_on_player_hit)
-	enemies.tackled.connect(func(p): fx.sparks(p, Color(1.0, 0.9, 0.6), 6); camera.add_shake(1.5))
 	run.stats_changed.connect(_apply_stats)
 	run.died.connect(_on_death)
+	run.blocked.connect(func(): fx.ring(player.position, 2.2, Color(1.0, 0.85, 0.45), 0.35, 0.12); fx.text(player.position, "BLOCKED", UIStyle.GOLD, 60))
 	director.banner.connect(hud.banner)
 	menus.picked.connect(_on_pick)
 	menus.resume_requested.connect(func(): get_tree().paused = false)
@@ -199,43 +197,22 @@ func _autopick() -> void:
 # -----------------------------------------------------------------------------
 # Player events
 # -----------------------------------------------------------------------------
+## Movement tricks are for getting around; only weapons deal damage.
 func _on_slam(pos: Vector3, power: float) -> void:
-	var r: float = (3.9 + 1.9 * power) * run.stats.area
-	var dmg := 18.0 * power
-	for i in enemies.query(pos.x, pos.z, r):
-		var d := Vector2(enemies.px[i] - pos.x, enemies.pz[i] - pos.z)
-		var f: float = 1.0 - 0.5 * minf(d.length(), r) / r
-		weapons.hit(i, dmg * f, d.normalized() * 27.0 * f)
-	fx.ring(pos, r, Color(1.0, 0.95, 0.8), 0.4)
-	fx.dust(pos, 14)
-	camera.add_shake(5.0 * power)
+	fx.ring(pos, 2.5 + power, Color(0.85, 0.8, 0.7), 0.3, 0.08)
+	fx.dust(pos, 10)
+	camera.add_shake(2.5 * power)
 
 
-func _on_stomp(i: int, pos: Vector3, slam: bool) -> void:
-	var push := Vector2(player.vel.x, player.vel.z) * 0.3
-	weapons.hit(i, 60.0 if slam else 30.0, push)
-	fx.sparks(pos, Color(1.0, 0.8, 0.4), 8)
-	if slam:
-		_on_slam(pos, 1.0)
-	if player.chain > 1:
-		fx.text(pos, "STOMP ×%d" % player.chain, UIStyle.ACCENT)
-	camera.add_shake(2.0)
+func _on_stomp(_i: int, pos: Vector3, _slam: bool) -> void:
+	fx.dust(pos, 6)
+	camera.add_shake(1.0)
 
 
 func _on_land(air_time: float, impact: float) -> void:
 	if air_time < 0.1:
 		return
 	fx.dust(player.position, 3 + int(minf(8.0, impact / 6.0)))
-	# Crusader passive: Blessed Landings.
-	if run.hero_id == "crusader" and air_time > 0.4 and not player.slamming:
-		var p := player.position
-		var r: float = (2.4 + impact * 0.05) * run.stats.area
-		for i in enemies.query(p.x, p.z, r):
-			var d := Vector2(enemies.px[i] - p.x, enemies.pz[i] - p.z)
-			weapons.hit(i, 10.0 + impact * 0.35, d.normalized() * 12.0)
-		fx.ring(p, r, Color(1.0, 0.86, 0.45), 0.35, 0.1)
-	if air_time > 1.0:
-		fx.text(player.position, "AIR %.1fs" % air_time, UIStyle.XP, 64)
 
 
 func _on_launch(pos: Vector3) -> void:
@@ -244,9 +221,8 @@ func _on_launch(pos: Vector3) -> void:
 	camera.add_shake(2.0)
 
 
-func _on_hop(chain: int) -> void:
-	if chain >= 3:
-		fx.text(player.position, "HOP ×%d" % chain, UIStyle.ACCENT, 60)
+func _on_hop(_chain: int) -> void:
+	pass
 
 
 func _on_kill(type: int, pos: Vector3, xp: int, is_elite: bool) -> void:
@@ -287,8 +263,7 @@ func _on_death() -> void:
 	var t := int(run.time)
 	menus.show_death("You have fallen", [
 		["Survived", "%d:%02d" % [t / 60, t % 60]], ["Kills", run.kills], ["Level", run.level],
-		["Top speed", "%d km/h" % int(player.top_speed * Player.KMH)], ["Best hop chain", "×%d" % player.best_chain],
-		["Longest air", "%.1f s" % player.best_air],
+		["Elites slain", run.elites], ["Gold", run.gold],
 	])
 
 
@@ -302,8 +277,8 @@ func _apply_stats() -> void:
 	var h: Dictionary = run.hero
 	player.run_speed = h.run_speed * s.move_speed
 	player.jump_vel = 26.7 * sqrt(s.jump)
-	player.hop_boost = 0.12 + 0.03 * s.hop
-	player.hop_cap = 34.2 + 5.0 * s.hop
+	player.hop_boost = 0.10 + 0.03 * s.hop
+	player.hop_cap = 27.8 + 4.0 * s.hop
 
 
 ## Placeholder look for the Crusader: the KayKit knight with sword and badge shield.

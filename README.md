@@ -1,6 +1,6 @@
 # Momentum (working title)
 
-A fast, movement-first survivor game built in Godot 4. You play the Crusader and carve through hordes of the undead, and speed is your damage: bunny hop, slide down hills, slam into crowds and launch off ramps.
+A survivor game with Megabonk-style movement, built in Godot 4. You play the Crusader and carve through hordes of the undead while your weapons fire on their own. Movement is how you survive: bunny hop, slide down hills, slam and launch off ramps to outrun the horde.
 
 - `game/`: the Godot 4.7 project (the actual game)
 - `prototype/`: the original browser movement prototype (open `prototype/index.html`)
@@ -18,23 +18,25 @@ A fast, movement-first survivor game built in Godot 4. You play the Crusader and
 | Keyboard | Gamepad | Action |
 | --- | --- | --- |
 | WASD / arrows | Left stick | Run |
-| Space | A | Jump. Press again right as you land to bunny hop (+12% speed per hop) |
+| Space | A | Jump. Press again right as you land to bunny hop (+10% speed per hop) |
 | Shift / C | B / RB / RT | Slide; in the air it's a slam |
 | 1, 2, 3 | D-pad + A | Pick a level-up card |
 | Esc | Start | Pause |
-| F |  | Toggle the FPS counter |
+| F |  | Toggle the debug line (FPS, enemies, speed) |
 | F9 |  | Lower the 3D render resolution (100% / 85% / 70%) if the game stutters |
 | F11 |  | Fullscreen |
 
 ## Tricks
 
-- **Bunny hop**: jump the moment you land for +12% speed, up to 123 km/h. Hold jump to auto-hop without the boost.
+- **Bunny hop**: jump the moment you land for +10% speed. Hold jump to auto-hop without the boost.
 - **Slide**: slides speed up downhill. Steep ground turns to dirt and rock.
-- **Slam**: slide in the air. Shockwave on impact, then you slide out faster.
+- **Slam**: slide in the air to drop fast, then slide out of the landing.
 - **Stomp**: land on a skeleton's head to bounce off it.
 - **Landings**: landing on a downslope turns your fall into speed.
 - **Ramps, crests and holy springs** launch you. Jump right as you leave a ramp for a much bigger launch.
-- **Crusader**: above 60 km/h her shield bashes anything she runs into, and big landings burst with holy light.
+- **Crusader**: Holy Aegis blocks one hit, then recharges for 12 seconds.
+
+Movement never deals damage by itself; your weapons do the killing.
 
 ## Making a release
 

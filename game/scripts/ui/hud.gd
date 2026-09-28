@@ -1,7 +1,7 @@
 class_name Hud
 extends CanvasLayer
-## In-run HUD: health, XP, stage clock, gold and kills, the speedometer with
-## trick chips, weapon/tome slots, banners and the hurt flash.
+## In-run HUD: health, XP, stage clock, gold and kills, the Holy Aegis
+## indicator, weapon/tome slots, banners and the hurt flash.
 
 var run: RunState
 var player: Player
@@ -19,14 +19,7 @@ var _gold: Label
 var _kills: Label
 var _timer: Label
 var _stage: Label
-var _speed: Label
-var _speed_fill: Panel
-var _speed_root: Panel
-var _tick_run: ColorRect
-var _tick_cap: ColorRect
-var _chip_dmg: Label
-var _chip_hop: Label
-var _chip_air: Label
+var _aegis: Label
 var _slots: HBoxContainer
 var _tome_slots: HBoxContainer
 var _banner: Label
@@ -37,9 +30,6 @@ var _hurt_t := 0.0
 var _fps: Label
 var _show_fps := true
 var _slot_sig := ""
-
-const SPEED_BAR := 380.0
-const SPEED_MAX := 60.0
 
 
 func setup(r: RunState, p: Player, d: Director, e: EnemyManager, stage: String) -> void:
@@ -104,6 +94,9 @@ func _build() -> void:
 	stats_row.add_child(_gold)
 	_kills = UIStyle.label("KILLS  0", UIStyle.ui_font("Bold"), 22, UIStyle.PARCH)
 	stats_row.add_child(_kills)
+	_aegis = UIStyle.label("", UIStyle.ui_font("Bold"), 20, UIStyle.GOLD)
+	_aegis.visible = run.hero_id == "crusader"
+	tl.add_child(_aegis)
 
 	# Top-center: stage clock.
 	var tc := VBoxContainer.new()
@@ -133,44 +126,6 @@ func _build() -> void:
 	_banner_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(_banner_sub)
 
-	# Bottom-center: speedometer.
-	var bc := VBoxContainer.new()
-	bc.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	bc.position = Vector2(-SPEED_BAR * 0.5, -150)
-	bc.custom_minimum_size = Vector2(SPEED_BAR, 0)
-	bc.add_theme_constant_override("separation", 6)
-	root.add_child(bc)
-	var sp_row := HBoxContainer.new()
-	sp_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	sp_row.add_theme_constant_override("separation", 8)
-	bc.add_child(sp_row)
-	_speed = UIStyle.label("0", UIStyle.ui_font("ExtraBold"), 64, UIStyle.PARCH, 8)
-	_speed.custom_minimum_size = Vector2(110, 0)
-	_speed.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	sp_row.add_child(_speed)
-	var unit := UIStyle.label("KM/H", UIStyle.ui_font("SemiBold"), 20, UIStyle.MUTED)
-	unit.size_flags_vertical = Control.SIZE_SHRINK_END
-	sp_row.add_child(unit)
-	var sb := UIStyle.bar(SPEED_BAR, 10, UIStyle.PARCH)
-	_speed_root = sb[0]
-	_speed_fill = sb[1]
-	bc.add_child(_speed_root)
-	_tick_run = ColorRect.new()
-	_tick_run.color = UIStyle.MUTED
-	_tick_run.size = Vector2(3, 18)
-	_speed_root.add_child(_tick_run)
-	_tick_cap = ColorRect.new()
-	_tick_cap.color = UIStyle.ACCENT
-	_tick_cap.size = Vector2(3, 18)
-	_speed_root.add_child(_tick_cap)
-	var chips := HBoxContainer.new()
-	chips.alignment = BoxContainer.ALIGNMENT_CENTER
-	chips.add_theme_constant_override("separation", 8)
-	bc.add_child(chips)
-	_chip_dmg = _chip(chips)
-	_chip_hop = _chip(chips)
-	_chip_air = _chip(chips)
-
 	# Bottom-left: weapon and tome slots.
 	var bl := VBoxContainer.new()
 	bl.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
@@ -188,15 +143,6 @@ func _build() -> void:
 	_fps.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	_fps.position = Vector2(-300, -34)
 	root.add_child(_fps)
-
-
-func _chip(parent: Control) -> Label:
-	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", UIStyle.panel_style(UIStyle.PANEL, 4))
-	parent.add_child(p)
-	var l := UIStyle.label("", UIStyle.ui_font("Bold"), 18, UIStyle.MUTED, 0)
-	p.add_child(l)
-	return l
 
 
 func banner(text: String, sub := "") -> void:
@@ -218,19 +164,10 @@ func hurt() -> void:
 func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("toggle_fps"):
 		_show_fps = not _show_fps
-	var sp := player.speed()
-	_speed.text = str(int(round(sp * Player.KMH)))
-	var hot := sp >= player.hop_cap * 0.97
-	_speed.label_settings.font_color = UIStyle.ACCENT if hot else UIStyle.PARCH
-	_speed_fill.size.x = SPEED_BAR * clampf(sp / SPEED_MAX, 0.0, 1.0)
-	(_speed_fill.get_theme_stylebox("panel") as StyleBoxFlat).bg_color = UIStyle.ACCENT if hot else UIStyle.PARCH
-	_tick_run.position = Vector2(SPEED_BAR * player.run_speed / SPEED_MAX - 1, -4)
-	_tick_cap.position = Vector2(SPEED_BAR * minf(player.hop_cap, SPEED_MAX) / SPEED_MAX - 1, -4)
-	var m := run.momentum_mult(sp)
-	_set_chip(_chip_dmg, "DMG ×%.1f" % m, m >= 1.25)
-	_set_chip(_chip_hop, "HOP ×%d" % player.chain, player.chain > 0)
-	var airborne := not player.grounded and player.air_time > 0.25
-	_set_chip(_chip_air, "AIR %.1fs" % (player.air_time if airborne else player.last_air), airborne)
+	if _aegis.visible:
+		var ready := run.aegis_cd <= 0.0
+		_aegis.text = "AEGIS READY" if ready else "AEGIS  %ds" % ceili(run.aegis_cd)
+		_aegis.label_settings.font_color = UIStyle.GOLD if ready else UIStyle.MUTED
 
 	var tl := maxf(director.time_left, 0.0)
 	if director.final_swarm:
@@ -249,14 +186,7 @@ func _process(delta: float) -> void:
 	_hurt_t = maxf(0.0, _hurt_t - delta)
 	var low := 0.18 + 0.08 * sin(run.time * 6.0) if run.hp < run.max_hp * 0.3 else 0.0
 	_hurt.color.a = maxf(_hurt_t * 1.1, low * 0.6)
-	_fps.text = ("%d FPS  ·  %d enemies  ·  render %d%%" % [Engine.get_frames_per_second(), enemies.count, int(Game.render_scale * 100)]) if _show_fps else ""
-
-
-func _set_chip(l: Label, text: String, on: bool) -> void:
-	l.text = text
-	l.label_settings.font_color = UIStyle.INK if on else UIStyle.MUTED
-	var sb := (l.get_parent() as PanelContainer).get_theme_stylebox("panel") as StyleBoxFlat
-	sb.bg_color = UIStyle.ACCENT if on else UIStyle.PANEL
+	_fps.text = ("%d FPS  ·  %d enemies  ·  %d km/h  ·  render %d%%" % [Engine.get_frames_per_second(), enemies.count, int(round(player.speed() * Player.KMH)), int(Game.render_scale * 100)]) if _show_fps else ""
 
 
 func _refresh_hp() -> void:
