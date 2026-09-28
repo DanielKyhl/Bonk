@@ -219,6 +219,19 @@ func _ready() -> void:
 			if k % 19 == 0:
 				type = 2
 			enemies.spawn(type, player.position.x + cos(a) * r, player.position.z + sin(a) * r, 60.0, false)
+	if "--mouse-test" in args:
+		# Check that mouse motion turns the camera: feed motion through the
+		# real input pipeline and print the camera's heading.
+		director.paused = true
+		get_tree().create_timer(0.5).timeout.connect(func():
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+			var before := camera._target_yaw
+			for k in 10:
+				var ev := InputEventMouseMotion.new()
+				ev.relative = Vector2(40, 0)
+				Input.parse_input_event(ev)
+			get_tree().create_timer(0.3).timeout.connect(func():
+				print("MOUSE TEST mode=%d turned=%.1f deg" % [Input.mouse_mode, rad_to_deg(before - camera._target_yaw)])))
 	if "--weapon-test" in args:
 		# Screenshot setup: a sturdy ring of foes and slow motion, so weapon
 		# effects stay on screen for several frames.

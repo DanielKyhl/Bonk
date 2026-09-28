@@ -29,9 +29,12 @@ func _ready() -> void:
 	# Runs while paused too, to free the cursor for menus.
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_target_yaw = yaw
+	# The camera lives inside the pixel view's SubViewport, which gets no
+	# input of its own, so listen to the game window directly.
+	get_tree().root.window_input.connect(_on_window_input)
 
 
-func _unhandled_input(event: InputEvent) -> void:
+func _on_window_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		_target_yaw -= deg_to_rad((event as InputEventMouseMotion).relative.x * mouse_sensitivity)
 	elif event is InputEventMouseButton and (event as InputEventMouseButton).pressed and not get_tree().paused:
