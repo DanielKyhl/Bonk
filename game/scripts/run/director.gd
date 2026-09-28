@@ -20,6 +20,8 @@ var terrain: Terrain
 var time_left := STAGE_TIME
 var final_swarm := false
 var paused := false
+## Offerings made at greed shrines: each adds 20% more spawns.
+var greed := 0
 
 var _acc := 0.0
 var _next_wave := 75.0
@@ -60,10 +62,21 @@ func _process(delta: float) -> void:
 		banner.emit("An elite approaches", "")
 
 
+## A cursed altar's summons: n elites plus a ring of their followers.
+func summon_elites(n: int) -> void:
+	var t := run.time
+	for k in n:
+		var p := _spawn_point(18.0)
+		enemies.spawn([WARRIOR, SKELETON, MAGE][k % 3] if t > 120.0 else SKELETON, p.x, p.y, hp_mult(t) * 1.2, true, true)
+	for k in 24:
+		var p := _spawn_point(22.0)
+		enemies.spawn(_pick_type(t), p.x, p.y, hp_mult(t))
+
+
 ## Enemies per second at time t.
 func spawn_rate(t: float) -> float:
 	var m := t / 60.0
-	var r := 1.3 + 0.85 * m + 0.05 * m * m
+	var r := (1.3 + 0.85 * m + 0.05 * m * m) * (1.0 + 0.2 * greed)
 	if final_swarm:
 		r = r * 2.2 + (t - STAGE_TIME) * 0.05
 	return r

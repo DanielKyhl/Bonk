@@ -13,13 +13,15 @@ var map: MapDef
 var player: Player
 var camera: FollowCamera
 var chests: Chests
+var shrines: Shrines
 var _rect: TextureRect
 var _mat: ShaderMaterial
 
 static var _tex_cache := {}
 
 
-func setup(t: Terrain, m: MapDef, p: Player, cam: FollowCamera, c: Chests) -> void:
+func setup(t: Terrain, m: MapDef, p: Player, cam: FollowCamera, c: Chests, s: Shrines) -> void:
+	shrines = s
 	terrain = t
 	map = m
 	player = p
@@ -86,6 +88,17 @@ func _draw_icons(c: Control) -> void:
 		else:
 			c.draw_rect(Rect2(at - Vector2(4, 3), Vector2(8, 6)), Color(0.05, 0.03, 0.02))
 			c.draw_rect(Rect2(at - Vector2(3, 2), Vector2(6, 4)), Color(0.85, 0.6, 0.3))
+	if shrines:
+		for i in shrines.pos.size():
+			if shrines.used[i]:
+				continue
+			var s := _project(shrines.pos[i])
+			if s.length() > 1.0:
+				continue
+			var at := mid + s * r
+			var col: Color = Shrines.COLORS[shrines.kind[i]]
+			c.draw_rect(Rect2(at - Vector2(1, 5), Vector2(3, 11)), col)
+			c.draw_rect(Rect2(at - Vector2(5, 2), Vector2(11, 3)), col)
 	# The hero: an arrow pointing up (the way the camera looks).
 	c.draw_colored_polygon(PackedVector2Array([mid + Vector2(0, -8), mid + Vector2(6, 6), mid + Vector2(0, 3), mid + Vector2(-6, 6)]), Color(0.95, 0.9, 0.8))
 

@@ -8,6 +8,7 @@ var player: Player
 var director: Director
 var enemies: EnemyManager
 var chests: Chests
+var shrines: Shrines
 var camera: FollowCamera
 var terrain: Terrain
 var map: MapDef
@@ -194,7 +195,7 @@ func _build() -> void:
 		mm.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 		mm.position = Vector2(-Minimap.SIZE - 20, 20)
 		root.add_child(mm)
-		mm.setup(terrain, map, player, camera, chests)
+		mm.setup(terrain, map, player, camera, chests, shrines)
 
 	_fps = UIStyle.label("", UIStyle.ui_font("SemiBold"), 20, UIStyle.MUTED, 4)
 	_fps.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -224,6 +225,7 @@ func banner(text: String, sub := "") -> void:
 
 
 func clear_banner() -> void:
+	_prompt.text = ""
 	_banner_t = 0.0
 	_banner.modulate.a = 0.0
 	_banner_sub.modulate.a = 0.0
@@ -266,6 +268,17 @@ func _process(delta: float) -> void:
 
 
 func _update_prompt() -> void:
+	if shrines and shrines.praying() >= 0:
+		var k := shrines.praying()
+		_prompt.text = "PRAYING   %d%%" % int(shrines.charge[k] / Shrines.CHARGE_TIME * 100.0)
+		_prompt.label_settings.font_color = Shrines.COLORS[Shrines.PRAYER]
+		return
+	if shrines and shrines.nearest() >= 0:
+		var k := shrines.nearest()
+		var cursed := shrines.kind[k] == Shrines.CURSED
+		_prompt.text = "E   WAKE THE CURSED ALTAR" if cursed else "E   MAKE AN OFFERING TO GREED"
+		_prompt.label_settings.font_color = Shrines.COLORS[shrines.kind[k]]
+		return
 	var i := chests.nearest() if chests else -1
 	if i < 0:
 		_prompt.text = ""

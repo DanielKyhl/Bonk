@@ -56,7 +56,7 @@ func _center_box(width: float) -> VBoxContainer:
 # -----------------------------------------------------------------------------
 # Level up
 # -----------------------------------------------------------------------------
-func show_levelup(choices: Array[Dictionary]) -> void:
+func show_levelup(choices: Array[Dictionary], heading := "") -> void:
 	_clear()
 	_mode = "levelup"
 	_choices = choices
@@ -64,7 +64,7 @@ func show_levelup(choices: Array[Dictionary]) -> void:
 	_open_at = Time.get_ticks_msec() / 1000.0
 	_backdrop(0.55)
 	var v := _center_box(1100)
-	var title := UIStyle.label("Level %d" % run.level, UIStyle.title_font(), 72, UIStyle.GOLD, 10)
+	var title := UIStyle.label(heading if heading != "" else "Level %d" % run.level, UIStyle.title_font(), 72, UIStyle.GOLD, 10)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(title)
 	var hint := UIStyle.label("Choose one:  1, 2, 3 or click", UIStyle.ui_font("SemiBold"), 20, UIStyle.MUTED)
@@ -125,6 +125,12 @@ func _card(i: int, c: Dictionary) -> Control:
 			desc = t.desc
 			color = UIStyle.XP
 			tag = "NEW TOME" if lvl == 0 else "TOME  ·  LV %d → %d" % [lvl, lvl + 1]
+		"blessing":
+			var rar: Dictionary = Defs.RARITIES[c.rarity]
+			name = c.name
+			desc = c.desc
+			color = rar.color
+			tag = "BLESSING  ·  " + rar.name.to_upper()
 		_:
 			name = "Second Wind"
 			desc = "Heal 40% of your health."

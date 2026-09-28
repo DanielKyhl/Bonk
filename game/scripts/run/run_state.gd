@@ -37,6 +37,7 @@ var weapons := {}   ## id -> level, in pickup order
 var tomes := {}     ## id -> level
 var items := {}     ## id -> stacks, in pickup order
 var revives_used := 0
+var blessings := {}  ## stat -> total from prayer shrines
 var stats := {}
 
 
@@ -68,6 +69,8 @@ func recompute() -> void:
 		var it: Dictionary = Defs.ITEMS[id]
 		for k: String in it.stats:
 			stats[k] += it.stats[k] * items[id]
+	for k: String in blessings:
+		stats[k] += blessings[k]
 	var old_max := max_hp
 	max_hp = hero.hp + stats.max_hp
 	if max_hp > old_max:
@@ -129,6 +132,11 @@ func take_damage(amount: float) -> bool:
 		return true
 	hp_changed.emit(hp, max_hp)
 	return true
+
+
+func add_blessing(b: Dictionary) -> void:
+	blessings[b.stat] = blessings.get(b.stat, 0.0) + b.add
+	recompute()
 
 
 func add_item(id: String) -> void:

@@ -16,6 +16,7 @@ var pickups: Pickups
 var weapons: WeaponSystem
 var director: Director
 var chests: Chests
+var shrines: Shrines
 var hud: Hud
 var menus: RunMenus
 var view: PixelView
@@ -82,6 +83,10 @@ func _ready() -> void:
 	world.add_child(chests)
 	chests.setup(map, terrain, props, run, player, fx)
 
+	shrines = Shrines.new()
+	world.add_child(shrines)
+	shrines.setup(map, terrain, props, run, player, fx, chests.pos)
+
 	weapons = WeaponSystem.new()
 	world.add_child(weapons)
 	weapons.setup(run, player, enemies, fx, camera)
@@ -93,6 +98,7 @@ func _ready() -> void:
 	hud = Hud.new()
 	add_child(hud)
 	hud.chests = chests
+	hud.shrines = shrines
 	hud.camera = camera
 	hud.terrain = terrain
 	hud.map = map
@@ -135,6 +141,12 @@ func _ready() -> void:
 			player.place(Vector2(float(xz[0]), float(xz[1])))
 			camera.snap()
 			camera._process(0.0)
+	if "--shrine" in args:
+		var si := shrines.kind.find(Shrines.PRAYER)
+		player.place(Vector2(shrines.pos[si].x + 1.0, shrines.pos[si].z))
+		camera.snap()
+		camera._process(0.0)
+		director.paused = true
 	if "--chest" in args:
 		# Screenshot setup: stand next to a chest with gold and open it.
 		run.add_gold(300)
@@ -189,6 +201,9 @@ func _connect_signals() -> void:
 	run.revived.connect(func(): fx.ring(player.position, 6.0, Color(1.0, 0.55, 0.2), 0.6, 0.2); fx.sparks(player.position + Vector3(0, 1, 0), Color(1.0, 0.6, 0.25), 30); fx.text(player.position, "RISEN", Color(1.0, 0.6, 0.25), 20); enemies.push_away(player.position, 9.0, 30.0))
 	run.blocked.connect(func(): fx.ring(player.position, 2.2, Color(1.0, 0.85, 0.45), 0.35, 0.12); fx.text(player.position, "BLOCKED", UIStyle.GOLD, 20))
 	director.banner.connect(hud.banner)
+	shrines.prayed.connect(_on_prayed)
+	shrines.cursed.connect(func(): director.summon_elites(3); hud.banner("The altar wakes", "Slay its champions for golden chests"); camera.add_shake(5.0))
+	shrines.greed_taken.connect(func(): director.greed += 1; hud.banner("Greed", "+25% gold, but the dead come faster"))
 	menus.picked.connect(_on_pick)
 	menus.resume_requested.connect(func(): get_tree().paused = false)
 	menus.restart_requested.connect(_restart)
@@ -280,8 +295,17 @@ func _on_player_hit(dmg: float, _from: Vector3, enemy: int) -> void:
 		_blink = 0.0
 
 
+func _on_prayed(choices: Array[Dictionary]) -> void:
+	get_tree().paused = true
+	hud.clear_banner()
+	menus.show_levelup(choices, "Blessing")
+
+
 func _on_pick(c: Dictionary) -> void:
-	run.apply_choice(c)
+	if c.kind == "blessing":
+		run.add_blessing(c)
+	else:
+		run.apply_choice(c)
 	if run.pending_levels <= 0:
 		get_tree().paused = false
 

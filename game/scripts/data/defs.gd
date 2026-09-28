@@ -125,6 +125,53 @@ const RARITIES := [
 	{"name": "Legendary", "color": Color(1.0, 0.62, 0.2), "weight": 2.0},
 ]
 
+## Prayer shrine blessings: pick one of three. Each rolls a rarity that
+## multiplies `add` (see BLESSING_MULT). fmt shows the value on the card.
+const BLESSINGS := [
+	{"stat": "damage", "add": 0.06, "name": "Wrath", "fmt": "+%d%% damage", "pct": true, "icon": "might"},
+	{"stat": "attack_speed", "add": 0.05, "name": "Zeal", "fmt": "+%d%% attack speed", "pct": true, "icon": "haste"},
+	{"stat": "max_hp", "add": 12.0, "name": "Fortitude", "fmt": "+%d max health", "pct": false, "icon": "vitality"},
+	{"stat": "area", "add": 0.06, "name": "Radiance", "fmt": "+%d%% area", "pct": true, "icon": "reach"},
+	{"stat": "move_speed", "add": 0.04, "name": "Haste", "fmt": "+%d%% run speed", "pct": true, "icon": "swiftness"},
+	{"stat": "crit", "add": 0.03, "name": "Precision", "fmt": "+%d%% crit chance", "pct": true, "icon": "precision"},
+	{"stat": "regen", "add": 0.4, "name": "Renewal", "fmt": "+%.1f health per second", "pct": false, "icon": "renewal"},
+	{"stat": "pickup", "add": 0.15, "name": "Attraction", "fmt": "+%d%% pickup range", "pct": true, "icon": "attraction"},
+	{"stat": "xp", "add": 0.05, "name": "Wisdom", "fmt": "+%d%% XP", "pct": true, "icon": "wisdom"},
+	{"stat": "armor", "add": 0.03, "name": "Resolve", "fmt": "Take %d%% less damage", "pct": true, "icon": "iron"},
+	{"stat": "luck", "add": 0.08, "name": "Fortune", "fmt": "+%d%% luck (better chests)", "pct": true, "icon": "horseshoe"},
+]
+const BLESSING_MULT := [1.0, 1.6, 2.4, 4.0]
+
+
+## Three different blessings with rolled rarities.
+static func roll_blessings(luck: float) -> Array[Dictionary]:
+	var pool := range(BLESSINGS.size())
+	pool.shuffle()
+	var out: Array[Dictionary] = []
+	for k in 3:
+		var b: Dictionary = BLESSINGS[pool[k]]
+		var rarity := roll_rarity(luck)
+		var v: float = b.add * BLESSING_MULT[rarity]
+		out.append({"kind": "blessing", "id": b.icon, "stat": b.stat, "add": v, "name": b.name, "rarity": rarity,
+				"desc": b.fmt % (v * 100.0 if b.pct else v)})
+	return out
+
+
+static func roll_rarity(luck: float, min_rarity := 0) -> int:
+	var weights := []
+	var total := 0.0
+	for r in RARITIES.size():
+		var w: float = RARITIES[r].weight * (1.0 + luck * r) if r >= min_rarity else 0.0
+		weights.append(w)
+		total += w
+	var x := randf() * total
+	for r in weights.size():
+		x -= weights[r]
+		if x <= 0.0:
+			return r
+	return min_rarity
+
+
 ## Base values for every stat; tomes and items add to these.
 const BASE_STATS := {
 	"damage": 1.0, "attack_speed": 1.0, "area": 1.0, "move_speed": 1.0, "jump": 1.0,
@@ -138,19 +185,7 @@ const BASE_STATS := {
 ## Picks an item id. luck shifts weight toward rarer items; min_rarity
 ## (golden chests) skips the lower tiers.
 static func roll_item(luck: float, min_rarity := 0) -> String:
-	var weights := []
-	var total := 0.0
-	for r in RARITIES.size():
-		var w: float = RARITIES[r].weight * (1.0 + luck * r) if r >= min_rarity else 0.0
-		weights.append(w)
-		total += w
-	var x := randf() * total
-	var rarity := 0
-	for r in weights.size():
-		x -= weights[r]
-		if x <= 0.0:
-			rarity = r
-			break
+	var rarity := roll_rarity(luck, min_rarity)
 	var pool := []
 	for id in ITEMS:
 		if ITEMS[id].rarity == rarity:
