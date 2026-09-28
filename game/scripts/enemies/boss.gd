@@ -2,7 +2,7 @@ class_name Boss
 extends Node3D
 ## The stage boss and its altar. The altar stands at one of the map's boss
 ## sites (picked per run) under a tall red beam. Press interact there any time
-## to summon the Lich King; he is tuned so only a strong build can win. When
+## to summon the boss; it is tuned so only a strong build can win. When
 ## he falls he drops legendary chests and the altar becomes a portal: step in
 ## to leave (and unlock the next map), or stay and fight on for more score.
 
@@ -84,7 +84,7 @@ func setup(m: MapDef, t: Terrain, props: Props, r: RunState, p: Player, e: Enemy
 	disc.mesh = dq
 	_disc = ShaderMaterial.new()
 	_disc.shader = preload("res://shaders/rune_disc.gdshader")
-	_disc.set_shader_parameter("color", Color(1.0, 0.2, 0.15))
+	_disc.set_shader_parameter("color", map.boss.color)
 	disc.material_override = _disc
 	disc.position = altar + Vector3(0, 0.1, 0)
 	add_child(disc)
@@ -99,14 +99,14 @@ func setup(m: MapDef, t: Terrain, props: Props, r: RunState, p: Player, e: Enemy
 	beam.mesh = cyl
 	_beam = ShaderMaterial.new()
 	_beam.shader = preload("res://shaders/beam.gdshader")
-	_beam.set_shader_parameter("color", Color(1.0, 0.15, 0.1))
+	_beam.set_shader_parameter("color", map.boss.color)
 	_beam.set_shader_parameter("strength", 0.5)
 	beam.material_override = _beam
 	beam.position = altar + Vector3(0, 35.0, 0)
 	beam.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(beam)
 	_shots = SpriteBatch.new()
-	_shots.setup(load("res://assets/sprites/boss_fx.png"), Vector2(4, 2), 24.0, 12.0)
+	_shots.setup(load("res://assets/sprites/boss_fx.png"), Vector2(4, 6), 24.0, 12.0)
 	add_child(_shots)
 
 
@@ -138,8 +138,8 @@ func _summon() -> void:
 	state = FIGHTING
 	discovered = true
 	_disc.set_shader_parameter("dim", 0.3)
-	enemies.spawn(EnemyManager.BOSS, altar.x, altar.z - 4.0, 1.0, true)
-	fx.ring(altar, 14.0, Color(1.0, 0.2, 0.15), 0.8, 0.2)
+	enemies.spawn(EnemyManager.BOSS, altar.x, altar.z - 4.0, Game.stage_mult(), true)
+	fx.ring(altar, 14.0, map.boss.color, 0.8, 0.2)
 	fx.pillar(altar, 1.0)
 	_camera.add_shake(8.0)
 	_next_nova = _t + 4.0
@@ -186,13 +186,13 @@ func _fight(_delta: float) -> void:
 		var off := randf() * TAU
 		for k in n:
 			var a := off + TAU * k / n
-			_shoot(b + Vector3(0, 1.2, 0), Vector3(cos(a), 0, sin(a)) * NOVA_SPEED, NOVA_DAMAGE, 1, 6.0)
+			_shoot(b + Vector3(0, 1.2, 0), Vector3(cos(a), 0, sin(a)) * NOVA_SPEED, NOVA_DAMAGE, map.boss.nova_row, 6.0)
 	if _t >= _next_bolts:
 		_next_bolts = _t + BOLTS_EVERY * pace
 		var aim := (pp + Vector3(0, 1.0, 0) - head).normalized()
 		for k in (5 if enraged else 3):
 			var spread := (k - (2 if enraged else 1)) * 0.16
-			_shoot(head, aim.rotated(Vector3.UP, spread) * BOLT_SPEED, BOLT_DAMAGE, 0, 4.0)
+			_shoot(head, aim.rotated(Vector3.UP, spread) * BOLT_SPEED, BOLT_DAMAGE, map.boss.bolt_row, 4.0)
 	if _t >= _next_summon:
 		_next_summon = _t + SUMMON_EVERY * pace
 		for k in 10:
@@ -232,7 +232,7 @@ func _update_shots(delta: float) -> void:
 			_sr.remove_at(k)
 			continue
 		var b := _camera.global_transform.basis
-		var ang := atan2(_sv[k].dot(b.y), _sv[k].dot(b.x)) if _sr[k] == 0 else 0.0
+		var ang := atan2(_sv[k].dot(b.y), _sv[k].dot(b.x)) if _sr[k] == map.boss.bolt_row else 0.0
 		_shots.add(p, int(_t * 10.0 + k) % 4, _sr[k], ang, 1.3)
 		k += 1
 	_shots.commit()

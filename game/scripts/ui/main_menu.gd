@@ -370,4 +370,6 @@ func _start() -> void:
 	if _thread and _thread.is_started():
 		_thread.wait_to_finish()
 	Game.run_seed = randi()
+	Game.stage = 1
+	Game.carry = {}
 	get_tree().change_scene_to_file(RUN_SCENE)

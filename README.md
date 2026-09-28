@@ -33,7 +33,13 @@ Pick a hero and a map in the main menu (heroes unlock by reaching goals shown on
 
 - A stage lasts 10 minutes; the horde grows and toughens, elites come every minute, and at 10:00 the endless final swarm begins.
 - Explore for **chests** (gold, pricier each time; elites drop free golden ones) and **shrines**: stand in a prayer circle for a blessing, wake a cursed altar for elites and golden chests, or make an offering to greed.
-- Somewhere a red beam marks **the Lich King's altar**. You can summon him any time, but he takes a strong build to beat. Slay him and his altar becomes a portal: leave to win and unlock the next map, or stay and fight on (kills score double).
+- Somewhere a tall beam marks **the boss altar**. You can summon the boss any time, but it takes a strong build to beat. Slay it and the altar becomes a portal: step through to carry your whole build on to the next map (a tougher stage) and unlock that map in the menu, or stay and fight on (kills score double).
+
+## Maps
+
+1. **Hallowed Vale**: a dying valley at dusk. Skeletons, ghouls, skeleton warriors and mages; boss Varnoth, the Lich King.
+2. **Frostfang Peaks**: frozen mountains with the longest slides. Draugr, ice wraiths, draugr warriors and frost mages; boss Skarn, the Draugr King.
+3. **Blightmire**: a rotting swamp of bogs and stumps. Bog zombies, sackheads, bog brutes and plague witches; boss Mother Rot, the Bog Witch.
 
 ## Tricks
 

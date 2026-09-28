@@ -6,6 +6,11 @@ const SAVE_PATH := "user://save.cfg"
 ## Selected hero and map for the next run.
 var hero_id := "crusader"
 var map_id := "hallowed_vale"
+## Stage of the current run: 1 on a fresh run, +1 for every boss portal
+## taken. Later stages are tougher (see stage_mult).
+var stage := 1
+## A build carried through a boss portal (RunState.snapshot()), or empty.
+var carry := {}
 ## Settings (saved).
 var mouse_sensitivity := 0.25
 var master_volume := 0.8
@@ -18,8 +23,8 @@ var run_seed := 0
 ## next one; unlocked maps can be picked from the main menu.
 const MAPS := [
 	{"id": "hallowed_vale", "name": "Hallowed Vale", "script": "res://scripts/world/maps/hallowed_vale.gd"},
-	{"id": "frostfang_peaks", "name": "Frostfang Peaks", "script": ""},
-	{"id": "blightmire", "name": "Blightmire", "script": ""},
+	{"id": "frostfang_peaks", "name": "Frostfang Peaks", "script": "res://scripts/world/maps/frostfang_peaks.gd"},
+	{"id": "blightmire", "name": "Blightmire", "script": "res://scripts/world/maps/blightmire.gd"},
 	{"id": "ashen_forge", "name": "Ashen Forge", "script": ""},
 	{"id": "dragons_spine", "name": "Dragon's Spine", "script": ""},
 ]
@@ -95,6 +100,19 @@ func _bind(action: String, keys: Array, buttons: Array, axes: Array) -> void:
 # -----------------------------------------------------------------------------
 # Saved progress
 # -----------------------------------------------------------------------------
+## Enemy health multiplier for the current stage.
+func stage_mult() -> float:
+	return 1.0 + 0.75 * (stage - 1)
+
+
+## The map after `id` in unlock order, or {} for the last one.
+func next_map(id: String) -> Dictionary:
+	for k in MAPS.size() - 1:
+		if MAPS[k].id == id:
+			return MAPS[k + 1]
+	return {}
+
+
 func map_info(id: String) -> Dictionary:
 	for m in MAPS:
 		if m.id == id:

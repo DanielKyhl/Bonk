@@ -125,7 +125,7 @@ func _build() -> void:
 	_timer = UIStyle.label("10:00", UIStyle.ui_font("Bold"), 60, UIStyle.PARCH, 8)
 	_timer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tc.add_child(_timer)
-	_stage = UIStyle.label(stage_name.to_upper(), UIStyle.ui_font("Bold"), 30, UIStyle.MUTED)
+	_stage = UIStyle.label(stage_name.to_upper() + ("   STAGE %d" % Game.stage if Game.stage > 1 else ""), UIStyle.ui_font("Bold"), 30, UIStyle.MUTED)
 	_stage.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tc.add_child(_stage)
 
@@ -166,7 +166,7 @@ func _build() -> void:
 	_boss_box.custom_minimum_size = Vector2(640, 0)
 	_boss_box.visible = false
 	root.add_child(_boss_box)
-	var bn := UIStyle.label("Varnoth, the Lich King", UIStyle.title_font(), 48, UIStyle.PARCH, 8)
+	var bn := UIStyle.label(map.boss.name if map else "", UIStyle.title_font(), 48, UIStyle.PARCH, 8)
 	bn.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_boss_box.add_child(bn)
 	var bb := UIStyle.bar(640, 22, Color(0.6, 0.15, 0.7))
@@ -295,7 +295,7 @@ func _update_boss() -> void:
 func _update_prompt() -> void:
 	if boss and boss.in_reach():
 		var summon := boss.state == Boss.WAITING
-		_prompt.text = "E   SUMMON THE LICH KING" if summon else "E   ENTER THE PORTAL AND LEAVE THE VALE"
+		_prompt.text = ("E   SUMMON " + map.boss.name.get_slice(",", 0).to_upper()) if summon else "E   ENTER THE PORTAL"
 		_prompt.label_settings.font_color = UIStyle.HP if summon else UIStyle.XP
 		return
 	if shrines and shrines.praying() >= 0:

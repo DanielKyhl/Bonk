@@ -30,6 +30,9 @@ func _ready() -> void:
 	var args := OS.get_cmdline_user_args()
 	_autopilot = "--autopilot" in args
 	var t0 := Time.get_ticks_msec()
+	for a in args:
+		if a.begins_with("--map=") and Game.stage == 1:
+			Game.map_id = a.get_slice("=", 1)
 	map = load(Game.map_info(Game.map_id).script).new()
 	view = PixelView.new()
 	add_child(view)
@@ -51,6 +54,9 @@ func _ready() -> void:
 	run = RunState.new()
 	world.add_child(run)
 	run.setup(Game.hero_id)
+	if not Game.carry.is_empty():
+		run.restore(Game.carry)
+		Game.carry = {}
 
 	player = load("res://scenes/actors/player.tscn").instantiate()
 	player.terrain = terrain
@@ -153,6 +159,15 @@ func _ready() -> void:
 		camera._process(0.0)
 		director.paused = true
 		get_tree().create_timer(0.3).timeout.connect(boss._summon)
+	if "--onward-test" in args and Game.stage == 1:
+		# Test the portal: win here, then carry the build to the next map.
+		run.weapons["sacred_orbs"] = 3
+		run.add_item("whetstone")
+		run.recompute()
+		boss._summon()
+		get_tree().create_timer(0.6).timeout.connect(func(): enemies.damage(enemies.boss_index(), 1e9))
+		get_tree().create_timer(1.2).timeout.connect(func(): boss.portal_entered.emit())
+		get_tree().create_timer(1.8).timeout.connect(func(): menus.onward_requested.emit())
 	if "--victory" in args:
 		# Test the win flow: summon, slay, then step through the portal.
 		player.place(Vector2(boss.altar.x + 2.0, boss.altar.z + 2.0))
@@ -223,7 +238,7 @@ func _connect_signals() -> void:
 	run.blocked.connect(func(): fx.ring(player.position, 2.2, Color(1.0, 0.85, 0.45), 0.35, 0.12); fx.text(player.position, "BLOCKED", UIStyle.GOLD, 20))
 	director.banner.connect(hud.banner)
 	shrines.prayed.connect(_on_prayed)
-	boss.summoned.connect(func(): hud.banner("Varnoth, the Lich King", "The dead king rises"))
+	boss.summoned.connect(func(): hud.banner(map.boss.name, map.boss.rises))
 	boss.portal_entered.connect(_on_victory)
 	shrines.cursed.connect(func(): director.summon_elites(3); hud.banner("The altar wakes", "Slay its champions for golden chests"); camera.add_shake(5.0))
 	shrines.greed_taken.connect(func(): director.greed += 1; hud.banner("Greed", "+25% gold, but the dead come faster"))
@@ -231,6 +246,7 @@ func _connect_signals() -> void:
 	menus.resume_requested.connect(func(): get_tree().paused = false)
 	menus.restart_requested.connect(_restart)
 	menus.quit_requested.connect(func(): get_tree().quit())
+	menus.onward_requested.connect(_onward)
 	menus.menu_requested.connect(func(): get_tree().paused = false; Input.mouse_mode = Input.MOUSE_MODE_VISIBLE; get_tree().change_scene_to_file(MENU_SCENE))
 
 
@@ -327,13 +343,14 @@ func _on_boss_down(pos: Vector3) -> void:
 	for k in 12:
 		pickups.drop(Pickups.XP_BIG, pos, 40.0)
 		pickups.drop(Pickups.GOLD, pos, 10)
-	hud.banner("The Lich King has fallen", "Take the portal at his altar to leave, or stay and fight on for glory")
+	hud.banner(map.boss.falls, "Take the portal at the altar to go on, or stay and fight for glory")
 
 
 func _on_victory() -> void:
 	player.input_locked = true
 	director.paused = true
-	var next := Game.unlock_next_map(map.id)
+	var next_name := Game.unlock_next_map(map.id)
+	var next := Game.next_map(map.id)
 	get_tree().paused = true
 	hud.clear_banner()
 	var t := int(run.time)
@@ -341,11 +358,25 @@ func _on_victory() -> void:
 		["Score", run.final_score()], ["Time", "%d:%02d" % [t / 60, t % 60]], ["Kills", run.kills],
 		["Level", run.level], ["Elites slain", run.elites], ["Items", run.items.size()],
 	]
-	var sub := "The Vale is cleansed." + ("  %s is now open." % next if next != "" else "")
+	var sub: String = map.boss.cleansed + ("  %s is now open." % next_name if next_name != "" else "")
+	var built: bool = not next.is_empty() and next.script != ""
 	var heroes := _record()
 	if not heroes.is_empty():
 		sub += "\nNew hero: " + ", ".join(heroes)
-	menus.show_death("Victory", rows, sub)
+	if built:
+		sub += "\nYour build goes with you; the dead there are stronger."
+	menus.show_death("Victory", rows, sub, next.name if built else "")
+
+
+## Takes the run (build, level, gold, score) on to the next map.
+func _onward() -> void:
+	var next := Game.next_map(map.id)
+	Game.carry = run.snapshot()
+	Game.stage += 1
+	Game.map_id = next.id
+	Game.run_seed = randi()
+	get_tree().paused = false
+	get_tree().change_scene_to_file("res://scenes/main.tscn")
 
 
 ## Saves this run's progress; returns heroes it unlocked.
@@ -391,6 +422,9 @@ func _on_death() -> void:
 
 
 func _restart() -> void:
+	Game.stage = 1
+	Game.carry = {}
+	Game.run_seed = randi()
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 

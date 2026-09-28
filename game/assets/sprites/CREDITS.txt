@@ -167,6 +167,36 @@ feet/armour/plate/male/walk.png
   Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
   Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites 
 
+hat/cloth/hood_sack/adult/hurt.png
+  Authors: Nila122,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-lizard-headgear,https://opengameart.org/content/lpc-expanded-hats-facial-helmets 
+
+hat/cloth/hood_sack/adult/slash.png
+  Authors: Nila122,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-lizard-headgear,https://opengameart.org/content/lpc-expanded-hats-facial-helmets 
+
+hat/cloth/hood_sack/adult/walk.png
+  Authors: Nila122,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-lizard-headgear,https://opengameart.org/content/lpc-expanded-hats-facial-helmets 
+
+hat/helmet/barbarian_viking/adult/hurt.png
+  Authors: bluecarrot16,JaidynReiman,Napsio (Vitruvian Studio) 
+  Licenses: CC-BY 3.0,CC-BY 4.0,OGA-BY 3.0,GPL 2.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-helmets,https://opengameart.org/content/lpc-expanded-hats-facial-helmets 
+
+hat/helmet/barbarian_viking/adult/slash.png
+  Authors: bluecarrot16,JaidynReiman,Napsio (Vitruvian Studio) 
+  Licenses: CC-BY 3.0,CC-BY 4.0,OGA-BY 3.0,GPL 2.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-helmets,https://opengameart.org/content/lpc-expanded-hats-facial-helmets 
+
+hat/helmet/barbarian_viking/adult/walk.png
+  Authors: bluecarrot16,JaidynReiman,Napsio (Vitruvian Studio) 
+  Licenses: CC-BY 3.0,CC-BY 4.0,OGA-BY 3.0,GPL 2.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-helmets,https://opengameart.org/content/lpc-expanded-hats-facial-helmets 
+
 hat/helmet/greathelm/male/hurt.png
   Authors: bluecarrot16 
   Licenses: OGA-BY 3.0,CC-BY 3.0,CC-BY 4.0,GPL 2.0,GPL 3.0 
@@ -181,6 +211,26 @@ hat/helmet/greathelm/male/walk.png
   Authors: bluecarrot16 
   Licenses: OGA-BY 3.0,CC-BY 3.0,CC-BY 4.0,GPL 2.0,GPL 3.0 
   Links: https://opengameart.org/content/lpc-helmets,https://opengameart.org/content/lpc-expanded-hats-facial-helmets 
+
+hat/helmet/horned/adult/hurt.png
+  Authors: bluecarrot16,Shaun Williams,Matthew Krohn (makrohn),Johannes Sjölund (wulax),Sander Frenken (castelonia) 
+  Licenses: CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-full-plate-golden-armor,https://opengameart.org/content/lpc-full-plate-golden-armor-0,https://opengameart.org/content/lpc-helmets-mega-pack,https://opengameart.org/content/lpc-expanded-hats-facial-helmets 
+
+hat/helmet/horned/adult/slash.png
+  Authors: bluecarrot16,Shaun Williams,Matthew Krohn (makrohn),Johannes Sjölund (wulax),Sander Frenken (castelonia) 
+  Licenses: CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-full-plate-golden-armor,https://opengameart.org/content/lpc-full-plate-golden-armor-0,https://opengameart.org/content/lpc-helmets-mega-pack,https://opengameart.org/content/lpc-expanded-hats-facial-helmets 
+
+hat/helmet/horned/adult/spellcast.png
+  Authors: bluecarrot16,Shaun Williams,Matthew Krohn (makrohn),Johannes Sjölund (wulax),Sander Frenken (castelonia) 
+  Licenses: CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-full-plate-golden-armor,https://opengameart.org/content/lpc-full-plate-golden-armor-0,https://opengameart.org/content/lpc-helmets-mega-pack,https://opengameart.org/content/lpc-expanded-hats-facial-helmets 
+
+hat/helmet/horned/adult/walk.png
+  Authors: bluecarrot16,Shaun Williams,Matthew Krohn (makrohn),Johannes Sjölund (wulax),Sander Frenken (castelonia) 
+  Licenses: CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-full-plate-golden-armor,https://opengameart.org/content/lpc-full-plate-golden-armor-0,https://opengameart.org/content/lpc-helmets-mega-pack,https://opengameart.org/content/lpc-expanded-hats-facial-helmets 
 
 head/heads/human/male/hurt.png
   Authors: bluecarrot16,Benjamin K. Smith (BenCreating),Stephen Challener (Redshrike) 
@@ -227,6 +277,11 @@ head/heads/zombie/adult/slash.png
   Licenses: CC-BY-SA 3.0,GPL 3.0 
   Links: https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-zombie,https://opengameart.org/content/lpc-character-bases 
 
+head/heads/zombie/adult/spellcast.png
+  Authors: bluecarrot16,Benjamin K. Smith (BenCreating),Sander Frenken (castelonia),Stephen Challener (Redshrike) 
+  Licenses: CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles,https://opengameart.org/content/lpc-zombie,https://opengameart.org/content/lpc-character-bases 
+
 head/heads/zombie/adult/walk.png
   Authors: bluecarrot16,Benjamin K. Smith (BenCreating),Sander Frenken (castelonia),Stephen Challener (Redshrike) 
   Licenses: CC-BY-SA 3.0,GPL 3.0 
@@ -238,6 +293,11 @@ legs/armour/plate/male/hurt.png
   Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites 
 
 legs/armour/plate/male/slash.png
+  Authors: bluecarrot16,JaidynReiman,Michael Whitlock (bigbeargames),Matthew Krohn (makrohn),Johannes Sjölund (wulax) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites 
+
+legs/armour/plate/male/spellcast.png
   Authors: bluecarrot16,JaidynReiman,Michael Whitlock (bigbeargames),Matthew Krohn (makrohn),Johannes Sjölund (wulax) 
   Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
   Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites 
@@ -257,6 +317,11 @@ shoulders/pauldrons/male/slash.png
   Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
   Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,http://opengameart.org/content/lpc-clothing-updates 
 
+shoulders/pauldrons/male/spellcast.png
+  Authors: Matthew Krohn (makrohn),Johannes Sjölund (wulax),bluecarrot16,JaidynReiman 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,http://opengameart.org/content/lpc-clothing-updates 
+
 shoulders/pauldrons/male/walk.png
   Authors: Matthew Krohn (makrohn),Johannes Sjölund (wulax),bluecarrot16,JaidynReiman 
   Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
@@ -268,6 +333,11 @@ torso/armour/plate/male/hurt.png
   Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-combat-armor-for-women 
 
 torso/armour/plate/male/slash.png
+  Authors: Napsio (Vitruvian Studio),JaidynReiman,bluecarrot16,Michael Whitlock (bigbeargames),Johannes Sjölund (wulax) 
+  Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
+  Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-combat-armor-for-women 
+
+torso/armour/plate/male/spellcast.png
   Authors: Napsio (Vitruvian Studio),JaidynReiman,bluecarrot16,Michael Whitlock (bigbeargames),Johannes Sjölund (wulax) 
   Licenses: OGA-BY 3.0,CC-BY-SA 3.0,GPL 3.0 
   Links: https://opengameart.org/content/lpc-medieval-fantasy-character-sprites,https://opengameart.org/content/lpc-combat-armor-for-women 

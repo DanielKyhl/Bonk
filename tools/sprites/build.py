@@ -43,6 +43,23 @@ def deathly(r, g, b):
     return (l * 0.72 + 8, l * 0.8 + 14, l * 0.92 + 26)
 
 
+def icy(r, g, b):
+    """Frozen bone, blue-white (Frostfang draugr)."""
+    l = (r + g + b) / 3.0
+    return (l * 0.66 + 8, l * 0.82 + 18, l * 0.95 + 34)
+
+
+def rot(r, g, b):
+    """Swamp-rotted flesh, sickly green (Blightmire)."""
+    return (r * 0.72, g * 0.9 + 12, b * 0.62)
+
+
+def pale(r, g, b):
+    """Drowned-blue flesh (ice wraiths)."""
+    l = (r + g + b) / 3.0
+    return (l * 0.62 + 16, l * 0.76 + 26, l * 0.92 + 44)
+
+
 CHARACTERS = {
     "crusader": [
         {"path": "cape/solid/bg", "z": 5, "recolor": cloth("maroon")},
@@ -92,6 +109,79 @@ CHARACTERS = {
         {"path": "hat/formal/crown/adult|crown_gold", "z": 130},
         {"path": "weapon/polearm/scythe|scythe", "z": 140, "anims": {"spellcast": None}},
     ],
+    # --- Frostfang Peaks ---
+    "draugr": [
+        {"path": "body/bodies/skeleton", "z": 10, "fn": icy},
+        {"path": "head/heads/skeleton/adult", "z": 100, "fn": icy},
+        {"path": "hat/helmet/horned/adult", "z": 130, "recolor": metal("iron")},
+    ],
+    "ice_wraith": [
+        {"path": "cape/tattered/bg", "z": 5, "recolor": cloth("white")},
+        {"path": "body/bodies/zombie|zombie", "z": 10, "fn": pale},
+        {"path": "head/heads/zombie/adult", "z": 100, "fn": pale},
+        {"path": "cape/tattered/fg", "z": 85, "recolor": cloth("white")},
+    ],
+    "draugr_warrior": [
+        {"path": "weapon/blunt/waraxe/behind|waraxe", "z": 9},
+        {"path": "body/bodies/skeleton", "z": 10, "fn": icy},
+        {"path": "legs/armour/plate/male", "z": 20, "recolor": metal("steel")},
+        {"path": "torso/armour/plate/male", "z": 60, "recolor": metal("steel")},
+        {"path": "head/heads/skeleton/adult", "z": 100, "fn": icy},
+        {"path": "hat/helmet/barbarian_viking/adult", "z": 130},
+        {"path": "weapon/blunt/waraxe|waraxe", "z": 140},
+    ],
+    "frost_mage": [
+        {"path": "cape/tattered/bg", "z": 5, "recolor": cloth("navy")},
+        {"path": "body/bodies/skeleton", "z": 10, "fn": icy},
+        {"path": "cape/tattered/fg", "z": 85, "recolor": cloth("navy")},
+        {"path": "head/heads/skeleton/adult", "z": 100, "fn": icy},
+        {"path": "hat/magic/wizard/base/adult|blue", "z": 130},
+    ],
+    "draugr_king": [
+        {"path": "cape/tattered/bg", "z": 5, "recolor": cloth("navy")},
+        {"path": "weapon/blunt/waraxe/behind|waraxe", "z": 9, "anims": {"spellcast": None}},
+        {"path": "body/bodies/skeleton", "z": 10, "fn": icy},
+        {"path": "legs/armour/plate/male", "z": 20, "recolor": metal("iron")},
+        {"path": "torso/armour/plate/male", "z": 60, "recolor": metal("iron")},
+        {"path": "shoulders/pauldrons/male", "z": 61, "recolor": ("metal", "steel", "silver")},
+        {"path": "cape/tattered/fg", "z": 85, "recolor": cloth("navy")},
+        {"path": "head/heads/skeleton/adult", "z": 100, "fn": icy},
+        {"path": "hat/helmet/horned/adult", "z": 130, "recolor": metal("silver")},
+        {"path": "weapon/blunt/waraxe|waraxe", "z": 140, "anims": {"spellcast": None}},
+    ],
+    # --- Blightmire ---
+    "bog_zombie": [
+        {"path": "body/bodies/zombie|zombie", "z": 10, "fn": rot},
+        {"path": "head/heads/zombie/adult", "z": 100, "fn": rot},
+    ],
+    "sackhead": [
+        {"path": "body/bodies/zombie|zombie", "z": 10, "fn": rot},
+        {"path": "head/heads/zombie/adult", "z": 100, "fn": rot},
+        {"path": "hat/cloth/hood_sack/adult", "z": 130, "recolor": cloth("brown")},
+    ],
+    "bog_brute": [
+        {"path": "weapon/blunt/mace/universal_behind|mace", "z": 9},
+        {"path": "body/bodies/zombie|zombie", "z": 10, "fn": rot},
+        {"path": "legs/armour/plate/male", "z": 20, "recolor": metal("copper")},
+        {"path": "torso/armour/plate/male", "z": 60, "recolor": metal("copper")},
+        {"path": "head/heads/zombie/adult", "z": 100, "fn": rot},
+        {"path": "hat/helmet/greathelm/male", "z": 130, "recolor": metal("copper")},
+        {"path": "weapon/blunt/mace|mace", "z": 140},
+    ],
+    "plague_witch": [
+        {"path": "body/bodies/zombie|zombie", "z": 10, "fn": rot},
+        {"path": "torso/clothes/robe/female|forest_green", "z": 35},
+        {"path": "head/heads/zombie/adult", "z": 100, "fn": rot},
+        {"path": "hat/magic/wizard/base/adult|base_black", "z": 130},
+    ],
+    "mother_rot": [
+        {"path": "cape/tattered/bg", "z": 5, "recolor": cloth("black")},
+        {"path": "body/bodies/zombie|zombie", "z": 10, "fn": rot},
+        {"path": "torso/clothes/robe/female|black", "z": 35},
+        {"path": "cape/tattered/fg", "z": 85, "recolor": cloth("black")},
+        {"path": "head/heads/zombie/adult", "z": 100, "fn": rot},
+        {"path": "hat/magic/wizard/base/adult|base_black", "z": 130},
+    ],
     "skeleton_mage": [
         {"path": "cape/tattered/bg", "z": 5, "recolor": cloth("purple")},
         {"path": "body/bodies/skeleton", "z": 10, "fn": grime},
@@ -100,7 +190,8 @@ CHARACTERS = {
     ],
 }
 
-CHAR_ANIMS = {"skeleton_mage": CASTER_ANIMS, "lich": CASTER_ANIMS}
+CHAR_ANIMS = {"skeleton_mage": CASTER_ANIMS, "lich": CASTER_ANIMS, "frost_mage": CASTER_ANIMS,
+        "draugr_king": CASTER_ANIMS, "plague_witch": CASTER_ANIMS, "mother_rot": CASTER_ANIMS}
 
 
 def build(lpc, cid, layers):

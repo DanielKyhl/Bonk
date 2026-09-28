@@ -139,6 +139,33 @@ func take_damage(amount: float) -> bool:
 	return true
 
 
+## Everything a boss portal carries to the next map.
+func snapshot() -> Dictionary:
+	return {"weapons": weapons.duplicate(), "tomes": tomes.duplicate(), "items": items.duplicate(),
+			"blessings": blessings.duplicate(), "level": level, "xp": xp, "xp_next": xp_next, "gold": gold,
+			"hp_frac": hp / max_hp, "kills": kills, "elites": elites, "score": final_score(), "revives_used": revives_used}
+
+
+func restore(c: Dictionary) -> void:
+	weapons = c.weapons
+	tomes = c.tomes
+	items = c.items
+	blessings = c.blessings
+	level = c.level
+	xp = c.xp
+	xp_next = c.xp_next
+	gold = c.gold
+	kills = c.kills
+	elites = c.elites
+	score = c.score
+	revives_used = c.revives_used
+	recompute()
+	hp = max_hp * clampf(c.hp_frac, 0.3, 1.0)
+	hp_changed.emit(hp, max_hp)
+	xp_changed.emit(xp, xp_next, level)
+	gold_changed.emit(gold)
+
+
 func final_score() -> int:
 	return score + int(time) * 2 + level * 20 + (5000 if boss_killed else 0)
 

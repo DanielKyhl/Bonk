@@ -22,16 +22,8 @@ const CLIMB_SLOW := 0.3           ## ...which slows them to this fraction.
 enum { RISING, ALIVE, DYING }
 enum Anim { RUN, ATTACK, SPAWN, DEATH }
 
-## Enemy types for Hallowed Vale. speed in m/s, radius in m; scale is the
-## sprite's pixel scale; anim_speed is the speed at which walk runs at WALK_FPS.
-var types: Array[Dictionary] = [
-	{"name": "Skeleton", "sprite": "skeleton", "attack": "slash", "radius": 0.5, "scale": 1.0, "speed": 6.2, "hp": 20.0, "dmg": 8.0, "xp": 1, "anim_speed": 6.2},
-	{"name": "Ghoul", "sprite": "ghoul", "attack": "slash", "radius": 0.45, "scale": 1.0, "speed": 9.6, "hp": 12.0, "dmg": 6.0, "xp": 1, "anim_speed": 8.0},
-	{"name": "Skeleton Warrior", "sprite": "skeleton_warrior", "attack": "slash", "radius": 0.95, "scale": 1.5, "speed": 4.2, "hp": 150.0, "dmg": 18.0, "xp": 6, "anim_speed": 4.2},
-	{"name": "Skeleton Mage", "sprite": "skeleton_mage", "attack": "spellcast", "radius": 0.5, "scale": 1.0, "speed": 4.6, "hp": 36.0, "dmg": 10.0, "xp": 3, "anim_speed": 4.6},
-	# The stage boss (see Boss); elite[i] == 2 marks it.
-	{"name": "Varnoth, the Lich King", "sprite": "lich", "attack": "spellcast", "radius": 1.6, "scale": 3.0, "speed": 5.5, "hp": 60000.0, "dmg": 35.0, "xp": 0, "anim_speed": 5.5},
-]
+## The map's enemy types (MapDef.enemy_types): basic, fast, tank, caster, boss.
+var types: Array[Dictionary] = []
 const BOSS := 4
 
 var terrain: Terrain
@@ -72,6 +64,7 @@ var _query := PackedInt32Array()
 func setup(t: Terrain, p: Player) -> void:
 	terrain = t
 	player = p
+	types = t.map.enemy_types
 	# Resize the members directly (a loop over copies would resize the copies).
 	px.resize(MAX); pz.resize(MAX); py.resize(MAX); kx.resize(MAX); kz.resize(MAX)
 	hp.resize(MAX); max_hp.resize(MAX); yaw.resize(MAX); anim_t.resize(MAX); flash.resize(MAX)

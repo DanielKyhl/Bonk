@@ -8,6 +8,7 @@ signal resume_requested
 signal restart_requested
 signal quit_requested
 signal menu_requested
+signal onward_requested
 
 var run: RunState
 var _root: Control
@@ -248,7 +249,7 @@ func show_pause() -> void:
 	v.add_child(_button("Quit game", func(): quit_requested.emit()))
 
 
-func show_death(title: String, rows: Array, sub := "") -> void:
+func show_death(title: String, rows: Array, sub := "", onward := "") -> void:
 	_clear()
 	_mode = "death"
 	_root.visible = true
@@ -277,7 +278,11 @@ func show_death(title: String, rows: Array, sub := "") -> void:
 	bc.alignment = BoxContainer.ALIGNMENT_CENTER
 	bc.add_theme_constant_override("separation", 20)
 	v.add_child(bc)
-	var b := _button("Run again", func(): _close(); restart_requested.emit())
+	var b: Button
+	if onward != "":
+		b = UIStyle.button("Onward to " + onward, func(): _close(); onward_requested.emit(), 420)
+	else:
+		b = _button("Run again", func(): _close(); restart_requested.emit())
 	bc.add_child(b)
 	bc.add_child(_button("Main menu", func(): menu_requested.emit()))
 	b.call_deferred("grab_focus")

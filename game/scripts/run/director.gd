@@ -76,14 +76,14 @@ func summon_elites(n: int) -> void:
 ## Enemies per second at time t.
 func spawn_rate(t: float) -> float:
 	var m := t / 60.0
-	var r := (1.3 + 0.85 * m + 0.05 * m * m) * (1.0 + 0.2 * greed)
+	var r := (1.3 + 0.85 * m + 0.05 * m * m) * (1.0 + 0.2 * greed) * (1.0 + 0.25 * (Game.stage - 1))
 	if final_swarm:
 		r = r * 2.2 + (t - STAGE_TIME) * 0.05
 	return r
 
 
 func hp_mult(t: float) -> float:
-	var h := 1.0 + t / 140.0
+	var h := (1.0 + t / 140.0) * Game.stage_mult()
 	if final_swarm:
 		h += (t - STAGE_TIME) / 30.0
 	return h

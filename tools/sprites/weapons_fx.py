@@ -1,5 +1,6 @@
 """Pixel sprites for weapon effects (weapons_fx.png) and boss projectiles
-(boss_fx.png: 0 death bolt, 1 soul orb), 24px frames, 4 columns.
+(boss_fx.png rows: 0 death bolt, 1 soul orb, 2 ice shard, 3 frost orb,
+4 bile bolt, 5 plague orb), 24px frames, 4 columns.
 
 weapons_fx.png rows:
 
@@ -127,17 +128,18 @@ def smite(img):
             fr.outline()
 
 
-def death_bolt(img):
-    """A violet ball of soulfire with a flickering tail (points right)."""
+def death_bolt(img, row=0, colors=((110, 30, 160, 255), (140, 50, 200, 255), (200, 130, 255, 255), (250, 230, 255, 255))):
+    """A ball of soulfire with a flickering tail (points right)."""
+    tail, rim, body, core = colors
     for f in range(4):
-        fr = Frame(img, f, 0)
+        fr = Frame(img, f, row)
         for k in range(5):
             y = 11.5 + (k - 2) * 1.6
             ln = 8 - abs(k - 2) * 2 + (f + k) % 3
-            fr.line(13 - ln, y, 13, y, (110, 30, 160, 255))
-        fr.disc(14.5, 11.5, 5.5, (140, 50, 200, 255))
-        fr.disc(15.0, 11.5, 3.8, (200, 130, 255, 255))
-        fr.disc(15.5, 11.0, 1.8, (250, 230, 255, 255))
+            fr.line(13 - ln, y, 13, y, tail)
+        fr.disc(14.5, 11.5, 5.5, rim)
+        fr.disc(15.0, 11.5, 3.8, body)
+        fr.disc(15.5, 11.0, 1.8, core)
         fr.outline()
 
 
@@ -151,9 +153,13 @@ def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     img.save(OUT)
     print("saved", OUT)
-    boss = Image.new("RGBA", (4 * F, 2 * F))
+    boss = Image.new("RGBA", (4 * F, 6 * F))
     death_bolt(boss)
     orb(boss, 1, ((40, 120, 60, 255), (90, 220, 110, 255), (200, 255, 190, 255)))
+    death_bolt(boss, 2, ((60, 140, 190, 255), (90, 180, 230, 255), (170, 230, 255, 255), (255, 255, 255, 255)))
+    orb(boss, 3, ((120, 170, 220, 255), (200, 230, 255, 255), (250, 252, 255, 255)))
+    death_bolt(boss, 4, ((110, 130, 30, 255), (150, 170, 40, 255), (200, 220, 90, 255), (240, 250, 190, 255)))
+    orb(boss, 5, ((80, 70, 30, 255), (130, 120, 50, 255), (190, 180, 100, 255)))
     boss.save(os.path.join(os.path.dirname(OUT), "boss_fx.png"))
 
 
