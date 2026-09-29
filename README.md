@@ -66,7 +66,7 @@ Chilled or slowed enemies turn frost-blue and move at half speed.
 - **Bunny hop**: jump the moment you land for +3% speed, up to 43 km/h. Tomes of Agility raise both the gain and the limit (about 86 km/h with four). Hold jump to auto-hop without the boost.
 - **Slide**: slides speed up downhill, the steeper the faster (up to 130 km/h, the limit for everything). Steep ground turns to dirt and rock.
 - **Slam**: slide in the air to drop fast, then slide out of the landing.
-- **Stomp**: land on a skeleton's head to bounce off it.
+- **Stomp**: land on a skeleton's head to bounce off it. Each stomp in a row bounces lower (three at most before you drop), and blows reach a metre above their heads, so you can't ride a horde.
 - **Landings**: landing on a downslope turns your fall into speed.
 - **Steep hills** are where speed comes from: slide down them. The Tor, Windmill Ridge, the barrow mounds and the curved map edges are the big ones.
 - **Kickers** (grassy rises with a sharp lip) and **holy springs** launch you. Jump right as you leave a lip for a bigger launch.

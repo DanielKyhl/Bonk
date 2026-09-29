@@ -266,6 +266,21 @@ func _ready() -> void:
 			print("CONTINUE TEST gold=%d kills=%d time=%d chest3=%s shrine2=%s items=%d pos=%s save_left=%s" % [run.gold,
 				run.kills, int(run.time), chests.is_open[3], shrines.used[2], run.items.size(), player.position.round(),
 				Game.has_saved_run()]))
+	if "--stomp-test" in args:
+		# Check that a horde can't be ridden: drop a weaponless hero onto a
+		# packed crowd holding jump; print stomps and health after 5 s.
+		director.paused = true
+		run.weapons.clear()
+		var c := player.position
+		for gx in range(-4, 5):
+			for gz in range(-4, 5):
+				enemies.spawn(0, c.x + gx * 0.9, c.z + gz * 0.9, 50.0, false)
+		player.position.y += 3.0
+		var stomps := [0]
+		player.stomped.connect(func(_i, _p, _s): stomps[0] += 1)
+		Input.action_press("jump")
+		get_tree().create_timer(5.0).timeout.connect(func():
+			print("STOMP TEST stomps=%d hp=%.0f/%.0f" % [stomps[0], run.hp, run.max_hp]))
 	if "--hurt-test" in args:
 		# Check that enemies hurt: three skeletons walk up to an idle hero with
 		# no weapons; print her health after a few seconds.

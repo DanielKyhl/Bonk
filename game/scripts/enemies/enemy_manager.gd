@@ -18,6 +18,7 @@ const WALK_FPS := 10.0            ## Walk frames per second at the type's anim_s
 const ATTACK_FPS := 12.0
 const STRIKE_TIME := 3.5 / ATTACK_FPS   ## Wind-up: the blow lands mid-swing.
 const STRIKE_SLACK := 0.5         ## Meters past reach a blow still connects (step back to dodge).
+const REACH_UP := 1.0             ## Blows reach this far above the head (no riding the crowd).
 const CLIMB_SLOPE := 1.2          ## Steeper than this is a cliff...
 const CLIMB_SLOW := 0.3           ## ...which slows them to this fraction.
 const CHILL_SLOW := 0.45          ## Speed while chilled (bosses: CHILL_SLOW_BOSS).
@@ -294,10 +295,10 @@ func _process(delta: float) -> void:
 			yaw[i] = lerp_angle(yaw[i], atan2(dx, dz), 1.0 - exp(-8.0 * delta))
 			anim_t[i] += delta * (1.0 if anim[i] == Anim.ATTACK else sp / td.anim_speed)
 			# One blow per swing of the attack animation, if the hero is still
-			# in reach and not above its head.
+			# in reach and not clear above its head.
 			if anim[i] == Anim.ATTACK and hit_cd[i] <= 0.0:
 				hit_cd[i] += _swing[t]
-				if d < reach + STRIKE_SLACK and player.height_above_ground() < top[i] * 0.85:
+				if d < reach + STRIKE_SLACK and player.height_above_ground() < top[i] + REACH_UP:
 					player_hit.emit(dmg[i], Vector3(px[i], py[i], pz[i]), i)
 		kx[i] *= decay
 		kz[i] *= decay

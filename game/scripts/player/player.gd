@@ -36,6 +36,9 @@ const SLAM_BOOST := 2.5
 const PAD_LAUNCH := 47.9
 const PAD_RADIUS := 1.7
 const COYOTE := 0.08
+const STOMP_BOUNCE := 0.82        ## First stomp's bounce, as a fraction of a jump...
+const STOMP_FADE := 0.7           ## ...and each further stomp before touching ground bounces this much less.
+const MAX_AIR_STOMPS := 3         ## After this many you drop into the crowd.
 const STEP := 0.8                 ## Taller than this per substep is a wall.
 const MAX_CLIMB := 1.4            ## Steeper uphill than this is a wall.
 const MAX_SPEED := 36.0           ## 130 km/h: nothing goes faster.
@@ -97,6 +100,7 @@ var _slide_cd := 0.0
 var _pad_cd := 0.0
 var _squash := 0.0
 var _land_anim := 0.0
+var _air_stomps := 0   ## Stomps since last touching the ground.
 
 ## The hero's sprite (run.gd blinks it while invulnerable).
 var model: PlayerSprite
@@ -125,6 +129,7 @@ func place(p: Vector2) -> void:
 	position = Vector3(p.x, terrain.height(p.x, p.y), p.y)
 	vel = Vector3.ZERO
 	grounded = true
+	_air_stomps = 0
 
 
 func speed() -> float:
@@ -258,7 +263,7 @@ func _step(dt: float) -> void:
 		air_time += dt
 		coyote -= dt
 		var stomped_now := false
-		if vel.y < 0.0 and stomp_probe.is_valid():
+		if vel.y < 0.0 and stomp_probe.is_valid() and _air_stomps < MAX_AIR_STOMPS:
 			var idx: int = stomp_probe.call(position, prev_y)
 			if idx >= 0:
 				_stomp(idx)
@@ -382,6 +387,7 @@ func _land(g1: float, ngx: float, ngz: float) -> void:
 		_set_speed(MAX_SPEED)
 	position.y = g1
 	grounded = true
+	_air_stomps = 0
 	slide_air = false
 	vel.y = ngx * vel.x + ngz * vel.z
 	var t := air_time
@@ -426,15 +432,13 @@ func _stomp(idx: int) -> void:
 	slamming = false
 	slide_air = false
 	position.y = top
-	vel.y = jump_vel * (1.05 if _jump_held else 0.82)
+	# Riding a crowd doesn't last: each stomp in a row bounces lower, and it
+	# gains no speed.
+	vel.y = jump_vel * STOMP_BOUNCE * pow(STOMP_FADE, _air_stomps)
+	_air_stomps += 1
 	air_time = 0.0
 	coyote = 0.0
 	air_jumps_left = air_jumps
-	chain += 1
-	best_chain = maxi(best_chain, chain)
-	var sp := speed()
-	if sp > 2.5 and sp < hop_cap:
-		_set_speed(minf(hop_cap, sp * (1.0 + hop_boost)))
 	stomped.emit(idx, position, was_slam)
 
 
