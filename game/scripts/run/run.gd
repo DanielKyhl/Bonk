@@ -266,6 +266,25 @@ func _ready() -> void:
 			print("CONTINUE TEST gold=%d kills=%d time=%d chest3=%s shrine2=%s items=%d pos=%s save_left=%s" % [run.gold,
 				run.kills, int(run.time), chests.is_open[3], shrines.used[2], run.items.size(), player.position.round(),
 				Game.has_saved_run()]))
+	if "--card-test" in args:
+		# Level-up extras: reroll, banish card 1, then skip; print what happened.
+		director.paused = true
+		run.add_xp(40.0)
+		var ids := func() -> String:
+			return ", ".join(menus._choices.map(func(c): return c.id))
+		get_tree().create_timer(0.6).timeout.connect(func():
+			print("CARD TEST offered: ", ids.call())
+			menus._reroll()
+			print("CARD TEST rerolled (%d left): %s" % [run.rerolls, ids.call()])
+			menus._open_at -= 1.0
+			var first: String = menus._choices[0].kind + ":" + menus._choices[0].id
+			menus._toggle_banish()
+			menus._pick(0)
+			print("CARD TEST banished %s (%d left): %s  banned=%s" % [first, run.banishes, ids.call(), run.banished.keys()])
+			menus._open_at -= 1.0
+			var before := run.pending_levels
+			menus._skip()
+			print("CARD TEST skipped: pending %d -> %d, skips left %d, menu open %s" % [before, run.pending_levels, run.skips, menus.is_open()]))
 	if "--stomp-test" in args:
 		# Check that a horde can't be ridden: drop a weaponless hero onto a
 		# packed crowd holding jump; print stomps and health after 5 s.

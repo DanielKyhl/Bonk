@@ -17,6 +17,10 @@ const MAX_WEAPONS := 4
 const MAX_TOMES := 4
 ## Damage reduction never goes past this, however much armor stacks.
 const MAX_ARMOR := 0.6
+## Level-up charges for a whole run (they carry through portals).
+const REROLLS := 3
+const SKIPS := 2
+const BANISHES := 2
 
 var hero_id := "crusader"
 var hero: Dictionary
@@ -41,6 +45,11 @@ var items := {}     ## id -> stacks, in pickup order
 var revives_used := 0
 ## Gold chests bought this run (all stages): each makes the next pricier.
 var chests_bought := 0
+var rerolls := REROLLS
+var skips := SKIPS
+var banishes := BANISHES
+## Weapons and tomes banished from level-ups this run: "weapon:id" / "tome:id".
+var banished := {}
 var blessings := {}  ## stat -> total from prayer shrines
 var boss_killed := false
 var boss_time := 0.0
@@ -150,7 +159,8 @@ func snapshot() -> Dictionary:
 	return {"weapons": weapons.duplicate(), "tomes": tomes.duplicate(), "items": items.duplicate(),
 			"blessings": blessings.duplicate(), "level": level, "xp": xp, "xp_next": xp_next, "gold": gold,
 			"hp_frac": hp / max_hp, "kills": kills, "elites": elites, "score": final_score(), "revives_used": revives_used,
-			"chests_bought": chests_bought}
+			"chests_bought": chests_bought, "rerolls": rerolls, "skips": skips, "banishes": banishes,
+			"banished": banished.duplicate()}
 
 
 func restore(c: Dictionary) -> void:
@@ -167,6 +177,7 @@ func restore(c: Dictionary) -> void:
 	score = c.score
 	revives_used = c.revives_used
 	chests_bought = c.get("chests_bought", 0)
+	_load_charges(c)
 	recompute()
 	hp = max_hp * clampf(c.hp_frac, 0.3, 1.0)
 	hp_changed.emit(hp, max_hp)
@@ -180,7 +191,8 @@ func save_state() -> Dictionary:
 			"blessings": blessings.duplicate(), "level": level, "xp": xp, "xp_next": xp_next, "gold": gold,
 			"kills": kills, "elites": elites, "score": score, "revives_used": revives_used, "time": time,
 			"hp": hp, "aegis_cd": aegis_cd, "boss_killed": boss_killed, "boss_time": boss_time,
-			"pending_levels": pending_levels, "chests_bought": chests_bought}
+			"pending_levels": pending_levels, "chests_bought": chests_bought, "rerolls": rerolls,
+			"skips": skips, "banishes": banishes, "banished": banished.duplicate()}
 
 
 func load_state(d: Dictionary) -> void:
@@ -202,11 +214,19 @@ func load_state(d: Dictionary) -> void:
 	boss_time = d.boss_time
 	pending_levels = d.pending_levels
 	chests_bought = d.get("chests_bought", 0)
+	_load_charges(d)
 	recompute()
 	hp = clampf(d.hp, 1.0, max_hp)
 	hp_changed.emit(hp, max_hp)
 	xp_changed.emit(xp, xp_next, level)
 	gold_changed.emit(gold)
+
+
+func _load_charges(d: Dictionary) -> void:
+	rerolls = d.get("rerolls", REROLLS)
+	skips = d.get("skips", SKIPS)
+	banishes = d.get("banishes", BANISHES)
+	banished = d.get("banished", {})
 
 
 func final_score() -> int:
@@ -227,23 +247,24 @@ func add_item(id: String) -> void:
 # -----------------------------------------------------------------------------
 # Level-up choices
 # -----------------------------------------------------------------------------
-## Up to 3 random offers: new weapons, weapon upgrades, new tomes, tome upgrades.
+## Up to 3 random offers: new weapons, weapon upgrades, new tomes, tome
+## upgrades. Banished ones never come up again this run.
 func roll_choices() -> Array[Dictionary]:
 	var pool: Array[Dictionary] = []
 	for id in weapons:
-		if weapons[id] < Defs.WEAPONS[id].max:
+		if weapons[id] < Defs.WEAPONS[id].max and not banished.has("weapon:" + id):
 			pool.append({"kind": "weapon", "id": id, "weight": 3.0})
 	if weapons.size() < MAX_WEAPONS:
 		for id in Defs.WEAPONS:
 			var owner: String = Defs.WEAPONS[id].get("hero", "")
-			if not weapons.has(id) and (owner == "" or Game.is_hero_unlocked(owner)):
+			if not weapons.has(id) and (owner == "" or Game.is_hero_unlocked(owner)) and not banished.has("weapon:" + id):
 				pool.append({"kind": "weapon", "id": id, "weight": 1.4})
 	for id in tomes:
-		if tomes[id] < Defs.TOMES[id].max:
+		if tomes[id] < Defs.TOMES[id].max and not banished.has("tome:" + id):
 			pool.append({"kind": "tome", "id": id, "weight": 2.2})
 	if tomes.size() < MAX_TOMES:
 		for id in Defs.TOMES:
-			if not tomes.has(id):
+			if not tomes.has(id) and not banished.has("tome:" + id):
 				pool.append({"kind": "tome", "id": id, "weight": 1.0})
 	var out: Array[Dictionary] = []
 	while out.size() < 3 and not pool.is_empty():
@@ -262,6 +283,12 @@ func roll_choices() -> Array[Dictionary]:
 	return out
 
 
+## Removes an offer from level-ups for the rest of the run.
+func banish(c: Dictionary) -> void:
+	banished[c.kind + ":" + c.id] = true
+	banishes -= 1
+
+
 func apply_choice(c: Dictionary) -> void:
 	match c.kind:
 		"weapon":
@@ -271,5 +298,7 @@ func apply_choice(c: Dictionary) -> void:
 			recompute()
 		"heal":
 			heal(max_hp * 0.4)
+		"skip":
+			pass
 	pending_levels = maxi(0, pending_levels - 1)
 	stats_changed.emit()

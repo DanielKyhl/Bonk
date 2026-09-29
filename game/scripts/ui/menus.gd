@@ -17,6 +17,12 @@ var _root: Control
 var _choices: Array[Dictionary] = []
 var _open_at := 0.0
 var _mode := ""
+## Level-up extras (not on shrine blessings): reroll, skip, banish.
+var _extras := false
+var _banishing := false
+var _hint: Label
+var _banish_btn: Button
+var _cards: Array[Button] = []
 
 
 func setup(r: RunState) -> void:
@@ -71,15 +77,106 @@ func show_levelup(choices: Array[Dictionary], heading := "") -> void:
 	var title := UIStyle.label(heading if heading != "" else "Level %d" % run.level, UIStyle.title_font(), 72, UIStyle.GOLD, 10)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(title)
-	var hint := UIStyle.label("Choose one:  1, 2, 3 or click", UIStyle.ui_font("SemiBold"), 20, UIStyle.MUTED)
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_child(hint)
+	_extras = heading == ""
+	_banishing = false
+	_hint = UIStyle.label("", UIStyle.ui_font("SemiBold"), 20, UIStyle.MUTED)
+	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(_hint)
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 22)
 	v.add_child(row)
+	_cards.clear()
 	for i in choices.size():
-		row.add_child(_card(i, choices[i]))
+		var card := _card(i, choices[i])
+		_cards.append(card)
+		row.add_child(card)
+	if _extras:
+		var bar := HBoxContainer.new()
+		bar.alignment = BoxContainer.ALIGNMENT_CENTER
+		bar.add_theme_constant_override("separation", 22)
+		v.add_child(bar)
+		bar.add_child(_extra_button("Reroll (R)", run.rerolls, _reroll))
+		bar.add_child(_extra_button("Skip (Q)", run.skips, _skip))
+		_banish_btn = _extra_button("Banish (B)", run.banishes, _toggle_banish)
+		bar.add_child(_banish_btn)
+	_show_mode()
+
+
+func _extra_button(text: String, left: int, cb: Callable) -> Button:
+	var b := UIStyle.button("%s   %d left" % [text, left], cb, 330)
+	b.disabled = left <= 0
+	return b
+
+
+## Hint line and card tint for picking vs. banishing.
+func _show_mode() -> void:
+	if _banishing:
+		_hint.text = "Banish which?  1, 2, 3 or click.  It won't be offered again this run.  (B to cancel)"
+		_hint.label_settings.font_color = UIStyle.HP
+	else:
+		_hint.text = "Choose one:  1, 2, 3 or click"
+		_hint.label_settings.font_color = UIStyle.MUTED
+	for c in _cards:
+		c.modulate = Color(1.0, 0.55, 0.5) if _banishing else Color.WHITE
+
+
+func _ready_for_input() -> bool:
+	# Ignore input in the first moments so a mashed key doesn't choose for you.
+	return Time.get_ticks_msec() / 1000.0 - _open_at >= 0.35
+
+
+func _reroll() -> void:
+	if not _extras or run.rerolls <= 0 or not _ready_for_input():
+		return
+	run.rerolls -= 1
+	show_levelup(run.roll_choices())
+
+
+func _skip() -> void:
+	if not _extras or run.skips <= 0 or not _ready_for_input():
+		return
+	run.skips -= 1
+	_close()
+	picked.emit({"kind": "skip", "id": "skip"})
+
+
+func _toggle_banish() -> void:
+	if not _extras or run.banishes <= 0:
+		return
+	_banishing = not _banishing
+	_show_mode()
+
+
+## Banishes card i and deals a new card in its place.
+func _banish(i: int) -> void:
+	var c := _choices[i]
+	if c.kind != "weapon" and c.kind != "tome":
+		return
+	run.banish(c)
+	var kept: Array[Dictionary] = []
+	for k in _choices.size():
+		if k != i:
+			kept.append(_choices[k])
+	var fresh: Dictionary = {}
+	for f in run.roll_choices():
+		var dup := false
+		for o in kept:
+			if o.kind == f.kind and o.id == f.id:
+				dup = true
+		if not dup and f.kind != "heal":
+			fresh = f
+			break
+	var next: Array[Dictionary] = []
+	for k in _choices.size():
+		if k != i:
+			next.append(_choices[k])
+		elif not fresh.is_empty():
+			next.append(fresh)
+	if next.is_empty():
+		next.append({"kind": "heal", "id": "heal"})
+	Sound.play("curse", null, 1.6, -8.0)
+	show_levelup(next)
 
 
 func _card(i: int, c: Dictionary) -> Control:
@@ -206,10 +303,10 @@ func _weapon_delta(w: Dictionary, new_lvl: int) -> String:
 
 
 func _pick(i: int) -> void:
-	if _mode != "levelup" or i >= _choices.size():
+	if _mode != "levelup" or i >= _choices.size() or not _ready_for_input():
 		return
-	# Ignore picks in the first moments so a mashed key doesn't choose for you.
-	if Time.get_ticks_msec() / 1000.0 - _open_at < 0.35:
+	if _banishing:
+		_banish(i)
 		return
 	var c := _choices[i]
 	_close()
@@ -223,6 +320,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		for k in 3:
 			if event.is_action_pressed("pick_%d" % (k + 1)):
 				_pick(k)
+				get_viewport().set_input_as_handled()
+				return
+		for a in [["reroll", _reroll], ["skip", _skip], ["banish", _toggle_banish]]:
+			if _extras and event.is_action_pressed(a[0]):
+				(a[1] as Callable).call()
 				get_viewport().set_input_as_handled()
 				return
 	if _mode == "pause" and event.is_action_pressed("pause"):
