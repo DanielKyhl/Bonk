@@ -271,6 +271,13 @@ func _ready() -> void:
 			print("CONTINUE TEST gold=%d kills=%d time=%d chest3=%s shrine2=%s items=%d pos=%s save_left=%s" % [run.gold,
 				run.kills, int(run.time), chests.is_open[3], shrines.used[2], run.items.size(), player.position.round(),
 				Game.has_saved_run()]))
+	if "--portal-test" in args:
+		# Screenshot setup: the boss falls while the hero is far from the altar.
+		director.paused = true
+		get_tree().create_timer(0.3).timeout.connect(func():
+			boss._summon()
+			enemies.damage(enemies.boss_index(), 1e9)
+			hud.clear_banner())
 	if "--caster-test" in args:
 		# Casters: four mages around a weaponless, idle hero; print health and
 		# bolts in flight after 6 s, and take a screenshot mid-volley.

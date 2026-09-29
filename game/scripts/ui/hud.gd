@@ -213,6 +213,12 @@ func _build() -> void:
 		mm.position = Vector2(-Minimap.SIZE - 20, 20)
 		root.add_child(mm)
 		mm.setup(terrain, map, player, camera, chests, shrines, boss)
+	if boss and camera:
+		var arrow := PortalArrow.new()
+		arrow.boss = boss
+		arrow.player = player
+		arrow.camera = camera
+		root.add_child(arrow)
 
 	_fps = UIStyle.label("", UIStyle.ui_font("SemiBold"), 20, UIStyle.MUTED, 4)
 	_fps.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT

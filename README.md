@@ -35,7 +35,7 @@ Pick a hero and a map in the main menu (heroes unlock by reaching goals shown on
 - **Save & quit** from the pause menu keeps the run; **Continue** on the title screen picks it up (once). Unlocks and best scores save on their own.
 - A stage lasts 10 minutes; the horde grows, toughens and hits harder (3x damage by 10:00), elites come every minute, and at 10:00 the endless final swarm begins.
 - Explore for **chests** (gold, and every chest you buy makes the next one pricier for the rest of the run; elites drop free golden ones) and **shrines**: stand in a prayer circle for a blessing, wake a cursed altar for elites and golden chests, or make an offering to greed.
-- Somewhere a tall beam marks **the boss altar**. You can summon the boss any time, but it takes a strong build to beat. Slay it and the altar becomes a portal: step through to carry your whole build on to the next map. The next stage picks up the difficulty where you left off and adds to it (enemies with 1.5x the health and 1.35x the damage per stage, chests 1.6x the price) and unlock that map in the menu, or stay and fight on (kills score double).
+- Somewhere a tall beam marks **the boss altar**. You can summon the boss any time, but it takes a strong build to beat. Slay it and the altar becomes a portal (an arrow around your hero points the way): step through to carry your whole build on to the next map. The next stage picks up the difficulty where you left off and adds to it (enemies with 1.5x the health and 1.35x the damage per stage, chests 1.6x the price) and unlock that map in the menu, or stay and fight on (kills score double).
 
 ## Maps
 
