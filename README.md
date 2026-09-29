@@ -19,7 +19,7 @@ A dark-fantasy pixel-art survivor game with Megabonk-style movement, built in Go
 | --- | --- | --- |
 | WASD / arrows | Left stick | Run (relative to the camera: W is always up the screen) |
 | Mouse | Right stick | Turn the camera around the hero |
-| Space | A | Jump. Press again right as you land to bunny hop (+5% speed per hop) |
+| Space | A | Jump. Press again right as you land to bunny hop (+3% speed per hop) |
 | Shift / C | B / RB / RT | Slide; in the air it's a slam |
 | E | X | Open a chest (or use a shrine) |
 | 1, 2, 3 | D-pad + A | Pick a level-up card |
@@ -32,9 +32,9 @@ A dark-fantasy pixel-art survivor game with Megabonk-style movement, built in Go
 Pick a hero and a map in the main menu (heroes unlock by reaching goals shown on their locked cards; maps unlock by beating the previous map's boss).
 
 - **Save & quit** from the pause menu keeps the run; **Continue** on the title screen picks it up (once). Unlocks and best scores save on their own.
-- A stage lasts 10 minutes; the horde grows and toughens, elites come every minute, and at 10:00 the endless final swarm begins.
-- Explore for **chests** (gold, pricier each time; elites drop free golden ones) and **shrines**: stand in a prayer circle for a blessing, wake a cursed altar for elites and golden chests, or make an offering to greed.
-- Somewhere a tall beam marks **the boss altar**. You can summon the boss any time, but it takes a strong build to beat. Slay it and the altar becomes a portal: step through to carry your whole build on to the next map (a tougher stage) and unlock that map in the menu, or stay and fight on (kills score double).
+- A stage lasts 10 minutes; the horde grows, toughens and hits harder (3x damage by 10:00), elites come every minute, and at 10:00 the endless final swarm begins.
+- Explore for **chests** (gold, and every chest you buy makes the next one pricier for the rest of the run; elites drop free golden ones) and **shrines**: stand in a prayer circle for a blessing, wake a cursed altar for elites and golden chests, or make an offering to greed.
+- Somewhere a tall beam marks **the boss altar**. You can summon the boss any time, but it takes a strong build to beat. Slay it and the altar becomes a portal: step through to carry your whole build on to the next map. The next stage picks up the difficulty where you left off and adds to it (enemies with 1.5x the health and 1.35x the damage per stage, chests 1.6x the price) and unlock that map in the menu, or stay and fight on (kills score double).
 
 ## Maps
 
@@ -63,8 +63,8 @@ Chilled or slowed enemies turn frost-blue and move at half speed.
 
 ## Tricks
 
-- **Bunny hop**: jump the moment you land for +5% speed, up to 54 km/h. Tomes of Agility raise both the gain and the limit (about 100 km/h with four). Hold jump to auto-hop without the boost.
-- **Slide**: slides speed up downhill. Steep ground turns to dirt and rock.
+- **Bunny hop**: jump the moment you land for +3% speed, up to 43 km/h. Tomes of Agility raise both the gain and the limit (about 86 km/h with four). Hold jump to auto-hop without the boost.
+- **Slide**: slides speed up downhill, the steeper the faster (up to 130 km/h, the limit for everything). Steep ground turns to dirt and rock.
 - **Slam**: slide in the air to drop fast, then slide out of the landing.
 - **Stomp**: land on a skeleton's head to bounce off it.
 - **Landings**: landing on a downslope turns your fall into speed.

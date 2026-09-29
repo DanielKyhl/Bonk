@@ -111,7 +111,7 @@ func boss_index() -> int:
 	return -1
 
 
-func spawn(t: int, x: float, z: float, hp_mult := 1.0, rise := true, is_elite := false) -> int:
+func spawn(t: int, x: float, z: float, hp_mult := 1.0, rise := true, is_elite := false, dmg_mult := 1.0) -> int:
 	if count >= MAX:
 		return -1
 	var i := count
@@ -134,7 +134,7 @@ func spawn(t: int, x: float, z: float, hp_mult := 1.0, rise := true, is_elite :=
 	speed[i] = td.speed * randf_range(0.92, 1.08) * (0.9 if is_elite else 1.0)
 	radius[i] = td.radius * (1.35 if is_elite else 1.0)
 	top[i] = 2.0 * s
-	dmg[i] = td.dmg * (1.5 if is_elite else 1.0)
+	dmg[i] = td.dmg * dmg_mult * (1.5 if is_elite else 1.0)
 	state[i] = RISING if rise else ALIVE
 	anim[i] = Anim.SPAWN if rise else Anim.RUN
 	typ[i] = t

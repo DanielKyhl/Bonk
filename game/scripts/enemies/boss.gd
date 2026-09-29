@@ -138,7 +138,7 @@ func _summon() -> void:
 	state = FIGHTING
 	discovered = true
 	_disc.set_shader_parameter("dim", 0.3)
-	enemies.spawn(EnemyManager.BOSS, altar.x, altar.z - 4.0, Game.stage_mult(), true)
+	enemies.spawn(EnemyManager.BOSS, altar.x, altar.z - 4.0, Game.stage_hp_mult(), true, false, Game.stage_dmg_mult())
 	fx.ring(altar, 14.0, map.boss.color, 0.8, 0.2)
 	fx.pillar(altar, 1.0)
 	_camera.add_shake(8.0)
@@ -204,20 +204,20 @@ func _fight(_delta: float) -> void:
 		var off := randf() * TAU
 		for k in n:
 			var a := off + TAU * k / n
-			_shoot(b + Vector3(0, 1.2, 0), Vector3(cos(a), 0, sin(a)) * NOVA_SPEED, NOVA_DAMAGE, map.boss.nova_row, 6.0)
+			_shoot(b + Vector3(0, 1.2, 0), Vector3(cos(a), 0, sin(a)) * NOVA_SPEED, NOVA_DAMAGE * Game.stage_dmg_mult(), map.boss.nova_row, 6.0)
 	if _t >= _next_bolts:
 		_next_bolts = _t + BOLTS_EVERY * pace
 		var aim := (pp + Vector3(0, 1.0, 0) - head).normalized()
 		Sound.play("bolt", head)
 		for k in (5 if enraged else 3):
 			var spread := (k - (2 if enraged else 1)) * 0.16
-			_shoot(head, aim.rotated(Vector3.UP, spread) * BOLT_SPEED, BOLT_DAMAGE, map.boss.bolt_row, 4.0)
+			_shoot(head, aim.rotated(Vector3.UP, spread) * BOLT_SPEED, BOLT_DAMAGE * Game.stage_dmg_mult(), map.boss.bolt_row, 4.0)
 	if _t >= _next_summon:
 		_next_summon = _t + SUMMON_EVERY * pace
 		for k in 10:
 			var a := TAU * k / 10.0
 			var q := terrain.clamp_to_map(Vector2(pp.x + cos(a) * 9.0, pp.z + sin(a) * 9.0), 4.0)
-			enemies.spawn(0, q.x, q.y, 1.0 + run.time / 140.0)
+			enemies.spawn(0, q.x, q.y, (1.0 + run.time / 140.0) * Game.stage_hp_mult(), true, false, Game.stage_dmg_mult())
 
 
 func _shoot(from: Vector3, vel: Vector3, dmg: float, row: int, life: float) -> void:

@@ -36,6 +36,12 @@ func setup(r: RunState, e: EnemyManager, p: Player, t: Terrain) -> void:
 	terrain = t
 
 
+## The difficulty clock: stage time plus every stage already cleared, so a
+## new stage picks up where the last one ended instead of starting over.
+func danger_time() -> float:
+	return run.time + (Game.stage - 1) * STAGE_TIME
+
+
 func _process(delta: float) -> void:
 	if paused or run.dead:
 		return
@@ -49,62 +55,57 @@ func _process(delta: float) -> void:
 	while _acc >= 1.0:
 		_acc -= 1.0
 		if enemies.count < MAX_ALIVE:
-			var p := _spawn_point(34.0)
-			enemies.spawn(_pick_type(t), p.x, p.y, hp_mult(t))
+			_spawn(_pick_type(), _spawn_point(34.0))
 	if t >= _next_wave:
 		_next_wave += 90.0
-		_rising_wave(t)
+		_rising_wave()
 	if t >= _next_elite:
 		_next_elite += 60.0
-		var p := _spawn_point(26.0)
-		var type := WARRIOR if t > 150.0 else SKELETON
-		enemies.spawn(type, p.x, p.y, hp_mult(t), true, true)
+		_spawn(WARRIOR if danger_time() > 150.0 else SKELETON, _spawn_point(26.0), true)
 		banner.emit("An elite approaches", "")
-
-
-## Spawn timers and greed, for "Save & quit".
-func save_state() -> Dictionary:
-	return {"acc": _acc, "next_wave": _next_wave, "next_elite": _next_elite, "wave": _wave,
-			"greed": greed, "final_swarm": final_swarm}
-
-
-func load_state(d: Dictionary) -> void:
-	_acc = d.acc
-	_next_wave = d.next_wave
-	_next_elite = d.next_elite
-	_wave = d.wave
-	greed = d.greed
-	final_swarm = d.final_swarm
 
 
 ## A cursed altar's summons: n elites plus a ring of their followers.
 func summon_elites(n: int) -> void:
-	var t := run.time
+	var late := danger_time() > 120.0
 	for k in n:
-		var p := _spawn_point(18.0)
-		enemies.spawn([WARRIOR, SKELETON, MAGE][k % 3] if t > 120.0 else SKELETON, p.x, p.y, hp_mult(t) * 1.2, true, true)
+		_spawn([WARRIOR, SKELETON, MAGE][k % 3] if late else SKELETON, _spawn_point(18.0), true, 1.2)
 	for k in 24:
-		var p := _spawn_point(22.0)
-		enemies.spawn(_pick_type(t), p.x, p.y, hp_mult(t))
+		_spawn(_pick_type(), _spawn_point(22.0))
 
 
-## Enemies per second at time t.
+func _spawn(type: int, q: Vector2, elite := false, hp_scale := 1.0) -> void:
+	var dt := danger_time()
+	enemies.spawn(type, q.x, q.y, hp_mult(dt) * hp_scale, true, elite, dmg_mult(dt))
+
+
+## Enemies per second at stage time t.
 func spawn_rate(t: float) -> float:
 	var m := t / 60.0
-	var r := (1.3 + 0.85 * m + 0.05 * m * m) * (1.0 + 0.2 * greed) * (1.0 + 0.25 * (Game.stage - 1))
+	var r := (1.3 + 0.85 * m + 0.05 * m * m) * (1.0 + 0.2 * greed) * (1.0 + 0.3 * (Game.stage - 1))
 	if final_swarm:
 		r = r * 2.2 + (t - STAGE_TIME) * 0.05
 	return r
 
 
-func hp_mult(t: float) -> float:
-	var h := (1.0 + t / 140.0) * Game.stage_mult()
+## Enemy health multiplier at danger time dt.
+func hp_mult(dt: float) -> float:
+	var h := (1.0 + dt / 140.0 + pow(dt / 500.0, 2.0)) * Game.stage_hp_mult()
 	if final_swarm:
-		h += (t - STAGE_TIME) / 30.0
+		h += (run.time - STAGE_TIME) / 30.0
 	return h
 
 
-func _pick_type(t: float) -> int:
+## Enemy damage multiplier at danger time dt: 2x at 5:00, 3x at 10:00...
+func dmg_mult(dt: float) -> float:
+	var d := (1.0 + dt / 300.0) * Game.stage_dmg_mult()
+	if final_swarm:
+		d += (run.time - STAGE_TIME) / 150.0
+	return d
+
+
+func _pick_type() -> int:
+	var t := danger_time()
 	var r := randf()
 	if t > 180.0 and r < minf(0.04 + (t - 180.0) / 4000.0, 0.14):
 		return WARRIOR
@@ -131,16 +132,16 @@ func _spawn_point(radius: float) -> Vector2:
 
 
 ## A ring of skeletons claws out of the ground around you.
-func _rising_wave(t: float) -> void:
+func _rising_wave() -> void:
 	_wave += 1
 	var n := mini(24 + _wave * 8, 72)
 	var r := 13.0
 	var p := Vector2(player.position.x, player.position.z)
+	var late := danger_time() > 150.0
 	for k in n:
 		var a := TAU * k / n
 		var q := terrain.clamp_to_map(p + Vector2(cos(a), sin(a)) * r * randf_range(0.95, 1.05), 6.0)
 		if terrain.in_solid(q.x, q.y, 0.5):
 			continue
-		var type := ROGUE if t > 150.0 and k % 4 == 0 else SKELETON
-		enemies.spawn(type, q.x, q.y, hp_mult(t))
+		_spawn(ROGUE if late and k % 4 == 0 else SKELETON, q)
 	banner.emit("The dead rise!", "Jump the ring or cut through it")

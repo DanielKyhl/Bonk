@@ -10,8 +10,8 @@ signal opened(item: String, pos: Vector3)
 const COUNT := 48
 const SPACING := 28.0
 const OPEN_RANGE := 2.8
-const BASE_COST := 15
-const COST_STEP := 10
+const BASE_COST := 30
+const COST_STEP := 20   ## Added per chest already bought this run (all stages).
 const CHEST := "res://assets/kaykit/dungeon/chest.glb"
 const CHEST_GOLD := "res://assets/kaykit/dungeon/chest_gold.glb"
 
@@ -20,7 +20,6 @@ var terrain: Terrain
 var run: RunState
 var player: Player
 var fx: Fx
-var bought := 0
 var _base := 0   ## Chests placed at setup; the rest are golden drops.
 var opened_count := 0
 
@@ -85,11 +84,10 @@ func save_state() -> Dictionary:
 	for i in range(_base, pos.size()):
 		if not is_open[i]:
 			drops.append([pos[i], min_rarity[i]])
-	return {"bought": bought, "opened_count": opened_count, "open": opened, "golden": drops}
+	return {"opened_count": opened_count, "open": opened, "golden": drops}
 
 
 func load_state(d: Dictionary) -> void:
-	bought = d.bought
 	opened_count = d.opened_count
 	for i: int in d.open:
 		if i < _base:
@@ -99,8 +97,9 @@ func load_state(d: Dictionary) -> void:
 		_add(g[0], true, g[1])
 
 
+## Gold for the next chest; later stages multiply it (Game.stage_price_mult).
 func cost() -> int:
-	return BASE_COST + COST_STEP * bought
+	return int(round((BASE_COST + COST_STEP * run.chests_bought) * Game.stage_price_mult()))
 
 
 ## Drops a free golden chest (elites, bosses).
@@ -159,7 +158,7 @@ func _open(i: int) -> void:
 			fx.text(pos[i], "NEED %d GOLD" % c, Color(0.9, 0.3, 0.3), 10)
 			return
 		run.spend_gold(c)
-		bought += 1
+		run.chests_bought += 1
 	is_open[i] = true
 	opened_count += 1
 	_nodes[i].visible = false

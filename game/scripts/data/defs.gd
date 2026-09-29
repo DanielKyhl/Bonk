@@ -42,7 +42,7 @@ const HEROES := {
 		"weapon": "rending_claws",
 		"hp": 130.0,
 		"run_speed": 8.2,
-		"passive": "Bloodlust: heal 3% of the damage you deal.",
+		"passive": "Bloodlust: heal 3% of the damage you deal (at most 3% of max health a second).",
 		"stats": {"lifesteal": 0.03},
 	},
 	"chainwarden": {
@@ -259,7 +259,7 @@ const TOMES := {
 	"leaping": {"name": "Tome of Leaping", "desc": "+8% jump height.", "max": 5, "stat": "jump", "add": 0.04},
 	"iron": {"name": "Tome of Iron", "desc": "Take 6% less damage.", "max": 5, "stat": "armor", "add": 0.06},
 	"vitality": {"name": "Tome of Vitality", "desc": "+25 max health.", "max": 8, "stat": "max_hp", "add": 25.0},
-	"renewal": {"name": "Tome of Renewal", "desc": "+0.6 health per second.", "max": 6, "stat": "regen", "add": 0.6},
+	"renewal": {"name": "Tome of Renewal", "desc": "+0.3 health per second.", "max": 6, "stat": "regen", "add": 0.3},
 	"attraction": {"name": "Tome of Attraction", "desc": "+30% pickup range.", "max": 5, "stat": "pickup", "add": 0.3},
 	"wisdom": {"name": "Tome of Wisdom", "desc": "+10% XP.", "max": 6, "stat": "xp", "add": 0.10},
 	"precision": {"name": "Tome of Precision", "desc": "+6% critical hit chance.", "max": 6, "stat": "crit", "add": 0.06},
@@ -282,20 +282,20 @@ const ITEMS := {
 	# Uncommon
 	"tabard": {"name": "Blessed Tabard", "rarity": 1, "desc": "Take 7% less damage.", "stats": {"armor": 0.07}},
 	"war_horn": {"name": "War Horn", "rarity": 1, "desc": "+12% area.", "stats": {"area": 0.12}},
-	"holy_water": {"name": "Holy Water", "rarity": 1, "desc": "+0.8 health per second.", "stats": {"regen": 0.8}},
+	"holy_water": {"name": "Holy Water", "rarity": 1, "desc": "+0.4 health per second.", "stats": {"regen": 0.4}},
 	"spiked_pauldron": {"name": "Spiked Pauldron", "rarity": 1, "desc": "Enemies that hit you take 40 damage.", "stats": {"thorns": 40.0}},
 	"angel_feather": {"name": "Angel Feather", "rarity": 1, "desc": "One more jump in mid-air.", "stats": {"air_jump": 1.0}},
 	"heart_jar": {"name": "Heart in a Jar", "rarity": 1, "desc": "Kills have a 2% chance to drop a heart.", "stats": {"heart_drop": 0.02}},
 	"cleric_beads": {"name": "Cleric's Beads", "rarity": 1, "desc": "+3% crit chance and +15% crit damage.", "stats": {"crit": 0.03, "crit_mult": 0.15}},
 	# Rare
-	"vampire_fang": {"name": "Vampire Fang", "rarity": 2, "desc": "Heal 2% of the damage you deal.", "stats": {"lifesteal": 0.02}},
+	"vampire_fang": {"name": "Vampire Fang", "rarity": 2, "desc": "Heal 2% of the damage you deal (at most 3% of your max health a second).", "stats": {"lifesteal": 0.02}},
 	"crown_thorns": {"name": "Crown of Thorns", "rarity": 2, "desc": "+35% crit damage.", "stats": {"crit_mult": 0.35}},
 	"saints_finger": {"name": "Saint's Finger", "rarity": 2, "desc": "+12% damage and +10% attack speed.", "stats": {"damage": 0.12, "attack_speed": 0.10}},
 	"reaper_sigil": {"name": "Reaper's Sigil", "rarity": 2, "desc": "Hits have a 2% chance to slay outright (not elites or bosses).", "stats": {"execute": 0.02}},
 	"endless_quiver": {"name": "Endless Quiver", "rarity": 2, "desc": "+1 projectile for every weapon.", "stats": {"count": 1.0}},
 	# Legendary
 	"phoenix_ash": {"name": "Phoenix Ash", "rarity": 3, "desc": "When you fall, rise again with half your health (once per ash).", "stats": {"revive": 1.0}},
-	"holy_grail": {"name": "Holy Grail", "rarity": 3, "desc": "+50 max health and +2 health per second.", "stats": {"max_hp": 50.0, "regen": 2.0}},
+	"holy_grail": {"name": "Holy Grail", "rarity": 3, "desc": "+50 max health and +1 health per second.", "stats": {"max_hp": 50.0, "regen": 1.0}},
 	"dawn_blade": {"name": "Blade of Dawn", "rarity": 3, "desc": "+30% damage and +20% area.", "stats": {"damage": 0.30, "area": 0.20}},
 }
 
@@ -315,7 +315,7 @@ const BLESSINGS := [
 	{"stat": "area", "add": 0.06, "name": "Radiance", "fmt": "+%d%% area", "pct": true, "icon": "reach"},
 	{"stat": "move_speed", "add": 0.04, "name": "Haste", "fmt": "+%d%% run speed", "pct": true, "icon": "swiftness"},
 	{"stat": "crit", "add": 0.03, "name": "Precision", "fmt": "+%d%% crit chance", "pct": true, "icon": "precision"},
-	{"stat": "regen", "add": 0.4, "name": "Renewal", "fmt": "+%.1f health per second", "pct": false, "icon": "renewal"},
+	{"stat": "regen", "add": 0.2, "name": "Renewal", "fmt": "+%.1f health per second", "pct": false, "icon": "renewal"},
 	{"stat": "pickup", "add": 0.15, "name": "Attraction", "fmt": "+%d%% pickup range", "pct": true, "icon": "attraction"},
 	{"stat": "xp", "add": 0.05, "name": "Wisdom", "fmt": "+%d%% XP", "pct": true, "icon": "wisdom"},
 	{"stat": "armor", "add": 0.03, "name": "Resolve", "fmt": "Take %d%% less damage", "pct": true, "icon": "iron"},

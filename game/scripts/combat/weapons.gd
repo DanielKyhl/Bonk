@@ -4,6 +4,8 @@ extends Node3D
 ## every hit goes through hit(), which applies damage stats and crits.
 
 const MAX_PROJ := 64
+## Lifesteal heals at most this fraction of max health per second.
+const LIFESTEAL_CAP := 0.03
 
 var run: RunState
 var player: Player
@@ -198,7 +200,7 @@ func _process(delta: float) -> void:
 	_draw_sprites(delta)
 	_sprites.commit()
 	if _heal_acc > 0.0:
-		run.heal(_heal_acc)
+		run.heal(minf(_heal_acc, run.max_hp * LIFESTEAL_CAP * delta))
 		_heal_acc = 0.0
 
 

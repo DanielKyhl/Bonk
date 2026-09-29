@@ -15,6 +15,8 @@ signal item_added(id: String)
 
 const MAX_WEAPONS := 4
 const MAX_TOMES := 4
+## Damage reduction never goes past this, however much armor stacks.
+const MAX_ARMOR := 0.6
 
 var hero_id := "crusader"
 var hero: Dictionary
@@ -37,6 +39,8 @@ var weapons := {}   ## id -> level, in pickup order
 var tomes := {}     ## id -> level
 var items := {}     ## id -> stacks, in pickup order
 var revives_used := 0
+## Gold chests bought this run (all stages): each makes the next pricier.
+var chests_bought := 0
 var blessings := {}  ## stat -> total from prayer shrines
 var boss_killed := false
 var boss_time := 0.0
@@ -122,7 +126,7 @@ func take_damage(amount: float) -> bool:
 		iframes = 0.5
 		blocked.emit()
 		return false
-	hp -= amount * (1.0 - clampf(stats.armor, 0.0, 0.8))
+	hp -= amount * (1.0 - clampf(stats.armor, 0.0, MAX_ARMOR))
 	iframes = 0.55
 	if hp <= 0.0:
 		if stats.revive > revives_used:
@@ -145,7 +149,8 @@ func take_damage(amount: float) -> bool:
 func snapshot() -> Dictionary:
 	return {"weapons": weapons.duplicate(), "tomes": tomes.duplicate(), "items": items.duplicate(),
 			"blessings": blessings.duplicate(), "level": level, "xp": xp, "xp_next": xp_next, "gold": gold,
-			"hp_frac": hp / max_hp, "kills": kills, "elites": elites, "score": final_score(), "revives_used": revives_used}
+			"hp_frac": hp / max_hp, "kills": kills, "elites": elites, "score": final_score(), "revives_used": revives_used,
+			"chests_bought": chests_bought}
 
 
 func restore(c: Dictionary) -> void:
@@ -161,6 +166,7 @@ func restore(c: Dictionary) -> void:
 	elites = c.elites
 	score = c.score
 	revives_used = c.revives_used
+	chests_bought = c.get("chests_bought", 0)
 	recompute()
 	hp = max_hp * clampf(c.hp_frac, 0.3, 1.0)
 	hp_changed.emit(hp, max_hp)
@@ -174,7 +180,7 @@ func save_state() -> Dictionary:
 			"blessings": blessings.duplicate(), "level": level, "xp": xp, "xp_next": xp_next, "gold": gold,
 			"kills": kills, "elites": elites, "score": score, "revives_used": revives_used, "time": time,
 			"hp": hp, "aegis_cd": aegis_cd, "boss_killed": boss_killed, "boss_time": boss_time,
-			"pending_levels": pending_levels}
+			"pending_levels": pending_levels, "chests_bought": chests_bought}
 
 
 func load_state(d: Dictionary) -> void:
@@ -195,6 +201,7 @@ func load_state(d: Dictionary) -> void:
 	boss_killed = d.boss_killed
 	boss_time = d.boss_time
 	pending_levels = d.pending_levels
+	chests_bought = d.get("chests_bought", 0)
 	recompute()
 	hp = clampf(d.hp, 1.0, max_hp)
 	hp_changed.emit(hp, max_hp)

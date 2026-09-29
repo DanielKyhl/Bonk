@@ -12,7 +12,8 @@ var hero_id := "crusader"
 var unlock_all := false
 var map_id := "hallowed_vale"
 ## Stage of the current run: 1 on a fresh run, +1 for every boss portal
-## taken. Later stages are tougher (see stage_mult).
+## taken. Later stages are much tougher (see stage_hp_mult) and the
+## difficulty clock carries on across them (Director.danger_time).
 var stage := 1
 ## A build carried through a boss portal (RunState.snapshot()), or empty.
 var carry := {}
@@ -110,9 +111,18 @@ func _bind(action: String, keys: Array, buttons: Array, axes: Array) -> void:
 # -----------------------------------------------------------------------------
 # Saved progress
 # -----------------------------------------------------------------------------
-## Enemy health multiplier for the current stage.
-func stage_mult() -> float:
-	return 1.0 + 0.75 * (stage - 1)
+## Extra enemy health, enemy damage and chest prices for the current stage,
+## on top of the difficulty clock carrying on from the stages before.
+func stage_hp_mult() -> float:
+	return pow(1.5, stage - 1)
+
+
+func stage_dmg_mult() -> float:
+	return pow(1.35, stage - 1)
+
+
+func stage_price_mult() -> float:
+	return pow(1.6, stage - 1)
 
 
 ## The map after `id` in unlock order, or {} for the last one.

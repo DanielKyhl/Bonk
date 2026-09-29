@@ -28,16 +28,17 @@ const HOP_AFTER := 0.07           ## ...or this long after.
 const SLIDE_MIN := 5.8
 const SLIDE_BOOST_CD := 0.9
 const SLIDE_TURN := 1.5
-const SLOPE_SLIDE := 70.0         ## Downhill pull while sliding, per unit of gradient.
+const SLOPE_SLIDE := 55.0         ## Downhill pull while sliding, per unit of gradient.
+const SLIDE_DRAG := 0.01          ## Sliding slows by this x speed^2, so steep slides top out.
 const SLOPE_RUN := 15.8
 const SLAM_VEL := 70.8
-const SLAM_BOOST := 5.0
+const SLAM_BOOST := 2.5
 const PAD_LAUNCH := 47.9
 const PAD_RADIUS := 1.7
 const COYOTE := 0.08
 const STEP := 0.8                 ## Taller than this per substep is a wall.
 const MAX_CLIMB := 1.4            ## Steeper uphill than this is a wall.
-const MAX_SPEED := 91.7
+const MAX_SPEED := 36.0           ## 130 km/h: nothing goes faster.
 const KMH := 3.6
 
 # --- Stats (upgrades change these) ------------------------------------------
@@ -45,10 +46,10 @@ var run_speed := 7.6
 var jump_vel := 26.7
 var air_jumps := 0
 ## Bunny hops start modest; Tomes of Agility raise both (see run.gd).
-var hop_boost := 0.05
-var hop_cap := 15.0
+var hop_boost := 0.03
+var hop_cap := 12.0
 var slide_friction := 8.0
-var slide_boost := 1.2
+var slide_boost := 0.6
 var air_turn := 2.6
 var air_accel := 45.8
 
@@ -410,7 +411,7 @@ func _slam_impact(impact: float) -> void:
 		dir = wish
 		sp = 0.0
 	if dir != Vector2.ZERO:
-		var cap := hop_cap + 6.25
+		var cap := hop_cap + 2.0
 		var ns := minf(cap, sp + SLAM_BOOST) if sp < cap else sp
 		vel.x = dir.x * ns
 		vel.z = dir.y * ns
@@ -469,7 +470,7 @@ func _move_slide(dt: float, has_wish: bool, sgx: float, sgz: float) -> void:
 		var d := hv / sp
 		if has_wish:
 			d = _rotate_toward(d, wish, SLIDE_TURN * dt)
-		sp = maxf(0.0, sp - slide_friction * dt)
+		sp = maxf(0.0, sp - (slide_friction + SLIDE_DRAG * sp * sp) * dt)
 		hv = d * sp
 	vel.x = hv.x - sgx * SLOPE_SLIDE * dt
 	vel.z = hv.y - sgz * SLOPE_SLIDE * dt
