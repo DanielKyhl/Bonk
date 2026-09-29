@@ -241,11 +241,16 @@ func _ready() -> void:
 				print("MOUSE TEST mode=%d turned=%.1f deg" % [Input.mouse_mode, rad_to_deg(before - camera._target_yaw)])))
 	for a in args:
 		if a.begins_with("--pause"):
-			# Screenshot setup: --pause opens the pause menu, --pause=settings its settings.
+			# Screenshot setup: --pause opens the pause menu; =settings or =build a page of it.
 			get_tree().create_timer(0.5).timeout.connect(func():
 				get_tree().paused = true
 				hud.clear_banner()
-				menus.show_settings() if a == "--pause=settings" else menus.show_pause())
+				if a == "--pause=settings":
+					menus.show_settings()
+				elif a == "--pause=build":
+					menus.show_build()
+				else:
+					menus.show_pause())
 	if "--save-test" in args:
 		# Step 1 of the save test: change some state, then Save & quit.
 		get_tree().create_timer(1.0).timeout.connect(func():

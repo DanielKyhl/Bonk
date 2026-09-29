@@ -24,7 +24,7 @@ A dark-fantasy pixel-art survivor game with Megabonk-style movement, built in Go
 | E | X | Open a chest (or use a shrine) |
 | 1, 2, 3 | D-pad + A | Pick a level-up card |
 | R / Q / B | Y (reroll) | On level-up: reroll the cards, skip the level, or banish a card for the run (3 rerolls, 2 skips, 2 banishes per run) |
-| Esc | Start | Pause: resume, settings, save & quit (frees the mouse; click the game to capture it again) |
+| Esc | Start | Pause: resume, your build (weapons, tomes, items, stats), settings, save & quit (frees the mouse; click the game to capture it again) |
 | F |  | Toggle the debug line (FPS, enemies, speed) |
 | F11 |  | Fullscreen |
 

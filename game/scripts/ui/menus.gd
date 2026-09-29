@@ -331,7 +331,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		_close()
 		resume_requested.emit()
 		get_viewport().set_input_as_handled()
-	elif _mode == "settings" and event.is_action_pressed("pause"):
+	elif (_mode == "settings" or _mode == "build") and event.is_action_pressed("pause"):
 		show_pause()
 		get_viewport().set_input_as_handled()
 
@@ -365,6 +365,7 @@ func show_pause() -> void:
 	v.add_child(t)
 	var resume := _button("Resume", func(): _close(); resume_requested.emit())
 	v.add_child(resume)
+	v.add_child(_button("Build", show_build))
 	v.add_child(_button("Settings", show_settings))
 	v.add_child(_button("Save & quit", func(): save_requested.emit()))
 	v.add_child(_button("Restart run", func(): _close(); restart_requested.emit()))
@@ -388,6 +389,118 @@ func show_settings() -> void:
 	c.add_child(back)
 	v.add_child(c)
 	back.call_deferred("grab_focus")
+
+
+## Everything the hero carries and the stats it adds up to.
+func show_build() -> void:
+	_clear()
+	_mode = "build"
+	_root.visible = true
+	_backdrop(0.88)
+	var v := _center_box(1400)
+	v.add_theme_constant_override("separation", 14)
+	var t := UIStyle.label("Your build", UIStyle.title_font(), 72, UIStyle.GOLD, 10)
+	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(t)
+	var secs := int(run.time)
+	var sub := UIStyle.label("Level %d   ·   Stage %d   ·   %d:%02d" % [run.level, Game.stage, secs / 60, secs % 60],
+			UIStyle.ui_font("Bold"), 20, UIStyle.MUTED, 0)
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(sub)
+
+	var cols := HBoxContainer.new()
+	cols.add_theme_constant_override("separation", 40)
+	cols.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.add_child(cols)
+	var wl := _build_column(cols, "Weapons", 380)
+	for id: String in run.weapons:
+		var w: Dictionary = Defs.WEAPONS[id]
+		wl.add_child(_build_row(id, w.name, "Lv %d / %d" % [run.weapons[id], w.max], w.color))
+	var tl := _build_column(cols, "Tomes", 380)
+	for id: String in run.tomes:
+		var tm: Dictionary = Defs.TOMES[id]
+		tl.add_child(_build_row(id, tm.name.trim_prefix("Tome of "), "Lv %d / %d" % [run.tomes[id], tm.max], UIStyle.XP))
+	if run.tomes.is_empty():
+		tl.add_child(UIStyle.label("None yet", UIStyle.ui_font("Regular"), 16, UIStyle.MUTED, 0))
+	var il := _build_column(cols, "Items", 440)
+	var grid := GridContainer.new()
+	grid.columns = 7
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
+	il.add_child(grid)
+	for id: String in run.items:
+		var it: Dictionary = Defs.ITEMS[id]
+		var cell := Control.new()
+		cell.custom_minimum_size = Vector2(56, 56)
+		cell.tooltip_text = "%s: %s" % [it.name, it.desc]
+		cell.mouse_filter = Control.MOUSE_FILTER_PASS
+		var ic := UIStyle.icon_rect(id, 2)
+		ic.modulate = Color.WHITE.lerp(Defs.RARITIES[it.rarity].color, 0.15)
+		cell.add_child(ic)
+		if run.items[id] > 1:
+			var n := UIStyle.label("x%d" % run.items[id], UIStyle.ui_font("Bold"), 20, UIStyle.PARCH, 4)
+			n.position = Vector2(30, 32)
+			cell.add_child(n)
+		grid.add_child(cell)
+	if run.items.is_empty():
+		il.add_child(UIStyle.label("None yet: open chests", UIStyle.ui_font("Regular"), 16, UIStyle.MUTED, 0))
+
+	var st := run.stats
+	var pct := func(x: float) -> String: return "%+d%%" % roundi(x * 100.0)
+	var rows := [
+		["Max health", "%d" % roundi(run.max_hp)], ["Regen", "%.1f / s" % st.regen],
+		["Damage taken", "-%d%%" % roundi(clampf(st.armor, 0.0, RunState.MAX_ARMOR) * 100.0)], ["Lifesteal", "%d%%" % roundi(st.lifesteal * 100.0)],
+		["Damage", pct.call(st.damage - 1.0)], ["Attack speed", pct.call(st.attack_speed - 1.0)],
+		["Area", pct.call(st.area - 1.0)], ["Projectiles", "%+d" % int(st.count)],
+		["Crit chance", "%d%%" % roundi(st.crit * 100.0)], ["Crit damage", "x%.2f" % st.crit_mult],
+		["Run speed", pct.call(st.move_speed - 1.0)], ["Pickup range", pct.call(st.pickup - 1.0)],
+		["XP", pct.call(st.xp - 1.0)], ["Gold", pct.call(st.gold - 1.0)],
+		["Luck", pct.call(st.luck)], ["Revives", "%d" % maxi(0, int(st.revive) - run.revives_used)],
+		["Rerolls / skips / banishes", "%d / %d / %d" % [run.rerolls, run.skips, run.banishes]],
+		["Next chest", "%d gold" % Chests.price(run.chests_bought)],
+	]
+	var sg := GridContainer.new()
+	sg.columns = 4
+	sg.add_theme_constant_override("h_separation", 22)
+	sg.add_theme_constant_override("v_separation", 6)
+	var sc := CenterContainer.new()
+	sc.add_child(sg)
+	v.add_child(sc)
+	for r in rows:
+		var k := UIStyle.label(str(r[0]).to_upper(), UIStyle.ui_font("SemiBold"), 20, UIStyle.MUTED, 0)
+		k.custom_minimum_size = Vector2(240, 0)
+		sg.add_child(k)
+		var val := UIStyle.label(str(r[1]), UIStyle.ui_font("Bold"), 20, UIStyle.PARCH, 0)
+		val.custom_minimum_size = Vector2(120, 0)
+		sg.add_child(val)
+	var c := CenterContainer.new()
+	var back := _button("Back", show_pause)
+	c.add_child(back)
+	v.add_child(c)
+	back.call_deferred("grab_focus")
+
+
+func _build_column(parent: Container, heading: String, width: float) -> VBoxContainer:
+	var col := VBoxContainer.new()
+	col.custom_minimum_size = Vector2(width, 0)
+	col.add_theme_constant_override("separation", 6)
+	parent.add_child(col)
+	col.add_child(UIStyle.label(heading, UIStyle.title_font(), 48, UIStyle.GOLD, 8))
+	return col
+
+
+func _build_row(icon: String, text: String, level: String, color: Color) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	row.add_child(UIStyle.icon_rect(icon, 2))
+	var n := UIStyle.label(text, UIStyle.ui_font("Bold"), 20, UIStyle.PARCH, 0)
+	n.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	n.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(n)
+	var l := UIStyle.label(level, UIStyle.ui_font("Bold"), 20, color, 0)
+	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(l)
+	return row
 
 
 func show_death(title: String, rows: Array, sub := "", onward := "") -> void:

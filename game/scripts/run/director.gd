@@ -65,6 +65,21 @@ func _process(delta: float) -> void:
 		banner.emit("An elite approaches", "")
 
 
+## Spawn timers and greed, for "Save & quit".
+func save_state() -> Dictionary:
+	return {"acc": _acc, "next_wave": _next_wave, "next_elite": _next_elite, "wave": _wave,
+			"greed": greed, "final_swarm": final_swarm}
+
+
+func load_state(d: Dictionary) -> void:
+	_acc = d.acc
+	_next_wave = d.next_wave
+	_next_elite = d.next_elite
+	_wave = d.wave
+	greed = d.greed
+	final_swarm = d.final_swarm
+
+
 ## A cursed altar's summons: n elites plus a ring of their followers.
 func summon_elites(n: int) -> void:
 	var late := danger_time() > 120.0

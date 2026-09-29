@@ -99,7 +99,11 @@ func load_state(d: Dictionary) -> void:
 
 ## Gold for the next chest; later stages multiply it (Game.stage_price_mult).
 func cost() -> int:
-	return int(round((BASE_COST + COST_STEP * run.chests_bought) * Game.stage_price_mult()))
+	return price(run.chests_bought)
+
+
+static func price(bought: int) -> int:
+	return int(round((BASE_COST + COST_STEP * bought) * Game.stage_price_mult()))
 
 
 ## Drops a free golden chest (elites, bosses).
