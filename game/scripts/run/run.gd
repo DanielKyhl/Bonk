@@ -266,6 +266,16 @@ func _ready() -> void:
 			print("CONTINUE TEST gold=%d kills=%d time=%d chest3=%s shrine2=%s items=%d pos=%s save_left=%s" % [run.gold,
 				run.kills, int(run.time), chests.is_open[3], shrines.used[2], run.items.size(), player.position.round(),
 				Game.has_saved_run()]))
+	if "--caster-test" in args:
+		# Casters: four mages around a weaponless, idle hero; print health and
+		# bolts in flight after 6 s, and take a screenshot mid-volley.
+		director.paused = true
+		run.weapons.clear()
+		for k in 4:
+			var a := TAU * k / 4.0 + 0.4
+			enemies.spawn(3, player.position.x + cos(a) * 15.0, player.position.z + sin(a) * 15.0, 20.0, false)
+		get_tree().create_timer(6.0).timeout.connect(func():
+			print("CASTER TEST hp=%.0f/%.0f bolts=%d" % [run.hp, run.max_hp, enemies._sp.size()]))
 	if "--card-test" in args:
 		# Level-up extras: reroll, banish card 1, then skip; print what happened.
 		director.paused = true

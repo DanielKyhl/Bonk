@@ -19,6 +19,12 @@ const ATTACK_FPS := 12.0
 const STRIKE_TIME := 3.5 / ATTACK_FPS   ## Wind-up: the blow lands mid-swing.
 const STRIKE_SLACK := 0.5         ## Meters past reach a blow still connects (step back to dodge).
 const REACH_UP := 1.0             ## Blows reach this far above the head (no riding the crowd).
+## Casters (types with a "shot_row") stop at range and spit slow bolts.
+const CAST_RANGE := 11.0
+const CAST_EVERY := 2.6
+const SHOT_SPEED := 10.0
+const SHOT_LIFE := 2.4
+const MAX_SHOTS := 96
 const CLIMB_SLOPE := 1.2          ## Steeper than this is a cliff...
 const CLIMB_SLOW := 0.3           ## ...which slows them to this fraction.
 const CHILL_SLOW := 0.45          ## Speed while chilled (bosses: CHILL_SLOW_BOSS).
@@ -65,6 +71,14 @@ var _frame := 0
 var _mm: Array[MultiMesh] = []
 var _atlas: Array[SpriteAtlas] = []
 var _swing: PackedFloat32Array = []   ## Seconds per attack animation loop, per type.
+var _ranged: PackedByteArray = []      ## 1 for caster types.
+## Casters' bolts in flight: position, velocity, life, damage, sprite row.
+var _sp := PackedVector3Array()
+var _sv := PackedVector3Array()
+var _sl := PackedFloat32Array()
+var _sd := PackedFloat32Array()
+var _sr := PackedInt32Array()
+var _shots: SpriteBatch
 var _query := PackedInt32Array()
 
 
@@ -92,6 +106,7 @@ func setup(t: Terrain, p: Player) -> void:
 		var atlas := SpriteAtlas.get_atlas(td.sprite)
 		_atlas.append(atlas)
 		_swing.append(atlas.frames(td.attack) / ATTACK_FPS)
+		_ranged.append(1 if td.has("shot_row") else 0)
 		var mm := atlas.multimesh(MAX)
 		var mmi := MultiMeshInstance3D.new()
 		mmi.multimesh = mm
@@ -266,7 +281,8 @@ func _process(delta: float) -> void:
 			var dx := ppos.x - px[i]
 			var dz := ppos.z - pz[i]
 			var d := sqrt(dx * dx + dz * dz) + 0.0001
-			var reach := radius[i] + Player.RADIUS + 1.1
+			var ranged := _ranged[t] == 1
+			var reach := CAST_RANGE if ranged else radius[i] + Player.RADIUS + 1.1
 			var sp := speed[i]
 			if slow_t[i] > 0.0:
 				sp *= CHILL_SLOW_BOSS if elite[i] == 2 else CHILL_SLOW
@@ -295,11 +311,17 @@ func _process(delta: float) -> void:
 			yaw[i] = lerp_angle(yaw[i], atan2(dx, dz), 1.0 - exp(-8.0 * delta))
 			anim_t[i] += delta * (1.0 if anim[i] == Anim.ATTACK else sp / td.anim_speed)
 			# One blow per swing of the attack animation, if the hero is still
-			# in reach and not clear above its head.
+			# in reach and not clear above its head. Casters spit a bolt instead
+			# and replay the cast (drawn once, then held).
 			if anim[i] == Anim.ATTACK and hit_cd[i] <= 0.0:
-				hit_cd[i] += _swing[t]
-				if d < reach + STRIKE_SLACK and player.height_above_ground() < top[i] + REACH_UP:
-					player_hit.emit(dmg[i], Vector3(px[i], py[i], pz[i]), i)
+				if ranged:
+					hit_cd[i] = CAST_EVERY
+					anim_t[i] = STRIKE_TIME
+					_cast(i, td.shot_row)
+				else:
+					hit_cd[i] += _swing[t]
+					if d < reach + STRIKE_SLACK and player.height_above_ground() < top[i] + REACH_UP:
+						player_hit.emit(dmg[i], Vector3(px[i], py[i], pz[i]), i)
 		kx[i] *= decay
 		kz[i] *= decay
 		i += 1
@@ -308,8 +330,61 @@ func _process(delta: float) -> void:
 	_rebuild_hash()
 	_separate()
 	_collide_world()
+	_update_shots(delta)
 	_draw()
 	Prof.add("enemies", Time.get_ticks_usec() - __t)
+
+
+# -----------------------------------------------------------------------------
+# Casters' bolts
+# -----------------------------------------------------------------------------
+func _cast(i: int, row: int) -> void:
+	if _sp.size() >= MAX_SHOTS:
+		return
+	var from := Vector3(px[i], py[i] + top[i] * 0.7, pz[i])
+	var to := player.position + Vector3(0, 1.0, 0)
+	_sp.append(from)
+	_sv.append((to - from).normalized() * SHOT_SPEED)
+	_sl.append(SHOT_LIFE)
+	_sd.append(dmg[i])
+	_sr.append(row)
+
+
+## Moves the bolts; one that reaches the hero hits (jump or sidestep to dodge).
+func _update_shots(delta: float) -> void:
+	if _shots == null:
+		_shots = SpriteBatch.new()
+		_shots.setup(load("res://assets/sprites/boss_fx.png"), Vector2(4, 9), 24.0, 12.0, 1.0)
+		add_child(_shots)
+	_shots.begin()
+	if _sp.is_empty():
+		_shots.commit()
+		return
+	var pp := player.position + Vector3(0, 1.0, 0)
+	var cam := get_viewport().get_camera_3d()
+	var k := 0
+	while k < _sp.size():
+		_sl[k] -= delta
+		var p := _sp[k] + _sv[k] * delta
+		p.y = maxf(p.y, terrain.grid_height(p.x, p.z) + 0.6)
+		_sp[k] = p
+		var hit := Vector2(p.x - pp.x, p.z - pp.z).length() < 0.8 and absf(p.y - pp.y) < 1.3
+		if hit:
+			player_hit.emit(_sd[k], p, -1)
+		if hit or _sl[k] <= 0.0:
+			_sp.remove_at(k)
+			_sv.remove_at(k)
+			_sl.remove_at(k)
+			_sd.remove_at(k)
+			_sr.remove_at(k)
+			continue
+		var ang := 0.0
+		if cam:
+			var b := cam.global_transform.basis
+			ang = atan2(_sv[k].dot(b.y), _sv[k].dot(b.x))
+		_shots.add(p, (Time.get_ticks_msec() / 100 + k) % 4, _sr[k], ang)
+		k += 1
+	_shots.commit()
 
 
 func _remove(i: int) -> void:
@@ -422,7 +497,8 @@ func _draw() -> void:
 				Anim.RUN:
 					code = atlas.code("walk", 1 + int(anim_t[i] * WALK_FPS) % 8)
 				Anim.ATTACK:
-					code = atlas.code(attack, int(anim_t[i] * ATTACK_FPS) % attack_n)
+					var f := int(anim_t[i] * ATTACK_FPS)
+					code = atlas.code(attack, mini(f, attack_n - 1) if _ranged[t] == 1 else f % attack_n)
 				Anim.SPAWN:
 					code = atlas.code("walk", 0)
 					y -= (1.0 - anim_t[i] / RISE_TIME) * top[i]

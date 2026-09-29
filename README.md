@@ -43,6 +43,8 @@ Pick a hero and a map in the main menu (heroes unlock by reaching goals shown on
 2. **Frostfang Peaks**: frozen mountains with the longest slides. Draugr, ice wraiths, draugr warriors and frost mages; boss Skarn, the Draugr King.
 3. **Blightmire**: a rotting swamp of bogs and stumps. Bog zombies, sackheads, bog brutes and plague witches; boss Mother Rot, the Bog Witch.
 
+The casters (skeleton mages, frost mages, plague witches) stop about 11 m away and spit slow bolts: sidestep or jump them.
+
 ## Heroes
 
 The Crusader is ready from the start; each other hero unlocks by a goal shown on its locked card. Every hero starts with a signature weapon, and once a hero is unlocked that weapon can turn up in any hero's level-ups.

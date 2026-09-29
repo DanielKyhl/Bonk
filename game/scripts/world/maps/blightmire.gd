@@ -39,7 +39,7 @@ func _init() -> void:
 		{"name": "Bog Zombie", "sprite": "bog_zombie", "attack": "slash", "radius": 0.5, "scale": 1.0, "speed": 4.6, "hp": 34.0, "dmg": 11.0, "xp": 1, "anim_speed": 5.8},
 		{"name": "Sackhead", "sprite": "sackhead", "attack": "slash", "radius": 0.45, "scale": 1.0, "speed": 8.5, "hp": 18.0, "dmg": 9.0, "xp": 1, "anim_speed": 8.5},
 		{"name": "Bog Brute", "sprite": "bog_brute", "attack": "slash", "radius": 0.95, "scale": 1.5, "speed": 3.2, "hp": 240.0, "dmg": 24.0, "xp": 8, "anim_speed": 4.0},
-		{"name": "Plague Witch", "sprite": "plague_witch", "attack": "spellcast", "radius": 0.5, "scale": 1.0, "speed": 3.8, "hp": 52.0, "dmg": 12.0, "xp": 3, "anim_speed": 4.8},
+		{"name": "Plague Witch", "sprite": "plague_witch", "attack": "spellcast", "radius": 0.5, "scale": 1.0, "speed": 3.8, "hp": 52.0, "dmg": 12.0, "xp": 3, "anim_speed": 4.8, "shot_row": 8},
 		{"name": "Mother Rot, the Bog Witch", "sprite": "mother_rot", "attack": "spellcast", "radius": 1.6, "scale": 3.0, "speed": 4.5, "hp": 60000.0, "dmg": 42.0, "xp": 0, "anim_speed": 5.6},
 	]
 	boss = {

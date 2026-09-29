@@ -1,6 +1,7 @@
 """Pixel sprites for weapon effects (weapons_fx.png) and boss projectiles
 (boss_fx.png rows: 0 death bolt, 1 soul orb, 2 ice shard, 3 frost orb,
-4 bile bolt, 5 plague orb), 24px frames, 4 columns.
+4 bile bolt, 5 plague orb; 6-8 enemy casters' bolts: grave, frost, bile),
+24px frames, 4 columns.
 
 weapons_fx.png rows (5-10 are hero weapons: 5 claw slash, 6 chain link,
 7 ice shard, 8 soul blade, 9 soul skull, 10 dragon fire):
@@ -144,6 +145,21 @@ def death_bolt(img, row=0, colors=((110, 30, 160, 255), (140, 50, 200, 255), (20
         fr.outline()
 
 
+def caster_bolt(img, row, colors):
+    """A small spat bolt with a thin tail (points right): enemy casters."""
+    tail, rim, body, core = colors
+    for f in range(4):
+        fr = Frame(img, f, row)
+        for k in range(3):
+            y = 11.5 + (k - 1) * 1.4
+            ln = 7 - abs(k - 1) * 3 + (f + k) % 2
+            fr.line(12 - ln, y, 12, y, tail)
+        fr.disc(13.5, 11.5, 4.0, rim)
+        fr.disc(14.0, 11.5, 2.6, body)
+        fr.disc(14.5, 11.0, 1.2, core)
+        fr.outline()
+
+
 def claw(img):
     """Three bold curved rakes: they tear in (frames 0-1), then thin out."""
     red, dark, white = (200, 40, 40, 255), (120, 16, 24, 255), (255, 236, 226, 255)
@@ -257,13 +273,16 @@ def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     img.save(OUT)
     print("saved", OUT)
-    boss = Image.new("RGBA", (4 * F, 6 * F))
+    boss = Image.new("RGBA", (4 * F, 9 * F))
     death_bolt(boss)
     orb(boss, 1, ((40, 120, 60, 255), (90, 220, 110, 255), (200, 255, 190, 255)))
     death_bolt(boss, 2, ((60, 140, 190, 255), (90, 180, 230, 255), (170, 230, 255, 255), (255, 255, 255, 255)))
     orb(boss, 3, ((120, 170, 220, 255), (200, 230, 255, 255), (250, 252, 255, 255)))
     death_bolt(boss, 4, ((110, 130, 30, 255), (150, 170, 40, 255), (200, 220, 90, 255), (240, 250, 190, 255)))
     orb(boss, 5, ((80, 70, 30, 255), (130, 120, 50, 255), (190, 180, 100, 255)))
+    caster_bolt(boss, 6, ((60, 110, 40, 255), (110, 190, 70, 255), (190, 240, 140, 255), (245, 255, 225, 255)))
+    caster_bolt(boss, 7, ((60, 120, 170, 255), (120, 190, 240, 255), (200, 235, 255, 255), (255, 255, 255, 255)))
+    caster_bolt(boss, 8, ((110, 90, 30, 255), (170, 150, 40, 255), (220, 210, 100, 255), (250, 245, 200, 255)))
     boss.save(os.path.join(os.path.dirname(OUT), "boss_fx.png"))
 
 

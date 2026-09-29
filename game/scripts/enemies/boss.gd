@@ -106,7 +106,7 @@ func setup(m: MapDef, t: Terrain, props: Props, r: RunState, p: Player, e: Enemy
 	beam.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(beam)
 	_shots = SpriteBatch.new()
-	_shots.setup(load("res://assets/sprites/boss_fx.png"), Vector2(4, 6), 24.0, 12.0)
+	_shots.setup(load("res://assets/sprites/boss_fx.png"), Vector2(4, 9), 24.0, 12.0)
 	add_child(_shots)
 
 
